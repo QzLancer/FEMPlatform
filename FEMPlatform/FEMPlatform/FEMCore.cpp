@@ -1,52 +1,36 @@
 #include "FEMCore.h"
 
 FEMCore::FEMCore() :
-	generator(nullptr),
+	model(nullptr),
+	meshmanager(nullptr),
 	solver(nullptr)
 {
 	if (solver != nullptr)
 		delete solver;
-	if (generator != nullptr)
-		delete generator;
+	if (meshmanager != nullptr)
+		delete meshmanager;
 }
 
 FEMCore::~FEMCore()
 {
 }
 
-void FEMCore::setDimension(string dimension)
+void FEMCore::setModel(FEMModel* _model)
 {
-	if (dimension == "2D") {
-		generator = new FEM2DGenerator;
-		
+	model = _model;
+	//根据维度选择分网管理器类型
+	if (model->getDimension() == FEMModel::DIMENSION::TWO) {
+		meshmanager = new FEM2DGenerator;
+
 	}
-	else if (dimension == "3D") {
-		generator = new FEM3DGenerator;
+	else if (model->getDimension() == FEMModel::DIMENSION::THREE) {
+		meshmanager = new FEM3DGenerator;
 	}
 	else {
 		std::cout << "Error: invalid dimension!\n";
 		exit(0);
 	}
-}
-
-void FEMCore::readMeshData(string meshfile)
-{
-	generator->readMeshFile(meshfile);
-}
-
-void FEMCore::createElement2Material()
-{
-	generator->createElement2Material();
-}
-
-void FEMCore::bulidGeometry2Load()
-{
-	generator->bulidGeometry2Load();
-}
-
-void FEMCore::buildGeometry2Constrain()
-{
-	generator->buildGeometry2Constrain();
+	meshmanager->readMeshFile(model->getMeshFile());
 }
 
 void FEMCore::setAnalysisType(string analysistype)
@@ -90,13 +74,13 @@ void FEMCore::setMatrixSolver(string matrixsolver)
 
 void FEMCore::solve()
 {
-	solver->setNodes(generator->getNumofNodes(), generator->getNodes());
-	solver->setVtxElements(generator->getNumofVtxEle(), generator->getVtxElements());
-	solver->setEdgElements(generator->getNumofEdgEle(), generator->getEdgElements());
-	solver->setTriElements(generator->getNumofTriEle(), generator->getTriElements());
-	solver->setMaterial(generator->getMaterial());
-	solver->setLoad(generator->getLoad());
-	solver->setBoundary(generator->getBoundary());
+	solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+	solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+	solver->setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+	solver->setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+	solver->setMaterial(model->getMaterialMap());
+	solver->setLoad(model->getLoadMap());
+	solver->setBoundary(model->getBoundaryMap());
 	solver->solve();
 }
 

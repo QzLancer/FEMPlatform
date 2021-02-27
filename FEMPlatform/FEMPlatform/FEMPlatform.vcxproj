@@ -143,13 +143,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="FEM2DGenerator.cpp" />
-    <ClCompile Include="FEM3DGenerator.cpp" />
+    <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
+    <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
     <ClCompile Include="FEMBoundary.cpp" />
+    <ClCompile Include="FEMModel\FEMContactorLinearModel.cpp" />
     <ClCompile Include="FEMCore.cpp" />
     <ClCompile Include="FEMDataType.cpp" />
-    <ClCompile Include="FEMGenerator.cpp" />
     <ClCompile Include="FEMMaterial.cpp" />
+    <ClCompile Include="FEMModel\FEMModel.cpp" />
     <ClCompile Include="FEMPlatform.cpp" />
     <ClCompile Include="FEMSolver\FEM2DSolver.cpp" />
     <ClCompile Include="FEMSolver\FEM2DStaticSolver.cpp" />
@@ -159,15 +160,17 @@
     <ClCompile Include="FEMSolver\FEMSolveStrategy.cpp" />
     <ClCompile Include="MatrixSolver\MatrixSolver.cpp" />
     <ClCompile Include="MatrixSolver\SluMTMatrixSolver.cpp" />
+    <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FEM2DGenerator.h" />
-    <ClInclude Include="FEM3DGenerator.h" />
+    <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
+    <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
     <ClInclude Include="FEMBoundary.h" />
+    <ClInclude Include="FEMModel\FEMContactorLinearModel.h" />
     <ClInclude Include="FEMCore.h" />
     <ClInclude Include="FEMDataType.h" />
-    <ClInclude Include="FEMGenerator.h" />
     <ClInclude Include="FEMMaterial.h" />
+    <ClInclude Include="FEMModel\FEMModel.h" />
     <ClInclude Include="FEMSolver\FEM2DSolver.h" />
     <ClInclude Include="FEMSolver\FEM2DStaticSolver.h" />
     <ClInclude Include="FEMSolver\FEMNDDRSolveStrategy.h" />
@@ -176,6 +179,7 @@
     <ClInclude Include="FEMSolver\FEMSolveStrategy.h" />
     <ClInclude Include="MatrixSolver\MatrixSolver.h" />
     <ClInclude Include="MatrixSolver\SluMTMatrixSolver.h" />
+    <ClInclude Include="MeshManager\FEMMeshManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />

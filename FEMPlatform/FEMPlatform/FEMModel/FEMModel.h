@@ -1,0 +1,48 @@
+#pragma once
+
+#include <vector>
+#include <map>
+#include <string>
+
+#include "../FEMMaterial.h"
+#include "../FEMBoundary.h"
+
+#define PI 3.14159265358979323846
+
+//模型类，需要使用新模型时，继承该类/创建该类对象，然后设置好private中的全部必要参数
+//相比于类更像是一个结构体
+class FEMModel 
+{
+protected:
+	FEMModel();
+	virtual void setdimension() = 0;
+	virtual void setMeshFile() = 0;	/*设置网格文件名称*/
+	virtual void addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata) = 0;/*添加非线性材料*/
+	virtual void addLinearMaterial(std::string _name, double _mu) = 0;/*添加线性材料*/
+	virtual void createElement2Material() = 0;	/*设置单元材料类型*/
+	virtual void bulidGeometry2Load() = 0;		/*设置负载*/
+	virtual void buildGeometry2Constrain() = 0;	/*设置边界条件*/
+
+public:
+	void init();
+	enum class DIMENSION {
+		ONE = 1,
+		TWO = 2,
+		THREE = 3
+	};
+	DIMENSION getDimension() const;
+	std::string getMeshFile() const;
+	std::vector<FEMMaterial*> getMaterialList() const;
+	std::map<int, FEMMaterial*> getMaterialMap() const;
+	std::map<int, double> getLoadMap() const;
+	std::map<int, FEMBoundary*> getBoundaryMap() const;
+
+
+protected:
+	DIMENSION dimension;
+	std::string meshfile;
+	std::vector<FEMMaterial*> materiallist;
+	std::map<int, FEMMaterial*> materialmap;
+	std::map<int, double> loadmap;
+	std::map<int, FEMBoundary*> boundarymap;
+};

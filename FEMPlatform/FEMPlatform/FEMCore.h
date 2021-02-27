@@ -1,13 +1,15 @@
 #pragma once
-#include "FEMGenerator.h"
-#include "FEM2DGenerator.h"
-#include "FEM3DGenerator.h"
+#include "MeshManager/FEMMeshManager.h"
+#include "MeshManager/FEM2DMeshManager.h"
+#include "MeshManager/FEM3DMeshManager.h"
+
 #include "FEMSolver/FEMSolver.h"
 #include "FEMSolver/FEMNRSolveStrategy.h"
 #include "FEMSolver/FEMNDDRSolveStrategy.h"
 #include "FEMSolver/FEM2DSolver.h"
 #include "FEMSolver/FEM2DStaticSolver.h"
 #include "MatrixSolver/SluMTMatrixSolver.h"
+#include "FEMModel/FEMModel.h"
 
 #include <iostream>
 #include <string>
@@ -19,11 +21,7 @@ class FEMCore
 public:
 	FEMCore();
 	~FEMCore();
-	void setDimension(string dimension);
-	void readMeshData(string meshfile);
-	void createElement2Material();
-	void bulidGeometry2Load();
-	void buildGeometry2Constrain();
+	void setModel(FEMModel* _model);
 	void setAnalysisType(string analysistype);
 	void setFEMSolveStrategy(string strategy);
 	void setMatrixSolver(string matrixsolver);
@@ -32,7 +30,8 @@ public:
 	void setMaxIterSteps(const int _maxitersteps);
 
 private:
-	FEMGenerator* generator;
+	FEMModel* model;
+	FEMMeshManager* meshmanager;
 	FEMSolver* solver;
 
 };
