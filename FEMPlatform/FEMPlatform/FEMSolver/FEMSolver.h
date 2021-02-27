@@ -9,6 +9,8 @@
 #include <map>
 #include <iostream>
 
+#define PI 3.14159265358979323846
+
 using namespace std;
 
 /*求解器类型，读取求解参数，进行求解。派生2d求解器和3d电磁场求解器，通过SolveStrategy来改变求解方式（NR/NDDR）
@@ -50,5 +52,6 @@ protected:
 	std::map<int, FEMBoundary*> boundarymap;
 
 	int maxitersteps;
+
 };
 

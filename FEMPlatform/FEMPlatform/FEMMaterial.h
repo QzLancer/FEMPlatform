@@ -6,7 +6,7 @@ class FEMMaterial
 public:
 	FEMMaterial();
 	~FEMMaterial();
-	double getMu(double B) const;
+	double getMu(double B = 0);
 	double getdvdB(double B) ;
 	void getkHb(double B, double* k, double* H, double* b);
 	void setName(const std::string name);

@@ -15,6 +15,6 @@ public:
     virtual void buildGeometry2Constrain() override;
 
 private:
-    void read2DMphtxt(string meshfile);
+    void read2DMphtxt(string meshfile); //读取COMSOL5.5版本分网文件
 };
 

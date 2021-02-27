@@ -10,7 +10,8 @@ FEMSolver::FEMSolver():
     mp_node(nullptr),
     mp_vtxele(nullptr),
     mp_edgele(nullptr),
-    mp_triele(nullptr)
+    mp_triele(nullptr),
+    maxitersteps(100)
 {
 
 }

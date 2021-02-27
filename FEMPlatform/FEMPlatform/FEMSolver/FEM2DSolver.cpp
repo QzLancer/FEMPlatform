@@ -3,26 +3,26 @@
 void FEM2DSolver::makeTrangle(int index)
 {
 	int k, m, n;
-	double p0, p1, p2, q0, q1, q2, area;
+	double q0, q1, q2, r0, r1, r2, area;
 	k = mp_triele[index].n[0];
 	m = mp_triele[index].n[1];
 	n = mp_triele[index].n[2];
 
-	p0 = mp_node[m].y - mp_node[n].y;
-	mp_triele[index].P[0] = p0;
-	p1 = mp_node[n].y - mp_node[k].y;
-	mp_triele[index].P[1] = p1;
-	p2 = mp_node[k].y - mp_node[m].y;
-	mp_triele[index].P[2] = p2;
-
-	q0 = mp_node[n].x - mp_node[m].x;
+	q0 = mp_node[m].y - mp_node[n].y;
 	mp_triele[index].Q[0] = q0;
-	q1 = mp_node[k].x - mp_node[n].x;
+	q1 = mp_node[n].y - mp_node[k].y;
 	mp_triele[index].Q[1] = q1;
-	q2 = mp_node[m].x - mp_node[k].x;
+	q2 = mp_node[k].y - mp_node[m].y;
 	mp_triele[index].Q[2] = q2;
 
-	area = 0.5 * std::abs(p1 * q2 - q1 * p2);
+	r0 = mp_node[n].x - mp_node[m].x;
+	mp_triele[index].R[0] = r0;
+	r1 = mp_node[k].x - mp_node[n].x;
+	mp_triele[index].R[1] = r1;
+	r2 = mp_node[m].x - mp_node[k].x;
+	mp_triele[index].R[2] = r2;
+
+	area = 0.5 * std::abs(q1 * r2 - r1 * q2);
 	mp_triele[index].area = area;
 
 	mp_triele[index].rc = (mp_node[k].x +
@@ -48,5 +48,13 @@ void FEM2DSolver::makeTrangle(int index)
 		mp_triele[index].ydot += 1 / (mp_node[k].x + mp_node[n].x);
 		mp_triele[index].ydot += 1 / (mp_node[m].x + mp_node[n].x);
 		mp_triele[index].ydot = 1.5 / mp_triele[index].ydot;
+	}
+
+	//计算一阶三角形轴对称单元系数矩阵
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			mp_triele[index].C[i][j] = (PI * mp_triele[index].ydot * 
+				(mp_triele[index].R[i] * mp_triele[index].R[j] + mp_triele[index].Q[i] * mp_triele[index].Q[j])) / (2 * mp_triele[index].area);
+		}
 	}
 }

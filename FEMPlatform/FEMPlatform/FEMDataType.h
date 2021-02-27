@@ -1,4 +1,7 @@
 #pragma once
+
+#include "FEMMaterial.h"
+
 struct CNode
 {
     double x{ 0 }, y{ 0 }, z{ 0 };
@@ -31,10 +34,13 @@ struct CEdgElement {
 
 struct CTriElement {
     int n[3]{0};// ni, nj, nk;//
-    double P[3]{0};// Pi, Pj, Pk;
     double Q[3]{0};// Qi, Qj, Qk;
+    double R[3]{0};// Ri, Rj, Rk;
+    double C[3][3];// 单元系数矩阵
     double area;
     double rc, zc;
     double ydot;
     int domain{0};
+    FEMMaterial* material{new FEMMaterial};
+    double J{0};  //负载，暂时只考虑电流，直流，后续需要单独建一个类
 };

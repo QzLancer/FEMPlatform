@@ -2,13 +2,13 @@
 
 #define PI 3.14159265358979323846
 
-FEMMaterial::FEMMaterial()
+FEMMaterial::FEMMaterial():
+	BHpoints(0),
+	mu(PI * 4e-7),
+	Hdata(nullptr),
+	Bdata(nullptr),
+	linearflag(true)
 {
-    BHpoints = 0;
-	mu = 4 * PI * 1e-7;
-    Hdata = nullptr;
-    Bdata = nullptr;
-	linearflag = true;
 }
 
 FEMMaterial::~FEMMaterial()
@@ -21,9 +21,23 @@ FEMMaterial::~FEMMaterial()
 	}
 }
 
-double FEMMaterial::getMu(double B) const
+double FEMMaterial::getMu(double B)
 {
-    return mu;
+	double slope, H, b;
+
+
+	if (linearflag == false) {
+		if (B < 1e-3)  mu = Bdata[1] / Hdata[1];
+		getkHb(B, &slope, &H, &b);
+
+		if (B / H < PI * 4e-7) {
+			mu = PI * 4e-7;
+		}
+		else {
+			mu = B / H;
+		}
+	}
+	return mu;
 }
 
 double FEMMaterial::getdvdB(double B)
@@ -34,6 +48,7 @@ double FEMMaterial::getdvdB(double B)
     return -b / (B * B);
 }
 
+//线性插值计算斜率k，磁场强度H
 void FEMMaterial::getkHb(double B, double* k, double* H, double* b)
 {
 	if (B >= Bdata[BHpoints - 1]) {
