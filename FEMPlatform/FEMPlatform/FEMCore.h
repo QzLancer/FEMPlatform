@@ -7,6 +7,7 @@
 #include "FEMSolver/FEMNDDRSolveStrategy.h"
 #include "FEMSolver/FEM2DSolver.h"
 #include "FEMSolver/FEM2DStaticSolver.h"
+#include "MatrixSolver/SluMTMatrixSolver.h"
 
 #include <iostream>
 #include <string>
@@ -16,15 +17,19 @@ using namespace std;
 class FEMCore
 {
 public:
+	FEMCore();
+	~FEMCore();
 	void setDimension(string dimension);
 	void readMeshData(string meshfile);
 	void createElement2Material();
 	void bulidGeometry2Load();
 	void buildGeometry2Constrain();
 	void setAnalysisType(string analysistype);
-	void setFEMSolver(string solvertype);
+	void setFEMSolveStrategy(string strategy);
+	void setMatrixSolver(string matrixsolver);
 	void solve();
 	void postoperation();
+	void setMaxIterSteps(const int _maxitersteps);
 
 private:
 	FEMGenerator* generator;

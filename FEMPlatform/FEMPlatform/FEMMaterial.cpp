@@ -13,10 +13,10 @@ FEMMaterial::FEMMaterial()
 
 FEMMaterial::~FEMMaterial()
 {
-	if (Hdata != NULL) {
+	if (Hdata != nullptr) {
 		delete[] Hdata;
 	}
-	if (Bdata != NULL) {
+	if (Bdata != nullptr) {
 		delete[] Bdata;
 	}
 }

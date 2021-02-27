@@ -2,6 +2,11 @@
 
 #define PI 3.14159265358979323846
 
+FEM2DGenerator::~FEM2DGenerator()
+{
+
+}
+
 void FEM2DGenerator::readMeshFile(string meshfile)
 {
 	//获取分网文件拓展名
@@ -79,7 +84,7 @@ void FEM2DGenerator::read2DMphtxt(string meshfile)
         exit(0);
     }
     else std::cout << m_num_nodes << "number of mesh points." << endl;
-    mp_2Dnode = new C2DNode[m_num_nodes];
+    mp_node = new C2DNode[m_num_nodes];
     int pts_ind;//the beginning of the points index
 
     if (fscanf_s(fp, "%d # lowest mesh vertex index\n", &pts_ind) != 1) {
@@ -90,7 +95,7 @@ void FEM2DGenerator::read2DMphtxt(string meshfile)
 
     for (int i = pts_ind; i < m_num_nodes; i++) {
         //读取x,y坐标
-        if (fscanf_s(fp, "%lf %lf \n", &(mp_2Dnode[i].x), &(mp_2Dnode[i].y)) != 2) {
+        if (fscanf_s(fp, "%lf %lf \n", &(mp_node[i].x), &(mp_node[i].y)) != 2) {
             std::cout << "error: reading mesh point!" << endl;
             exit(0);
         }
