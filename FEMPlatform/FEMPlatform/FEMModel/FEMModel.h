@@ -24,7 +24,7 @@ protected:
 	virtual void buildGeometry2Constrain() = 0;	/*设置边界条件*/
 
 public:
-	void init();
+	void init();	/*设计模式：Template模式*/
 	enum class DIMENSION {
 		ONE = 1,
 		TWO = 2,

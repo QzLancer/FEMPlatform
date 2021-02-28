@@ -1,12 +1,12 @@
 #include "FEM2DMeshManager.h"
 
 
-FEM2DGenerator::~FEM2DGenerator()
+FEM2DMeshManager::~FEM2DMeshManager()
 {
 
 }
 
-void FEM2DGenerator::readMeshFile(string meshfile)
+void FEM2DMeshManager::readMeshFile(string meshfile)
 {
 	//获取分网文件拓展名
 	string extension;
@@ -27,7 +27,7 @@ void FEM2DGenerator::readMeshFile(string meshfile)
 
 }
 
-void FEM2DGenerator::read2DMphtxt(string meshfile)
+void FEM2DMeshManager::read2DMphtxt(string meshfile)
 {
     cout << meshfile << endl;
     FILE* fp = nullptr;

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <math.h>
 
 //只考虑第一类边界条件计算
 class FEM2DStaticSolver :

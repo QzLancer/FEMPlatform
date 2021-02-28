@@ -1,6 +1,6 @@
 #include "FEM3DMeshManager.h"
 
-void FEM3DGenerator::readMeshFile(string meshfile)
+void FEM3DMeshManager::readMeshFile(string meshfile)
 {
 }
 

@@ -20,11 +20,11 @@ void FEMCore::setModel(FEMModel* _model)
 	model = _model;
 	//根据维度选择分网管理器类型
 	if (model->getDimension() == FEMModel::DIMENSION::TWO) {
-		meshmanager = new FEM2DGenerator;
+		meshmanager = new FEM2DMeshManager;
 
 	}
 	else if (model->getDimension() == FEMModel::DIMENSION::THREE) {
-		meshmanager = new FEM3DGenerator;
+		meshmanager = new FEM3DMeshManager;
 	}
 	else {
 		std::cout << "Error: invalid dimension!\n";

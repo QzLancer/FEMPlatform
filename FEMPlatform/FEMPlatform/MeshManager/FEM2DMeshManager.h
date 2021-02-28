@@ -4,11 +4,11 @@
 #include <vector>
 
 //目前单个模型的处理放在这里，后续将通用模型数据处理和单独模型的边界、负载条件添加分离
-class FEM2DGenerator :
+class FEM2DMeshManager :
     public FEMMeshManager
 {
 public:
-    ~FEM2DGenerator();
+    ~FEM2DMeshManager();
     virtual void readMeshFile(string meshfile) override;
 
 private:

@@ -1,5 +1,6 @@
 #include "SluMTMatrixSolver.h"
 
+
 SluMTMatrixSolver::SluMTMatrixSolver() :
     nprocs(std::thread::hardware_concurrency())
 {
@@ -13,8 +14,9 @@ SluMTMatrixSolver::~SluMTMatrixSolver()
     Destroy_SuperMatrix_Store(&A);
 }
 
-double* SluMTMatrixSolver::solveMatrix(int** locs, double* vals, double* F, int valsize, int vecsize)
+double* SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<double> vals, vector<double> F, int valsize, int vecsize)
 {
+    printf("nprocs: %d\n", nprocs);
     if (L.ncol > 0 || L.nrow > 0) {
         Destroy_SuperNode_Matrix(&L);
     }
