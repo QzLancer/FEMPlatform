@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FEMPostProcesser.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
     <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
     <ClCompile Include="FEMBoundary.cpp" />
@@ -163,6 +164,7 @@
     <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FEMPostProcesser.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
     <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
     <ClInclude Include="FEMBoundary.h" />

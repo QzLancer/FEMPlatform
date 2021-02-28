@@ -24,5 +24,5 @@ int main()
     core.setMatrixSolver(matrixsolver);
     core.setMaxIterSteps(200);
     core.solve();
-    core.postoperation();
+    core.postprocess();
 }

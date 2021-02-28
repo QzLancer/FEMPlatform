@@ -92,6 +92,7 @@ double* SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<double> 
         res = doubleMalloc(m);
         for (int i = 0; i < vecsize; ++i) {
             res[i] = ((double*)((DNformat*)B.Store)->nzval)[i];
+            //printf("res %d : %f\n", i, res[i]);
         }
     }
     else {

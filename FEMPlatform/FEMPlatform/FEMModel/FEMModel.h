@@ -15,6 +15,7 @@ class FEMModel
 {
 protected:
 	FEMModel();
+	virtual void setModelName() = 0;
 	virtual void setdimension() = 0;
 	virtual void setMeshFile() = 0;	/*设置网格文件名称*/
 	virtual void addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata) = 0;/*添加非线性材料*/
@@ -36,9 +37,11 @@ public:
 	std::map<int, FEMMaterial*> getMaterialMap() const;
 	std::map<int, double> getLoadMap() const;
 	std::map<int, FEMBoundary*> getBoundaryMap() const;
+	std::string getModelName() const;
 
 
 protected:
+	std::string modelname;
 	DIMENSION dimension;
 	std::string meshfile;
 	std::vector<FEMMaterial*> materiallist;

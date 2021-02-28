@@ -6,6 +6,7 @@
 #include "../FEMBoundary.h"
 #include "../MatrixSolver/MatrixSolver.h"
 
+#include <vector>
 #include <map>
 #include <iostream>
 
@@ -34,6 +35,8 @@ public:
 	void setBoundary(const std::map<int, FEMBoundary*> _boundarymap);
 	void setMaxIterSteps(const int _maxitersteps);
 
+	std::vector<double> getA() const;
+
 protected:
 	FEMSolveStrategy* strategy;
 	MatrixSolver* matsolver;
@@ -53,5 +56,6 @@ protected:
 
 	int maxitersteps;
 
+	std::vector<double> A;
 };
 

@@ -1,5 +1,10 @@
 #include "FEMContactorLinearModel.h"
 
+void FEMContactorLinearModel::setModelName()
+{
+    modelname = "ContactLinear";
+}
+
 void FEMContactorLinearModel::setdimension()
 {
     dimension = DIMENSION::TWO;
@@ -38,7 +43,7 @@ void FEMContactorLinearModel::createElement2Material()
     //double* hdata = new double[] { 0, 663.146, 1067.5, 1705.23, 2463.11, 3841.67, 5425.74, 7957.75, 12298.3,
     //    20462.8, 32169.6, 61213.4, 111408, 175070, 261469, 318310 };
     //addNonlinearMaterial("Soft Iron", 16, bdata, hdata);
-    addLinearMaterial("Soft Iron", 1 / 664);
+    addLinearMaterial("Soft Iron", 1. / 664.);  //整型常数/整型常数得到的还是整型
 
     //针对当前模型设置材料，和上面的添加材料功能应该分离到两个不同的类
     materialmap[1] = materiallist[0];

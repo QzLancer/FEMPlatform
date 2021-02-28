@@ -30,6 +30,11 @@ std::map<int, FEMBoundary*> FEMModel::getBoundaryMap() const
     return boundarymap;
 }
 
+std::string FEMModel::getModelName() const
+{
+    return modelname;
+}
+
 FEMModel::FEMModel()
 {
 
@@ -37,6 +42,7 @@ FEMModel::FEMModel()
 
 void FEMModel::init()
 {
+    setModelName();
     setdimension();
     setMeshFile();
     createElement2Material();

@@ -8,6 +8,7 @@ class FEMContactorLinearModel :
 {
 protected:
 	// Í¨¹ý FEMModel ¼Ì³Ð
+	virtual void setModelName() override;
 	virtual void setdimension() override;
 	virtual void setMeshFile() override;
 	virtual void addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata) override;

@@ -36,31 +36,31 @@ void FEM2DStaticSolver::solve()
 	int num_bdr;
 	std::vector<int> boundarynodes;
 	//原有版本的边界检索
-	//for (auto iter = boundarymap.begin(); iter != boundarymap.end(); ++iter) {
-	//	if (iter->second->getBoundaryType() == 1) {
-	//		int boundarynodedomain = iter->first;
-	//		for (int i = 0; i < m_num_edgele; ++i) {
-	//			if (mp_edgele[i].domain == boundarynodedomain) {
-	//				boundarynodes.push_back(mp_edgele[i].n[0]);
-	//				boundarynodes.push_back(mp_edgele[i].n[1]);
-	//			}
-	//		}
-	//	}
-	//	else {
-	//		cout << "Invalid boundarytype!\n";
-	//		exit(0);
-	//	}
-	//}
-	//std::sort(boundarynodes.begin(), boundarynodes.end());
-	//boundarynodes.erase(unique(boundarynodes.begin(), boundarynodes.end()), boundarynodes.end());
-	//直接通过几何检索边界
-	for (int i = 0; i < m_num_nodes; ++i) {
-		double x = mp_node[i].x;
-		double y = mp_node[i].y;
-		if (mp_node[i].x <= 1e-8 || sqrt(x * x + y * y) > 0.05 - 1e-3) {
-			boundarynodes.push_back(i);
+	for (auto iter = boundarymap.begin(); iter != boundarymap.end(); ++iter) {
+		if (iter->second->getBoundaryType() == 1) {
+			int boundarynodedomain = iter->first;
+			for (int i = 0; i < m_num_edgele; ++i) {
+				if (mp_edgele[i].domain == boundarynodedomain) {
+					boundarynodes.push_back(mp_edgele[i].n[0]);
+					boundarynodes.push_back(mp_edgele[i].n[1]);
+				}
+			}
+		}
+		else {
+			cout << "Invalid boundarytype!\n";
+			exit(0);
 		}
 	}
+	std::sort(boundarynodes.begin(), boundarynodes.end());
+	boundarynodes.erase(unique(boundarynodes.begin(), boundarynodes.end()), boundarynodes.end());
+	//直接通过几何检索边界
+	//for (int i = 0; i < m_num_nodes; ++i) {
+	//	double x = mp_node[i].x;
+	//	double y = mp_node[i].y;
+	//	if (mp_node[i].x <= 1e-8 || sqrt(x * x + y * y) > 0.05 - 1e-3) {
+	//		boundarynodes.push_back(i);
+	//	}
+	//}
 
 	num_bdr = boundarynodes.size();
 	num_dof -= num_bdr;
@@ -136,7 +136,7 @@ void FEM2DStaticSolver::solve()
 				int n2 = triele.n[j];
 				if (triele.material->getLinearFlag() == true) {
 					if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
-						double mu = triele.material->getMu();
+						double mu = triele.material->getMu();	//存在mu=0的情况
 						double Se = triele.C[i][j] / mu;
 						locs[0][pos] = node_pos[n1];
 						locs[1][pos] = node_pos[n2];
@@ -179,6 +179,11 @@ void FEM2DStaticSolver::solve()
 	//for (int i = 0; i < 5; ++i) cout << res[i] << endl;
 
 	//求解
-	matsolver->solveMatrix(locs, vals, F, pos, num_dof);
+	double* res1 = matsolver->solveMatrix(locs, vals, F, pos, num_dof);
+	A.resize(m_num_nodes);
+	for (int i = 0; i < num_dof; ++i) {
+		int index = node_reorder[i];
+		A[index] = res1[i];
+	}
 
 }

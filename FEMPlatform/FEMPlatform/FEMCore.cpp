@@ -84,8 +84,9 @@ void FEMCore::solve()
 	solver->solve();
 }
 
-void FEMCore::postoperation()
+void FEMCore::postprocess()
 {
+	postprocesser->writeVtkFile(model->getModelName(), meshmanager, solver->getA());
 }
 
 void FEMCore::setMaxIterSteps(const int _maxitersteps)

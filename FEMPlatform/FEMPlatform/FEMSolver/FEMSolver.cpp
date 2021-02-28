@@ -83,3 +83,8 @@ void FEMSolver::setMaxIterSteps(const int _maxitersteps)
 {
     maxitersteps = _maxitersteps;
 }
+
+std::vector<double> FEMSolver::getA() const
+{
+    return A;
+}

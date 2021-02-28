@@ -13,6 +13,8 @@
 
 #include "FEMModel/FEMModel.h"
 
+#include "FEMPostProcesser.h"
+
 #include <iostream>
 #include <string>
 using namespace std;
@@ -28,13 +30,13 @@ public:
 	void setFEMSolveStrategy(string strategy);
 	void setMatrixSolver(string matrixsolver);
 	void solve();
-	void postoperation();
+	void postprocess();
 	void setMaxIterSteps(const int _maxitersteps);
 
 private:
 	FEMModel* model;
 	FEMMeshManager* meshmanager;
 	FEMSolver* solver;
-
+	FEMPostProcesser* postprocesser;
 };
 
