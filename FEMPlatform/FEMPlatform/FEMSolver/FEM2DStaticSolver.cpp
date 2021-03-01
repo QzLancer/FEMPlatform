@@ -9,10 +9,7 @@ void FEM2DStaticSolver::solve()
 	B.resize(m_num_triele);
 
 	//计算三角形单元几何部分
-	for (int i = 0; i < m_num_triele; ++i) {
-		makeTrangle(i);
-	}
-
+	makeTrangle();
 	//处理边界条件、材料和负载
 	processBoundaryCondition();
 	processMaterial();
