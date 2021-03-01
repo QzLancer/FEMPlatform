@@ -15,7 +15,7 @@ int maxitersteps = 200;
 int main()
 {
     FEMCore core;
-    FEMModel* model = new FEMContactorNonLinearModel;
+    FEMModel* model = new FEMContactorLinearModel;
     model->init();
 
     core.setModel(model);

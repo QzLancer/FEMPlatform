@@ -41,7 +41,7 @@ struct CTriElement {
     double C[3][3];// 单元系数矩阵
     double area{0};
     double rc, zc;
-    double ydot;
+    double xdot;
     int domain{0};
     FEMMaterial* material{new FEMMaterial};
     double J{0};  //负载，暂时只考虑电流，直流，后续需要单独建一个类

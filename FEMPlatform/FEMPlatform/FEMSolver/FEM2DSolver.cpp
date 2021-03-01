@@ -41,20 +41,19 @@ void FEM2DSolver::makeTrangle(int index)
 
 	//计算三角形重心半径
 	if (flag == 2) {
-		mp_triele[index].ydot = mp_triele[index].rc;
+		mp_triele[index].xdot = mp_triele[index].rc;
 	}
 	else {
-		mp_triele[index].ydot = 1 / (mp_node[k].x + mp_node[m].x);
-		mp_triele[index].ydot += 1 / (mp_node[k].x + mp_node[n].x);
-		mp_triele[index].ydot += 1 / (mp_node[m].x + mp_node[n].x);
-		mp_triele[index].ydot = 1.5 / mp_triele[index].ydot;
+		mp_triele[index].xdot = 1 / (mp_node[k].x + mp_node[m].x);
+		mp_triele[index].xdot += 1 / (mp_node[k].x + mp_node[n].x);
+		mp_triele[index].xdot += 1 / (mp_node[m].x + mp_node[n].x);
+		mp_triele[index].xdot = 1.5 / mp_triele[index].xdot;
 	}
 
 	//计算一阶三角形轴对称单元系数矩阵
 	for (int i = 0; i < 3; ++i) {
 		for (int j = 0; j < 3; ++j) {
-			mp_triele[index].C[i][j] = (PI * mp_triele[index].ydot * 
-				(mp_triele[index].R[i] * mp_triele[index].R[j] + mp_triele[index].Q[i] * mp_triele[index].Q[j])) / (2 * mp_triele[index].area);
+			mp_triele[index].C[i][j] = ((mp_triele[index].R[i] * mp_triele[index].R[j] + mp_triele[index].Q[i] * mp_triele[index].Q[j])) / (4 * mp_triele[index].area);
 		}
 	}
 }

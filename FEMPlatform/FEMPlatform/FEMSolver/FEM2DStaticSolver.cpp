@@ -29,7 +29,8 @@ void FEM2DStaticSolver::solve()
 				if (triele.material->getLinearFlag() == true) {
 					if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
 						double mu = triele.material->getMu();	//存在mu=0的情况
-						double Se = triele.C[i][j] / mu;
+						double mut = mu * triele.xdot;
+						double Se = triele.C[i][j] / mut;
 						locs[0][pos] = node_pos[n1];
 						locs[1][pos] = node_pos[n2];
 						vals[pos] = Se;
@@ -38,7 +39,7 @@ void FEM2DStaticSolver::solve()
 				}
 			}
 			if (mp_node[n1].bdr != 1) {
-				double Fe = PI * triele.J * triele.area * (mp_node[triele.n[i]].x + 3 * triele.ydot) / 6;
+				double Fe = triele.J * triele.area / 3;
 				F[node_pos[n1]] += Fe;
 			}
 		}
@@ -57,7 +58,8 @@ void FEM2DStaticSolver::solve()
 		double* res1 = matsolver->solveMatrix(locs, vals, F, pos, num_freenodes);
 		for (int i = 0; i < num_freenodes; ++i) {
 			int index = node_reorder[i];
-			A[index] = res1[i];
+			A[index] = res1[i] / mp_node[index].x;
+			cout << A[index] << endl;
 		}
 		updateB();
 		return;
@@ -75,7 +77,7 @@ void FEM2DStaticSolver::solve()
 				double mu, dvdb;
 				mu = mp_triele[i_tri].material->getMu(B[i_tri]);
 				dvdb = mp_triele[i_tri].material->getdvdB(B[i_tri]);
-				cout << "B = " << B[i_tri] << ", mu = " << mu << ", dvdb = " << dvdb << endl;
+
 			}
 
 		}
