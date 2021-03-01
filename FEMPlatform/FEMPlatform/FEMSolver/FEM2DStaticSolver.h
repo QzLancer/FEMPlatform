@@ -3,7 +3,6 @@
 #include "FEM2DSolver.h"
 
 #include <vector>
-#include <algorithm>
 #include <math.h>
 
 //只考虑第一类边界条件计算
@@ -12,6 +11,9 @@ class FEM2DStaticSolver :
 {
 public:
     virtual void solve() override;
+
+protected:
+
 
 private:
     

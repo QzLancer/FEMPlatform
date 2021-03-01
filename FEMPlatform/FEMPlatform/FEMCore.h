@@ -13,8 +13,6 @@
 
 #include "FEMModel/FEMModel.h"
 
-#include "FEMPostProcesser.h"
-
 #include <iostream>
 #include <string>
 using namespace std;
@@ -37,6 +35,5 @@ private:
 	FEMModel* model;
 	FEMMeshManager* meshmanager;
 	FEMSolver* solver;
-	FEMPostProcesser* postprocesser;
 };
 

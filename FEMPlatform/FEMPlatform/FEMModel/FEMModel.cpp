@@ -49,3 +49,23 @@ void FEMModel::init()
     bulidGeometry2Load();
     buildGeometry2Constrain();
 }
+
+void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata)
+{
+    FEMMaterial* material = new FEMMaterial;
+    material->setName(_name);
+    material->setLinearFlag(false);
+    material->setBHpoints(_bhpoints);
+    material->setBdata(_bdata);
+    material->setHdata(_hdata);
+    materiallist.push_back(material);
+}
+
+void FEMModel::addLinearMaterial(std::string _name, double _mu)
+{
+    FEMMaterial* material = new FEMMaterial;
+    material->setBHpoints(1);
+    material->setLinearFlag(true);
+    material->setmu(_mu);
+    materiallist.push_back(material);
+}

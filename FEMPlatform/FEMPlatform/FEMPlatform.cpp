@@ -4,6 +4,7 @@
 #include <iostream>
 #include "FEMCore.h"
 #include "FEMModel/FEMContactorLinearModel.h"
+#include "FEMModel/FEMContactorNonLinearModel.h"
 
 std::string analysistype = "static";
 std::string solvestrategy = "NR";
@@ -14,7 +15,7 @@ int maxitersteps = 200;
 int main()
 {
     FEMCore core;
-    FEMModel* model = new FEMContactorLinearModel;
+    FEMModel* model = new FEMContactorNonLinearModel;
     model->init();
 
     core.setModel(model);

@@ -9,6 +9,8 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <algorithm>
+#include <math.h>
 
 #define PI 3.14159265358979323846
 
@@ -34,10 +36,15 @@ public:
 	void setLoad(const std::map<int, double> _loadmap);
 	void setBoundary(const std::map<int, FEMBoundary*> _boundarymap);
 	void setMaxIterSteps(const int _maxitersteps);
+	void writeVtkFile(std::string _name);
 
 	std::vector<double> getA() const;
 
 protected:
+	virtual void processBoundaryCondition() = 0;
+	virtual void processMaterial() = 0;
+	virtual void processLoad() = 0;
+
 	FEMSolveStrategy* strategy;
 	MatrixSolver* matsolver;
 
@@ -56,6 +63,11 @@ protected:
 
 	int maxitersteps;
 
-	std::vector<double> A;
+	int num_freenodes;	//自由节点数目
+	std::vector<int> node_reorder;	//前num_dof个元素对应非边界节点，之后的元素对应第一类边界条件
+	std::vector<int> node_pos;	//原节点编号对应的reorder后的节点编号
+
+	std::vector<double> A{ 0 };
+	std::vector<double> Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
 };
 

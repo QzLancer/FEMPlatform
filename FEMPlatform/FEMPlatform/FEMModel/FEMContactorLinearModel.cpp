@@ -15,26 +15,6 @@ void FEMContactorLinearModel::setMeshFile()
     meshfile = "../../model/model.mphtxt";
 }
 
-void FEMContactorLinearModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata)
-{
-    FEMMaterial* material = new FEMMaterial;
-    material->setName(_name);
-    material->setLinearFlag(false);
-    material->setBHpoints(_bhpoints);
-    material->setBdata(_bdata);
-    material->setHdata(_hdata);
-    materiallist.push_back(material);
-}
-
-void FEMContactorLinearModel::addLinearMaterial(std::string _name, double _mu)
-{
-    FEMMaterial* material = new FEMMaterial;
-    material->setBHpoints(1);
-    material->setLinearFlag(true);
-    material->setmu(_mu);
-    materiallist.push_back(material);
-}
-
 void FEMContactorLinearModel::createElement2Material()
 {
     //添加材料，后续应该是在用户界面添加，然后一直以文本的形式保存

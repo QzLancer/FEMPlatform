@@ -25,16 +25,18 @@ double FEMMaterial::getMu(double B)
 {
 	double slope, H, b;
 
-
 	if (linearflag == false) {
-		if (B < 1e-3)  mu = Bdata[1] / Hdata[1];
-		getkHb(B, &slope, &H, &b);
-
-		if (B / H < PI * 4e-7) {
-			mu = PI * 4e-7;
+		if (B < 1e-3) {
+			mu = Bdata[1] / Hdata[1];
 		}
 		else {
-			mu = B / H;
+			getkHb(B, &slope, &H, &b);
+			if (B / H < PI * 4e-7) {
+				mu = PI * 4e-7;
+			}
+			else {
+				mu = B / H;
+			}
 		}
 	}
 	return mu;
