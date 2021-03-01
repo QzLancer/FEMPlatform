@@ -11,11 +11,12 @@ std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 200;
+double maxerror = 1e-9;
 
 int main()
 {
     FEMCore core;
-    FEMModel* model = new FEMContactorLinearModel;
+    FEMModel* model = new FEMContactorNonLinearModel;
     model->init();
 
     core.setModel(model);
@@ -23,7 +24,8 @@ int main()
     core.setFEMSolveStrategy(solvestrategy);
     core.setMaxIterSteps(maxitersteps);
     core.setMatrixSolver(matrixsolver);
-    core.setMaxIterSteps(200);
+    core.setMaxIterSteps(maxitersteps);
+    core.setMaxError(maxerror);
     core.solve();
     core.postprocess();
 }

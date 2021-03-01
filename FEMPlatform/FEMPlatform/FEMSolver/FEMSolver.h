@@ -36,6 +36,7 @@ public:
 	void setLoad(const std::map<int, double> _loadmap);
 	void setBoundary(const std::map<int, FEMBoundary*> _boundarymap);
 	void setMaxIterSteps(const int _maxitersteps);
+	void setMaxError(const double _error);
 	void writeVtkFile(std::string _name);
 
 	std::vector<double> getA() const;
@@ -62,12 +63,14 @@ protected:
 	std::map<int, FEMBoundary*> boundarymap;
 
 	int maxitersteps;
+	double maxerror;
 
 	int num_freenodes;	//自由节点数目
 	std::vector<int> node_reorder;	//前num_dof个元素对应非边界节点，之后的元素对应第一类边界条件
 	std::vector<int> node_pos;	//原节点编号对应的reorder后的节点编号
 
 	std::vector<double> A{ 0 };
+	std::vector<double> At{ 0 };
 	std::vector<double> Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
 };
 

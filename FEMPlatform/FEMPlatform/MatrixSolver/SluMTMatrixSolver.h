@@ -11,7 +11,7 @@ class SluMTMatrixSolver :
 public:
     SluMTMatrixSolver();
     virtual ~SluMTMatrixSolver() override;
-    virtual double* solveMatrix(vector<vector<int>> locs, vector<double> vals, vector<double> F, int valsize, int vecsize) override;
+    virtual vector<double> solveMatrix(vector<vector<int>> locs, vector<double> vals, vector<double> F, int valsize, int vecsize) override;
     void setNumberofProcs(const int _nprocs);
 
 private:

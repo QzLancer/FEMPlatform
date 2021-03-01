@@ -30,6 +30,7 @@ public:
 	void solve();
 	void postprocess();
 	void setMaxIterSteps(const int _maxitersteps);
+	void setMaxError(const double _error);
 
 private:
 	FEMModel* model;

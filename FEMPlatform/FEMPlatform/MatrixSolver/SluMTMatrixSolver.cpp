@@ -14,7 +14,7 @@ SluMTMatrixSolver::~SluMTMatrixSolver()
     Destroy_SuperMatrix_Store(&A);
 }
 
-double* SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<double> vals, vector<double> F, int valsize, int vecsize)
+vector<double> SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<double> vals, vector<double> F, int valsize, int vecsize)
 {
     printf("nprocs: %d\n", nprocs);
     if (L.ncol > 0 || L.nrow > 0) {
@@ -26,7 +26,8 @@ double* SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<double> 
 
     int m, n, nnz, info, panel_size = 0;
     int* xa = nullptr, * asub = nullptr, * perm_r = nullptr, * perm_c = nullptr;
-    double* a = nullptr, * rhs = nullptr, * res = nullptr;
+    double* a = nullptr, * rhs = nullptr;
+    vector<double> res;
     superlu_memusage_t superlu_memusage;
     //将数据转化成列压缩存储形式
     m = vecsize; n = vecsize;
@@ -89,7 +90,7 @@ double* SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<double> 
 
     //读取结果
     if (info == 0) {
-        res = doubleMalloc(m);
+        res.resize(m);
         for (int i = 0; i < vecsize; ++i) {
             res[i] = ((double*)((DNformat*)B.Store)->nzval)[i];
             //printf("res %d : %f\n", i, res[i]);

@@ -84,6 +84,11 @@ void FEMSolver::setMaxIterSteps(const int _maxitersteps)
     maxitersteps = _maxitersteps;
 }
 
+void FEMSolver::setMaxError(const double _error)
+{
+	maxerror = _error;
+}
+
 void FEMSolver::writeVtkFile(std::string _name)
 {
 	std::string name = std::string("../../result/") + _name + std::string(".vtk");

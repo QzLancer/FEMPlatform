@@ -93,3 +93,8 @@ void FEMCore::setMaxIterSteps(const int _maxitersteps)
 {
 	solver->setMaxIterSteps(_maxitersteps);
 }
+
+void FEMCore::setMaxError(const double _error)
+{
+	solver->setMaxError(_error);
+}
