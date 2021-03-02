@@ -4,11 +4,9 @@
 #include "MeshManager/FEM3DMeshManager.h"
 
 #include "FEMSolver/FEMSolver.h"
-#include "FEMSolver/FEMNRSolveStrategy.h"
-#include "FEMSolver/FEMNDDRSolveStrategy.h"
 #include "FEMSolver/FEM2DSolver.h"
-#include "FEMSolver/FEM2DStaticSolver.h"
-
+#include "FEMSolver/FEM2DNRSolver.h"
+#include "FEMSolver/FEM2DNDDRSolver.h"
 #include "MatrixSolver/SluMTMatrixSolver.h"
 
 #include "FEMModel/FEMModel.h"

@@ -7,7 +7,7 @@
 #include "FEMModel/FEMContactorNonLinearModel.h"
 
 std::string analysistype = "static";
-std::string solvestrategy = "NR";
+std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 200;

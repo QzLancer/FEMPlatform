@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
     <ClCompile Include="FEMModel\FEMContactorNonLinearModel.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
     <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
@@ -154,9 +155,7 @@
     <ClCompile Include="FEMModel\FEMModel.cpp" />
     <ClCompile Include="FEMPlatform.cpp" />
     <ClCompile Include="FEMSolver\FEM2DSolver.cpp" />
-    <ClCompile Include="FEMSolver\FEM2DStaticSolver.cpp" />
-    <ClCompile Include="FEMSolver\FEMNDDRSolveStrategy.cpp" />
-    <ClCompile Include="FEMSolver\FEMNRSolveStrategy.cpp" />
+    <ClCompile Include="FEMSolver\FEM2DNRSolver.cpp" />
     <ClCompile Include="FEMSolver\FEMSolver.cpp" />
     <ClCompile Include="FEMSolver\FEMSolveStrategy.cpp" />
     <ClCompile Include="MatrixSolver\MatrixSolver.cpp" />
@@ -164,6 +163,7 @@
     <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
     <ClInclude Include="FEMModel\FEMContactorNonLinearModel.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
     <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
@@ -174,9 +174,7 @@
     <ClInclude Include="FEMMaterial.h" />
     <ClInclude Include="FEMModel\FEMModel.h" />
     <ClInclude Include="FEMSolver\FEM2DSolver.h" />
-    <ClInclude Include="FEMSolver\FEM2DStaticSolver.h" />
-    <ClInclude Include="FEMSolver\FEMNDDRSolveStrategy.h" />
-    <ClInclude Include="FEMSolver\FEMNRSolveStrategy.h" />
+    <ClInclude Include="FEMSolver\FEM2DNRSolver.h" />
     <ClInclude Include="FEMSolver\FEMSolver.h" />
     <ClInclude Include="FEMSolver\FEMSolveStrategy.h" />
     <ClInclude Include="MatrixSolver\MatrixSolver.h" />

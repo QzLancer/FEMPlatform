@@ -36,7 +36,7 @@ void FEMCore::setModel(FEMModel* _model)
 void FEMCore::setAnalysisType(string analysistype)
 {
 	if (analysistype == "static") {
-		solver = new FEM2DStaticSolver;
+		
 	}
 	else if (analysistype == "dynamic") {
 		
@@ -50,10 +50,10 @@ void FEMCore::setAnalysisType(string analysistype)
 void FEMCore::setFEMSolveStrategy(string solvestrategy)
 {
 	if (solvestrategy == "NR") {
-		solver->setSolveStrategy(new FEMNRSolveStrategy);
+		solver = new FEM2DNRSolver;
 	}
 	else if (solvestrategy == "NDDR") {
-		solver->setSolveStrategy(new FEMNDDRSolveStrategy);
+		solver = new FEM2DNDDRSolver;
 	}
 	else {
 		cout << "Error: invalid solve strategy!\n";

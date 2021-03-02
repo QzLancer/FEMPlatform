@@ -1,6 +1,6 @@
-#include "FEM2DStaticSolver.h"
+#include "FEM2DNRSolver.h"
 
-void FEM2DStaticSolver::solve()
+void FEM2DNRSolver::solve()
 {
 	A.resize(m_num_nodes);
 	At.resize(m_num_nodes);
