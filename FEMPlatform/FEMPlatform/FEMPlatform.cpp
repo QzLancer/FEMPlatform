@@ -10,7 +10,7 @@ std::string analysistype = "static";
 std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 200;
+int maxitersteps = 20000;
 double maxerror = 1e-9;
 
 int main()

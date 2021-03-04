@@ -147,3 +147,18 @@ void FEM2DSolver::updateB()
 	}
 }
 
+void FEM2DSolver::updateB(int i_tri)
+{
+	double bx = 0, by = 0;
+	for (int i = 0; i < 3; ++i) {
+		int n = mp_triele[i_tri].n[i];
+		bx += mp_triele[i_tri].R[i] * A[n];
+		by += mp_triele[i_tri].Q[i] * A[n];
+	}
+	bx = bx / 2 / mp_triele[i_tri].area;
+	Bx[i_tri] = bx;
+	by = -by / 2 / mp_triele[i_tri].area;
+	By[i_tri] = by;
+	B[i_tri] = sqrt(bx * bx + by * by);
+}
+
