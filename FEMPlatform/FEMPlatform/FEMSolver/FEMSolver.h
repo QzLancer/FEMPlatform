@@ -38,6 +38,7 @@ public:
 	void setMaxIterSteps(const int _maxitersteps);
 	void setMaxError(const double _error);
 	void writeVtkFile(std::string _name);
+	void writeTxtFile(std::string _name);
 	void writeGeometryVtkFile(std::string _name);
 
 	std::vector<double> getA() const;

@@ -1,6 +1,7 @@
 #include "FEM2DNDDRSolver.h"
 
 #include <chrono>
+#include <omp.h>
 void FEM2DNDDRSolver::solve()
 {
 	A.resize(m_num_nodes);
@@ -85,7 +86,8 @@ void FEM2DNDDRSolver::solve()
 	//子域内部采用牛顿迭代
 	vector<double> At_old(m_num_nodes, 0);
 	for (int iter = 0; iter < maxitersteps; ++iter) {
-		cout << "Iteration step " << iter + 1 << " start." << endl;
+		//cout << "Iteration step " << iter + 1 << " start." << endl;
+#pragma omp parallel for num_threads(8)
 		for (int n = 0; n < m_num_nodes; ++n) {
 			if (mp_node[n].bdr == 1) {
 				continue;
@@ -192,11 +194,14 @@ void FEM2DNDDRSolver::solve()
 			b += At[i] * At[i];
 		}
 		error = sqrt(a) / sqrt(b);
-		cout << "Relative error: " << error << endl;
+		if ((iter + 1) % 100 == 0) {
+			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		}
 		if (error > maxerror) {
 			At_old = At;
 		}
 		else {
+			cout << "Iteration step: " << iter + 1 << endl;
 			cout << "Nonlinear NDDR iteration finish.\n";
 			return;
 		}

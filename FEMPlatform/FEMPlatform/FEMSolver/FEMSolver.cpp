@@ -161,6 +161,25 @@ void FEMSolver::writeVtkFile(std::string _name)
 	fclose(fp);
 }
 
+void FEMSolver::writeTxtFile(std::string _name)
+{
+	std::string name = std::string("../../result/");
+	name += _name;
+	name += "_";
+	name += to_string(m_num_nodes) + std::string(".txt");
+	FILE* fp = nullptr;
+	int err;
+	char ch[256];
+	err = fopen_s(&fp, name.c_str(), "w");
+	if (!fp) {
+		std::cout << "Error: openning file!" << endl;
+		exit(0);
+	}
+	for (int i = 0; i < m_num_nodes; ++i) {
+		fprintf(fp, "%lf %lf %lf\n", mp_node[i].x, mp_node[i].y, A[i]);
+	}
+}
+
 void FEMSolver::writeGeometryVtkFile(std::string _name)
 {
 	std::string name = std::string("../../result/");

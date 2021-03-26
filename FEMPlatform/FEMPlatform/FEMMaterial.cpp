@@ -23,23 +23,34 @@ FEMMaterial::~FEMMaterial()
 
 double FEMMaterial::getMu(double B)
 {
-	double slope, H, b;
+	//double slope, H, b;
 
-	if (linearflag == false) {
-		if (B < 1e-3) {
-			mu = Bdata[1] / Hdata[1];
-		}
-		else {
-			getkHb(B, &slope, &H, &b);
-			if (B / H < PI * 4e-7) {
-				mu = PI * 4e-7;
-			}
-			else {
-				mu = B / H;
-			}
-		}
+	//if (linearflag == false) {
+	//	if (B < 1e-3) {
+	//		mu = Bdata[1] / Hdata[1];
+	//	}
+	//	else {
+	//		getkHb(B, &slope, &H, &b);
+	//		if (B / H < PI * 4e-7) {
+	//			mu = PI * 4e-7;
+	//		}
+	//		else {
+	//			mu = B / H;
+	//		}
+	//	}
+	//}
+	//return mu;
+
+	double slope, H, b;
+	if (linearflag == true) {
+		return mu;
 	}
-	return mu;
+	else {
+		if (B < 1e-3)  return Bdata[1] / Hdata[1];
+		getkHb(B, &slope, &H, &b);
+	}
+	if (B / H < PI * 4e-7)  return PI * 4e-7;
+	return B / H;
 }
 
 double FEMMaterial::getdvdB(double B)
