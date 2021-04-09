@@ -64,7 +64,7 @@ void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _b
 void FEMModel::addLinearMaterial(std::string _name, double _mu)
 {
     FEMMaterial* material = new FEMMaterial;
-    material->setBHpoints(1);
+    material->setBHpoints(0);
     material->setLinearFlag(true);
     material->setmu(_mu);
     materiallist.push_back(material);

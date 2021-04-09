@@ -31,5 +31,5 @@ int main()
     core.solve();
     end = clock();
     cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
-    core.postprocess();
+    //core.postprocess();
 }

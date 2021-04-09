@@ -127,6 +127,7 @@ void FEM2DSolver::processLoad()
 		if (loadmap.find(domain) != loadmap.end()) {
 			mp_triele[i_tri].J = loadmap[domain];
 		}
+		//cout << "i_tri: " << i_tri << ", J: " << mp_triele[i_tri].J << endl;
 	}
 }
 

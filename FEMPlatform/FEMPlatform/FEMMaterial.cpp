@@ -1,7 +1,5 @@
 #include "FEMMaterial.h"
 
-#define PI 3.14159265358979323846
-
 FEMMaterial::FEMMaterial():
 	BHpoints(0),
 	mu(PI * 4e-7),
@@ -13,11 +11,25 @@ FEMMaterial::FEMMaterial():
 
 FEMMaterial::~FEMMaterial()
 {
-	if (Hdata != nullptr) {
-		delete[] Hdata;
+	if (gpuflag == true) {
+		if (Hdata != nullptr) {
+			cudaFree(Hdata);
+			Hdata = nullptr;
+		}
+		if (Bdata != nullptr) {
+			cudaFree(Bdata);
+			Bdata = nullptr;
+		}
 	}
-	if (Bdata != nullptr) {
-		delete[] Bdata;
+	else {
+		if (Hdata != nullptr) {
+			delete[] Hdata;
+			Hdata = nullptr;
+		}
+		if (Bdata != nullptr) {
+			delete[] Bdata;
+			Bdata = nullptr;
+		}
 	}
 }
 
@@ -132,3 +144,37 @@ double* FEMMaterial::getHdata()
 {
 	return Hdata;
 }
+void FEMMaterial::GPUCopy(FEMMaterial& material)
+{
+	name = material.name;
+	mu = material.mu;
+	BHpoints = material.BHpoints;
+	linearflag = material.linearflag;
+	gpuflag = true;
+	if (linearflag == false) {
+		cudaMallocManaged((void**)&Bdata, BHpoints * sizeof(double));
+		memcpy(Bdata, material.Bdata, BHpoints * sizeof(double));
+		cudaMallocManaged((void**)&Hdata, BHpoints * sizeof(double));
+		memcpy(Hdata, material.Hdata, BHpoints * sizeof(double));
+	}
+}
+//
+//__device__ inline double FEMMaterial::getMuinDevice(double B)
+//{
+//	return 0;
+//}
+//
+//__device__ inline double FEMMaterial::getdvdBinDevice(double B)
+//{
+//	return 0;
+//}
+//
+//__device__ inline void FEMMaterial::getkHbinDevice(double B, double* k, double* H, double* b)
+//{
+//	
+//}
+//
+//__device__ inline bool FEMMaterial::getLinearFlaginDevice()
+//{
+//	return true;
+//}

@@ -13,7 +13,7 @@ class FEMMeshManager
 {
 public:
 	FEMMeshManager();
-	~FEMMeshManager();
+	virtual ~FEMMeshManager();
 	virtual void readMeshFile(string meshfile) = 0;
 
 

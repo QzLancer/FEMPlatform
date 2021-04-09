@@ -5,10 +5,14 @@ FEMCore::FEMCore() :
 	meshmanager(nullptr),
 	solver(nullptr)
 {
-	if (solver != nullptr)
+	if (solver != nullptr) {
 		delete solver;
-	if (meshmanager != nullptr)
+		solver = nullptr;
+	}
+	if (meshmanager != nullptr) {
 		delete meshmanager;
+		meshmanager = nullptr;
+	}
 }
 
 FEMCore::~FEMCore()
@@ -54,6 +58,9 @@ void FEMCore::setFEMSolveStrategy(string solvestrategy)
 	}
 	else if (solvestrategy == "NDDR") {
 		solver = new FEM2DNDDRSolver;
+	}
+	else if (solvestrategy == "NDDRGPU") {
+		solver = new FEM2DNDDRCUDASolver;
 	}
 	else {
 		cout << "Error: invalid solve strategy!\n";

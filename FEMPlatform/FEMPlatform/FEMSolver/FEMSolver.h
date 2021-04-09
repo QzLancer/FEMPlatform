@@ -23,15 +23,15 @@ class FEMSolver
 {
 public:
 	FEMSolver();
-	~FEMSolver();
+	virtual ~FEMSolver();
 	virtual void solve() = 0;
 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
 	void setMatrixSolver(MatrixSolver* const _matsolver);
-	void setNodes(const int _numofnodes, CNode* const _nodes);
-	void setVtxElements(const int _numofvtx, CVtxElement* const _vtxele);
-	void setEdgElements(const int _numofedg, CEdgElement* const _edgele);
-	void setTriElements(const int _numoftri, CTriElement* const _triele);
+	virtual void setNodes(const int _numofnodes, CNode* const _nodes);
+	virtual void setVtxElements(const int _numofvtx, CVtxElement* const _vtxele);
+	virtual void setEdgElements(const int _numofedg, CEdgElement* const _edgele);
+	virtual void setTriElements(const int _numoftri, CTriElement* const _triele);
 	void setMaterial(const std::map<int, FEMMaterial*> _materialmap);
 	void setLoad(const std::map<int, double> _loadmap);
 	void setBoundary(const std::map<int, FEMBoundary*> _boundarymap);

@@ -18,16 +18,30 @@ FEMSolver::FEMSolver():
 
 FEMSolver::~FEMSolver()
 {
-    if (mp_triele != nullptr)
-        delete[] mp_triele;
-    if (mp_edgele != nullptr)
-        delete[] mp_edgele;
-    if (mp_vtxele != nullptr)
-        delete[] mp_vtxele;
-    if (mp_node != nullptr)
-        delete[] mp_node;
-    if(strategy != nullptr)
-        delete strategy;
+	if (mp_triele != nullptr) {
+		delete[] mp_triele;
+		mp_triele = nullptr;
+	}
+	if (mp_edgele != nullptr) {
+		delete[] mp_edgele;
+		mp_edgele = nullptr;
+	}
+	if (mp_vtxele != nullptr) {
+		delete[] mp_vtxele;
+		mp_vtxele = nullptr;
+	}
+	if (mp_node != nullptr) {
+		delete[] mp_node;
+		mp_node = nullptr;
+	}
+	if (strategy != nullptr) {
+		delete strategy;
+		strategy = nullptr;
+	}
+	if (matsolver != nullptr) {
+		delete matsolver;
+		matsolver = nullptr;
+	}
 }
 
 void FEMSolver::setSolveStrategy(FEMSolveStrategy* _strategy)
@@ -42,6 +56,7 @@ void FEMSolver::setMatrixSolver(MatrixSolver* const _matsolver)
 
 void FEMSolver::setNodes(const int _numofnodes, CNode* const _nodes)
 {
+	cout << "FEMSolver::setNodes\n";
     m_num_nodes = _numofnodes;
     mp_node = _nodes;
 }
@@ -60,6 +75,7 @@ void FEMSolver::setEdgElements(const int _numofedg, CEdgElement* const _edgele)
 
 void FEMSolver::setTriElements(const int _numoftri, CTriElement* const _triele)
 {
+	cout << "FEMSolver::setTriElements\n";
     m_num_triele = _numoftri;
     mp_triele = _triele;
 }

@@ -1,12 +1,18 @@
 #pragma once
 
 #include "FEMMaterial.h"
-
+#include <vector>
+//目前整合了NDDRNODE相关的内容，后期需要修改
 struct CNode
 {
     double x{ 0 }, y{ 0 }, z{ 0 };
     int bdr{ 0 }; //边界条件
     double A{ 0 };
+    double At{ 0 };
+    double At_old{ 0 };
+    int NumberofNeighbourElement{ 0 };
+    int NeighbourElementId[10];	//和节点相关的单元编号
+    int NeighbourElementNumber[10];	//节点在对应单元中的编号
 };
 
 struct C2DNode:
@@ -45,4 +51,5 @@ struct CTriElement {
     int domain{0};
     FEMMaterial* material{new FEMMaterial};
     double J{0};  //负载，暂时只考虑电流，直流，后续需要单独建一个类
+    double Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
 };

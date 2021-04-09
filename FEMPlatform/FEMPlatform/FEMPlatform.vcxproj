@@ -55,6 +55,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -126,6 +127,11 @@
       <AdditionalLibraryDirectories>D:\femplatform\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>openblas.lib;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <CudaCompile>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <Runtime>InheritFromHost</Runtime>
+    </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -144,6 +150,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cu">
+      <FileType>CppCode</FileType>
+    </CudaCompile>
+    <ClCompile Include="FEMDataType\FEMNode.cpp" />
+    <ClCompile Include="FEMDataType\FEMElement.cpp" />
     <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
     <ClCompile Include="FEMModel\FEMContactorNonLinearModel.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
@@ -164,6 +175,9 @@
     <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cuh" />
+    <ClInclude Include="FEMDataType\FEMNode.h" />
+    <ClInclude Include="FEMDataType\FEMElement.h" />
     <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
     <ClInclude Include="FEMModel\FEMContactorNonLinearModel.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
@@ -185,8 +199,10 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="ClassDiagram1.cd" />
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.targets" />
   </ImportGroup>
 </Project>

@@ -15,14 +15,23 @@ FEMMeshManager::FEMMeshManager():
 
 FEMMeshManager::~FEMMeshManager()
 {
-	if (mp_triele != nullptr)
+	if (mp_triele != nullptr) {
 		delete[] mp_triele;
-	if (mp_edgele != nullptr)
+		mp_triele = nullptr;
+	}
+	if (mp_edgele != nullptr) {
 		delete[] mp_edgele;
-	if (mp_vtxele != nullptr)
+		mp_edgele = nullptr;
+	}
+	if (mp_vtxele != nullptr) {
 		delete[] mp_vtxele;
-	if (mp_node != nullptr)
+		mp_vtxele = nullptr;
+	}
+	if (mp_node != nullptr) {
 		delete[] mp_node;
+		mp_node = nullptr;
+	}
+
 }
 
 int FEMMeshManager::getNumofNodes() const

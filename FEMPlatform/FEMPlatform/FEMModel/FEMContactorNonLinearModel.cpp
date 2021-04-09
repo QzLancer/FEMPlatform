@@ -12,7 +12,7 @@ void FEMContactorNonLinearModel::setdimension()
 
 void FEMContactorNonLinearModel::setMeshFile()
 {
-	meshfile = "../../model/model8769.mphtxt";
+	meshfile = "../../model/model1848.mphtxt";
 }
 
 void FEMContactorNonLinearModel::createElement2Material()

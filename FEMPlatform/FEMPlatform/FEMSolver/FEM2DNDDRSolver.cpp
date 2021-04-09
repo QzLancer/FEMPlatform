@@ -106,6 +106,7 @@ void FEM2DNDDRSolver::solve()
 					CTriElement triele = mp_triele[i_tri];
 					int nodenumber = nddrnode[n].NeighbourElementNumber[k];
 					double mut = triele.material->getMu(B[i_tri]) * triele.xdot;
+					//printf("mu: %f\n", mut);
 					//处理线性单元
 					if (triele.material->getLinearFlag() == true) {
 						for (int i = 0; i < 3; ++i) {
@@ -173,7 +174,7 @@ void FEM2DNDDRSolver::solve()
 				double b = Ati * Ati;
 				double NRerror = sqrt(a) / sqrt(b);
 				if (Ati == 0) {
-					break;
+					continue;
 				}
 				if (NRerror > maxerror) {
 					At[n] = Ati;
@@ -183,6 +184,7 @@ void FEM2DNDDRSolver::solve()
 					}
 				}
 				else {
+					printf("n: %d, NRiter: %d\n", n, NRiter);
 					break;
 				}
 			}
