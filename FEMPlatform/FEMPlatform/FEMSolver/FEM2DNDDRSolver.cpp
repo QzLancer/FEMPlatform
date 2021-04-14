@@ -93,7 +93,7 @@ void FEM2DNDDRSolver::solve()
 				continue;
 			}
 			//节点内部迭代过程
-			int maxNRitersteps = 100;
+			int maxNRitersteps = 1;
 			double Ati = 0;
 			for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 				double S = 0, F = 0;
@@ -129,7 +129,6 @@ void FEM2DNDDRSolver::solve()
 						dvdbt = dvdb / triele.xdot / triele.xdot;
 						Bt = B[i_tri] * triele.xdot;
 						for (int i = 0; i < 3; ++i) {
-							//sigmai和sigmaj中的At如何处理？
 							for (int m = 0; m < 3; ++m) {
 								if (m == nodenumber) {
 									sigmai += triele.C[i][m] * Ati;
@@ -165,6 +164,8 @@ void FEM2DNDDRSolver::solve()
 								F -= J * At_old[triele.n[i]];
 							}
 						}
+						//if (sigmai != 0 && sigmaj != 0) 
+						//	cout << "sigmai: " << sigmai << ", sigmaj: " << sigmaj << endl;
 					}
 					
 				}
@@ -184,11 +185,14 @@ void FEM2DNDDRSolver::solve()
 					}
 				}
 				else {
-					printf("n: %d, NRiter: %d\n", n, NRiter);
+					//printf("NRerror: %f\n", NRerror);
+					//cout << "NRerror: " << NRerror << endl;
+					//printf("n: %d, NRiter: %d\n", n, NRiter);
 					break;
 				}
 			}
 		}
+
 		//判断全局收敛性
 		double error = 0, a = 0, b = 0;
 		for (int i = 0; i < m_num_nodes; ++i) {

@@ -49,7 +49,7 @@ struct CTriElement {
     double rc, zc;
     double xdot;
     int domain{0};
-    FEMMaterial* material{new FEMMaterial};
+    FEMMaterial* material{nullptr};
     double J{0};  //负载，暂时只考虑电流，直流，后续需要单独建一个类
     double Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
 };
