@@ -118,14 +118,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\SuperLU_MT_3.1\SRC;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\femplatform\gmsh_1;D:\SuperLU_MT_3.1\SRC;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\femplatform\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>openblas.lib;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\femplatform\gmsh_1;D:\femplatform\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>gmsh.lib;openblas.lib;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <CudaCompile>
       <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
@@ -153,8 +153,10 @@
     <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cu">
       <FileType>CppCode</FileType>
     </CudaCompile>
+    <ClCompile Include="FEMCoil.cpp" />
     <ClCompile Include="FEMDataType\FEMNode.cpp" />
     <ClCompile Include="FEMDataType\FEMElement.cpp" />
+    <ClCompile Include="FEMModel\FEMRelay1250Model.cpp" />
     <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
     <ClCompile Include="FEMModel\FEMContactorNonLinearModel.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
@@ -176,8 +178,10 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cuh" />
+    <ClInclude Include="FEMCoil.h" />
     <ClInclude Include="FEMDataType\FEMNode.h" />
     <ClInclude Include="FEMDataType\FEMElement.h" />
+    <ClInclude Include="FEMModel\FEMRelay1250Model.h" />
     <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
     <ClInclude Include="FEMModel\FEMContactorNonLinearModel.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />

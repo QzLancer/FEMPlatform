@@ -3,6 +3,6 @@
 class FEM3DMeshManager :
     public FEMMeshManager
 {
-	virtual void readMeshFile(string meshfile) override;
+	virtual void readMeshFile(string meshfile = "") override;
 };
 

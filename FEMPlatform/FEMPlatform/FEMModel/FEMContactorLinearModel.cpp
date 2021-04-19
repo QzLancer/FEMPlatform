@@ -5,12 +5,12 @@ void FEMContactorLinearModel::setModelName()
     modelname = "ContactLinear";
 }
 
-void FEMContactorLinearModel::setdimension()
+void FEMContactorLinearModel::setDimension()
 {
     dimension = DIMENSION::TWO;
 }
 
-void FEMContactorLinearModel::setMeshFile()
+void FEMContactorLinearModel::setFile()
 {
     meshfile = "../../model/model.mphtxt";
 }

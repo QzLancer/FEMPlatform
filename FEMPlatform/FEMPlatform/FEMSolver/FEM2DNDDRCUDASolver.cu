@@ -2,6 +2,7 @@
 
 #include <time.h>
 #include <stdio.h>
+#include <crt\device_functions.h>
 
 __managed__ double error = 0;
 
@@ -236,8 +237,6 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 			int nodenumber = d_mp_node[n].NeighbourElementNumber[k];
 			double mu = triele.material->getMuinDevice(d_mp_triele[i_tri].B);
 			double mut = triele.material->getMuinDevice(d_mp_triele[i_tri].B) * triele.xdot;
-			//printf("nodeid: %d, nodenumber: %d, mut: %f\n",n, nodenumber, mut);
-			//printf("triele.j: %f\n", triele.J);
 			//处理线性单元
 			if (triele.material->getLinearFlaginDevice() == true) {
 				for (int i = 0; i < 3; ++i) {
@@ -295,20 +294,11 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 				}
 			}
 		}
-		//printf("NR_iter: %d\n", NRiter);
-		//if (F != 0)
-		//	printf("NR_iter: %d, nodeid: %d, S: %f, F: %f\n", NRiter, n, S, F);
-		//Ati事实上不全部为0，但是无法输出更多小数点后位数
 		Ati = F / S;
-		//if (Ati != 0) {
-		//	printf("NRiter: %d, nodeid: %d, S: %f, F: %f, Ati: %f\n", NRiter, n, S, F, Ati);
-		//}
 		//NR迭代收敛性判断
 		double a = (Ati - d_mp_node[n].At) * (Ati - d_mp_node[n].At);
 		double b = Ati * Ati;
 		double NRerror = sqrtf(a) / sqrtf(b);
-		//printf("Ati: %f, d_mp_node[n].At: %f, NRerror: %f\n", Ati, d_mp_node[n].At, NRerror);
-		//__syncthreads();
 		if (Ati == 0) {
 			continue;
 		}
@@ -332,7 +322,6 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 			}
 		}
 		else {
-			//printf("n:%d, NRiter: %d\n", n, NRiter);
 			break;
 		}
 	}

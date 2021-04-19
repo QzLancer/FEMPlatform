@@ -2,11 +2,16 @@
 #include "../FEMDataType.h"
 #include "../FEMMaterial.h"
 #include "../FEMBoundary.h"
+//#include "Geo/GModel.h"
+#include "gmsh.h"
+//#include "Generator.h"
 
 #include <iostream>
 #include <string>
 #include <vector>
 #include <map>
+#include <stdio.h>
+
 using namespace std;
 
 class FEMMeshManager
@@ -14,7 +19,8 @@ class FEMMeshManager
 public:
 	FEMMeshManager();
 	virtual ~FEMMeshManager();
-	virtual void readMeshFile(string meshfile) = 0;
+	virtual void readGeoFile(string geofile);
+	virtual void readMeshFile(string meshfile = "") = 0;
 
 
 	int getNumofNodes() const;
@@ -30,6 +36,7 @@ protected:
 	//指针这块掌握的还不是很好，后续应该改成智能指针和STL
 	//单元部分需要大改，创建单元抽象类，Builder模式处理单元类型
 	int m_num_nodes;
+	int m_num_ele;
 	int m_num_vtxele;
 	int m_num_edgele;
 	int m_num_triele;
@@ -37,5 +44,9 @@ protected:
 	CVtxElement* mp_vtxele;
 	CEdgElement* mp_edgele;
 	CTriElement* mp_triele;
+
+	string meshfile;
+
+	int next_int(char **start);
 };
 

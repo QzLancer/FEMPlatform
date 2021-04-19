@@ -13,5 +13,6 @@ public:
 
 private:
     void read2DMphtxt(string meshfile); //读取COMSOL5.5版本分网文件
+    void read2DMsh(string meshfile = "");    //读取Gmsh分网文件
 };
 

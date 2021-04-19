@@ -4,6 +4,7 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "FEMCoil.h"
 
 #include <string>
 
@@ -15,12 +16,19 @@ public:
 	double getMu(double B = 0);
 	double getdvdB(double B) ;	//线性处理
 	void getkHb(double B, double* k, double* H, double* b);
+	double getH_c() const;
+	double getTheta_m() const;
+	FEMCoil getFEMCoil() const;
+
 	void setName(const std::string name);
 	void setBHpoints(const int bhpoints);
 	void setBdata(double* const bdata);
 	void setHdata(double* const hdata);
 	void setLinearFlag(const bool islinear);
 	void setmu(const double mu);
+	void seth_c(const double h_c);
+	void settheta_m(const double theta_m);
+	void setFEMCoil(const FEMCoil coil);
 
 	bool getLinearFlag();
 	double* getBdata();
@@ -84,10 +92,13 @@ public:
 private:
 	std::string name;
 	double mu;
+	double h_c;	//永磁的矫顽场强
+	double theta_m;	//磁化角度
 	double* Bdata;
 	double* Hdata;
 	int BHpoints;
 	bool linearflag;
 	bool gpuflag{ false };	//判断Bdata和Hdata是否分配为Unified Memory，以选择析构方式
+	FEMCoil coil;
 };
 

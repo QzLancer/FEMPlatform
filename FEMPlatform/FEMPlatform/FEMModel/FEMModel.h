@@ -16,10 +16,11 @@ class FEMModel
 protected:
 	FEMModel();
 	virtual void setModelName() = 0;
-	virtual void setdimension() = 0;
-	virtual void setMeshFile() = 0;	/*设置网格文件名称*/
-	void addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata);/*添加非线性材料*/
-	void addLinearMaterial(std::string _name, double _mu);/*添加线性材料*/
+	virtual void setDimension() = 0;
+	virtual void setFile() = 0;	/*设置几何or网格文件名称*/
+	void addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata);	/*添加非线性材料*/
+	void addLinearMaterial(std::string _name, double _mu, double _h_c = 0, double _theta_m = 0);	  /*添加线性材料*/
+	void addCoil(std::string _name, FEMCoil _coil);
 	virtual void createElement2Material() = 0;	/*设置单元材料类型*/
 	virtual void bulidGeometry2Load() = 0;		/*设置负载*/
 	virtual void buildGeometry2Constrain() = 0;	/*设置边界条件*/
@@ -33,6 +34,7 @@ public:
 	};
 	DIMENSION getDimension() const;
 	std::string getMeshFile() const;
+	std::string getGeoFile() const;
 	std::vector<FEMMaterial*> getMaterialList() const;
 	std::map<int, FEMMaterial*> getMaterialMap() const;
 	std::map<int, double> getLoadMap() const;
@@ -43,6 +45,7 @@ public:
 protected:
 	std::string modelname;
 	DIMENSION dimension;
+	std::string geofile;
 	std::string meshfile;
 	std::vector<FEMMaterial*> materiallist;
 	std::map<int, FEMMaterial*> materialmap;

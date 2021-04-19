@@ -10,6 +10,11 @@ std::string FEMModel::getMeshFile() const
     return meshfile;
 }
 
+std::string FEMModel::getGeoFile() const
+{
+    return geofile;
+}
+
 std::vector<FEMMaterial*> FEMModel::getMaterialList() const
 {
     return materiallist;
@@ -43,8 +48,8 @@ FEMModel::FEMModel()
 void FEMModel::init()
 {
     setModelName();
-    setdimension();
-    setMeshFile();
+    setDimension();
+    setFile();
     createElement2Material();
     bulidGeometry2Load();
     buildGeometry2Constrain();
@@ -61,11 +66,24 @@ void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _b
     materiallist.push_back(material);
 }
 
-void FEMModel::addLinearMaterial(std::string _name, double _mu)
+void FEMModel::addLinearMaterial(std::string _name, double _mu, double _h_c, double _theta_m)
 {
     FEMMaterial* material = new FEMMaterial;
+    material->setName(_name);
     material->setBHpoints(0);
     material->setLinearFlag(true);
     material->setmu(_mu);
+    material->seth_c(_h_c);
+    material->settheta_m(_theta_m);
+    materiallist.push_back(material);
+}
+
+void FEMModel::addCoil(std::string _name, FEMCoil _coil)
+{
+    FEMMaterial* material = new FEMMaterial;
+    material->setName(_name);
+    material->setBHpoints(0);
+    material->setLinearFlag(true);
+    material->setFEMCoil(_coil);
     materiallist.push_back(material);
 }

@@ -34,7 +34,13 @@ void FEMCore::setModel(FEMModel* _model)
 		std::cout << "Error: invalid dimension!\n";
 		exit(0);
 	}
-	meshmanager->readMeshFile(model->getMeshFile());
+	if (!model->getGeoFile().empty()) {
+		meshmanager->readGeoFile(model->getGeoFile());
+		meshmanager->readMeshFile();
+	}
+	else {
+		meshmanager->readMeshFile(model->getMeshFile());
+	}
 }
 
 void FEMCore::setAnalysisType(string analysistype)

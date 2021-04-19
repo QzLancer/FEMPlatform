@@ -1,6 +1,6 @@
 #include "FEMElement.h"
-
-void CTriElement::makeTrangle()
-{
-
-}
+//
+//void CTriElement::makeTrangle()
+//{
+//
+//}

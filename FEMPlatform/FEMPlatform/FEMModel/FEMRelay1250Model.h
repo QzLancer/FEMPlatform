@@ -1,13 +1,9 @@
 #pragma once
-
 #include "FEMModel.h"
-
-//不含永磁的二维接触器模型，线性
-class FEMContactorLinearModel :
-	public FEMModel
+class FEMRelay1250Model :
+    public FEMModel
 {
-protected:
-	// 通过 FEMModel 继承
+public:
 	virtual void setModelName() override;
 	virtual void setDimension() override;
 	virtual void setFile() override;

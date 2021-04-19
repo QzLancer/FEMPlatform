@@ -97,6 +97,21 @@ void FEMMaterial::getkHb(double B, double* k, double* H, double* b)
 	(*H) = (*k) * B + (*b);
 }
 
+double FEMMaterial::getH_c() const
+{
+	return h_c;
+}
+
+double FEMMaterial::getTheta_m() const
+{
+	return theta_m;
+}
+
+FEMCoil FEMMaterial::getFEMCoil() const
+{
+	return coil;
+}
+
 void FEMMaterial::setName(const std::string name)
 {
 	this->name = name;
@@ -128,6 +143,21 @@ void FEMMaterial::setLinearFlag(const bool islinear)
 void FEMMaterial::setmu(const double mu)
 {
 	this->mu = mu;
+}
+
+void FEMMaterial::seth_c(const double h_c)
+{
+	this->h_c = h_c;
+}
+
+void FEMMaterial::settheta_m(const double theta_m)
+{
+	this->theta_m = theta_m;
+}
+
+void FEMMaterial::setFEMCoil(const FEMCoil coil)
+{
+	this->coil = coil;
 }
 
 bool FEMMaterial::getLinearFlag()

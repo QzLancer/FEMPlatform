@@ -3,6 +3,8 @@
 #include "FEMCore.h"
 #include "FEMModel/FEMContactorLinearModel.h"
 #include "FEMModel/FEMContactorNonLinearModel.h"
+#include "FEMModel/FEMRelay1250Model.h"
+
 #include <iostream>
 #include <time.h>
 
@@ -16,7 +18,7 @@ double maxerror = 1e-5;
 int main()
 {
     FEMCore core;
-    FEMModel* model = new FEMContactorNonLinearModel;
+    FEMModel* model = new FEMRelay1250Model;
     model->init();
 
     core.setModel(model);
