@@ -14,5 +14,6 @@ protected:
 	virtual void createElement2Material() override;
 	virtual void bulidGeometry2Load() override;
 	virtual void buildGeometry2Constrain() override;
+	virtual void setUnitRatio() override;
 };
 

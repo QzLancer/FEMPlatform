@@ -3,6 +3,8 @@
 FEMMaterial::FEMMaterial():
 	BHpoints(0),
 	mu(PI * 4e-7),
+	h_c(0),
+	theta_m(0),
 	Hdata(nullptr),
 	Bdata(nullptr),
 	linearflag(true)

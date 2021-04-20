@@ -1,6 +1,6 @@
 #pragma once
 #include "FEMModel.h"
-class FEMRelay1250Model :
+class FEMRelay1250LinearModel :
     public FEMModel
 {
 public:

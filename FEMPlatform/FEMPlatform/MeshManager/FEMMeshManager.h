@@ -21,7 +21,7 @@ public:
 	virtual ~FEMMeshManager();
 	virtual void readGeoFile(string geofile);
 	virtual void readMeshFile(string meshfile = "") = 0;
-
+	virtual void meshUnitConvert(double unitratio);
 
 	int getNumofNodes() const;
 	CNode* getNodes() const;

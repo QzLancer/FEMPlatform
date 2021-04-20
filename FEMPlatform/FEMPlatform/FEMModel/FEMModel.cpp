@@ -40,6 +40,11 @@ std::string FEMModel::getModelName() const
     return modelname;
 }
 
+double FEMModel::getUnitRatio() const
+{
+    return unitratio;
+}
+
 FEMModel::FEMModel()
 {
 
@@ -53,6 +58,7 @@ void FEMModel::init()
     createElement2Material();
     bulidGeometry2Load();
     buildGeometry2Constrain();
+    setUnitRatio();
 }
 
 void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata)
@@ -84,6 +90,7 @@ void FEMModel::addCoil(std::string _name, FEMCoil _coil)
     material->setName(_name);
     material->setBHpoints(0);
     material->setLinearFlag(true);
+    material->setmu(4 * PI * 1e-7);
     material->setFEMCoil(_coil);
     materiallist.push_back(material);
 }

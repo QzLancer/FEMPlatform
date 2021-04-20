@@ -4,15 +4,16 @@
 #include "FEMModel/FEMContactorLinearModel.h"
 #include "FEMModel/FEMContactorNonLinearModel.h"
 #include "FEMModel/FEMRelay1250Model.h"
+#include "FEMModel/FEMRelay1250LinearModel.h"
 
 #include <iostream>
 #include <time.h>
 
 std::string analysistype = "static";
-std::string solvestrategy = "NDDR";
+std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 30000;
+int maxitersteps = 100;
 double maxerror = 1e-5;
 
 int main()
@@ -33,5 +34,5 @@ int main()
     core.solve();
     end = clock();
     cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
-    //core.postprocess();
+    core.postprocess();
 }

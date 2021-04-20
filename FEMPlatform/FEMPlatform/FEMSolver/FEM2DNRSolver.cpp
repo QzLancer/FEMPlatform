@@ -1,5 +1,6 @@
 #include "FEM2DNRSolver.h"
 
+#include <fstream>
 void FEM2DNRSolver::solve()
 {
 	A.resize(m_num_nodes);
@@ -29,6 +30,7 @@ void FEM2DNRSolver::solve()
 			int n1 = triele.n[i];
 			for (int j = 0; j < 3; ++j) {
 				int n2 = triele.n[j];
+				//测试：是不是所有单元都不包括46号节点
 				if (triele.material->getLinearFlag() == true) {
 					if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
 						double mu = triele.material->getMu();	//存在mu=0的情况
@@ -47,6 +49,7 @@ void FEM2DNRSolver::solve()
 			}
 		}
 	}
+
 
 	//非线性部分迭代
 	int pos1 = pos;
@@ -105,6 +108,7 @@ void FEM2DNRSolver::solve()
 		//求解
 		locs[0].resize(pos);
 		locs[1].resize(pos);
+
 		vector<double> res1 = matsolver->solveMatrix(locs, vals, F, pos, num_freenodes);
 		for (int i = 0; i < num_freenodes; ++i) {
 			int index = node_reorder[i];

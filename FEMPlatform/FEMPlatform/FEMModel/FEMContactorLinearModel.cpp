@@ -48,3 +48,8 @@ void FEMContactorLinearModel::buildGeometry2Constrain()
         boundarymap[a] = new FEMMagneticInsulation;
     }
 }
+
+void FEMContactorLinearModel::setUnitRatio()
+{
+    unitratio = 1;
+}

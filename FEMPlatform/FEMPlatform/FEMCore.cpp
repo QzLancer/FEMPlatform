@@ -41,6 +41,7 @@ void FEMCore::setModel(FEMModel* _model)
 	else {
 		meshmanager->readMeshFile(model->getMeshFile());
 	}
+	meshmanager->meshUnitConvert(model->getUnitRatio());
 }
 
 void FEMCore::setAnalysisType(string analysistype)

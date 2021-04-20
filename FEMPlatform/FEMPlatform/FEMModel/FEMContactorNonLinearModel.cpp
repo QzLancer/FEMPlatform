@@ -12,7 +12,7 @@ void FEMContactorNonLinearModel::setDimension()
 
 void FEMContactorNonLinearModel::setFile()
 {
-	meshfile = "../../model/model7850.mphtxt";
+	meshfile = "../../model/model14120.mphtxt";
 }
 
 void FEMContactorNonLinearModel::createElement2Material()
@@ -48,4 +48,9 @@ void FEMContactorNonLinearModel::buildGeometry2Constrain()
     for (auto a : id) {
         boundarymap[a] = new FEMMagneticInsulation;
     }
+}
+
+void FEMContactorNonLinearModel::setUnitRatio()
+{
+    unitratio = 1;
 }

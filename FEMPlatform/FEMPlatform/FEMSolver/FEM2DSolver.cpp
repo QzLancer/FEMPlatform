@@ -83,13 +83,27 @@ void FEM2DSolver::processBoundaryCondition()
 			exit(0);
 		}
 	}
+	
+	//将x=0的全部节点标记为边界节点
+	for (int i = 0; i < m_num_nodes; ++i) {
+		if (mp_node[i].x == 0) {
+			boundarynodes.push_back(i);
+		}
+	}
+
 	std::sort(boundarynodes.begin(), boundarynodes.end());
 	boundarynodes.erase(unique(boundarynodes.begin(), boundarynodes.end()), boundarynodes.end());
+
+	//输出边界点，可以通过matlab绘图判断是否检索出全部的边界
+	//for (auto a :boundarynodes) {
+	//	cout << mp_node[a].x << " " << mp_node[a].y << endl;
+	//}
 
 	num_freenodes -= boundarynodes.size();
 	for (auto a : boundarynodes) {
 		mp_node[a].bdr = 1;
 	}
+
 	cout << "num_bdr: " << boundarynodes.size() << ", num_freenodes: " << num_freenodes << endl;
 	//将边界点排序到末尾
 
@@ -127,7 +141,6 @@ void FEM2DSolver::processLoad()
 		if (loadmap.find(domain) != loadmap.end()) {
 			mp_triele[i_tri].J = loadmap[domain];
 		}
-		//cout << "i_tri: " << i_tri << ", J: " << mp_triele[i_tri].J << endl;
 	}
 }
 

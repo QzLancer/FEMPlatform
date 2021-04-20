@@ -63,6 +63,14 @@ void FEMMeshManager::readGeoFile(string geofile)
 	}
 }
 
+void FEMMeshManager::meshUnitConvert(double unitratio)
+{
+	for (int i = 0; i < m_num_nodes; ++i) {
+		mp_node[i].x *= unitratio;
+		mp_node[i].y *= unitratio;
+	}
+}
+
 int FEMMeshManager::getNumofNodes() const
 {
 	return m_num_nodes;
