@@ -54,7 +54,7 @@ void FEMMeshManager::readGeoFile(string geofile)
 		gmsh::initialize(myargn, myargv);
 		gmsh::option::setNumber("General.Terminal", 1);
 		gmsh::open(geofile);
-		cout << "Opening model " << geofile << endl << endl;
+ 		cout << "Opening model " << geofile << endl << endl;
 		printf("Meshing...\n");
 		/** 初次分网，重分网必须先有一个网格 **/
 		gmsh::model::mesh::generate();

@@ -22,6 +22,7 @@ void FEM2DNRSolver::solve()
 	std::vector<double> F(num_freenodes);
 	int pos = 0;
 	int linearelesize = 0, nonlinearelesize = 0;
+
 	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
 		CTriElement triele = mp_triele[i_tri];
 		if (triele.material->getLinearFlag() == true) linearelesize++;
@@ -30,7 +31,6 @@ void FEM2DNRSolver::solve()
 			int n1 = triele.n[i];
 			for (int j = 0; j < 3; ++j) {
 				int n2 = triele.n[j];
-				//测试：是不是所有单元都不包括46号节点
 				if (triele.material->getLinearFlag() == true) {
 					if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
 						double mu = triele.material->getMu();	//存在mu=0的情况
@@ -46,14 +46,19 @@ void FEM2DNRSolver::solve()
 			if (mp_node[n1].bdr != 1) {
 				double Fe = triele.J * triele.area / 3;
 				F[node_pos[n1]] += Fe;
+				//永磁计算
 				double h_c = triele.material->getH_c();
-				cout << "H_c: " << h_c << endl;
 				double theta_m = triele.material->getTheta_m();
 				F[node_pos[n1]] += h_c / 2 * (triele.R[i] * cos(theta_m) - triele.Q[i] * sin(theta_m));
 			}
 		}
 	}
 
+	//for (int i = 0; i < num_freenodes; ++i) {
+	//	if (node_pos[i] < num_freenodes && F[node_pos[i]] != 0) {
+	//		cout << "n: " << i << ", F: " << F[node_pos[i]] << endl;
+	//	}
+	//}
 
 	//非线性部分迭代
 	int pos1 = pos;

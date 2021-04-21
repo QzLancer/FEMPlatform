@@ -12,7 +12,8 @@ void FEMRelay1250LinearModel::setDimension()
 
 void FEMRelay1250LinearModel::setFile()
 {
-	geofile = "../../model/geo/JRS1250/JRS1250bgmband.geo";
+	//geofile = "../../model/geo/JRS1250/JRS1250bgmband.geo";
+    meshfile = "../../model/geo/JRS1250/JRS1250bgmband.geo_0_22888.msh";
 }
 
 void FEMRelay1250LinearModel::createElement2Material()
@@ -47,7 +48,7 @@ void FEMRelay1250LinearModel::createElement2Material()
     materialmap[3] = materiallist[2];   //ÌúĞ¾
     materialmap[4] = materiallist[2];   //ÌúĞ¾
     materialmap[5] = materiallist[2];   //ÌúĞ¾
-    materialmap[6] = materiallist[2];   //ÓÀ´Å
+    materialmap[6] = materiallist[1];   //ÓÀ´Å
     materialmap[7] = materiallist[2];   //ÌúĞ¾£¨µ¼´Å»·£©
     materialmap[8] = materiallist[2];   //ÌúĞ¾
     materialmap[9] = materiallist[0];   //Íâ²¿¿ÕÆø
