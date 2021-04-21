@@ -46,6 +46,10 @@ void FEM2DNRSolver::solve()
 			if (mp_node[n1].bdr != 1) {
 				double Fe = triele.J * triele.area / 3;
 				F[node_pos[n1]] += Fe;
+				double h_c = triele.material->getH_c();
+				cout << "H_c: " << h_c << endl;
+				double theta_m = triele.material->getTheta_m();
+				F[node_pos[n1]] += h_c / 2 * (triele.R[i] * cos(theta_m) - triele.Q[i] * sin(theta_m));
 			}
 		}
 	}

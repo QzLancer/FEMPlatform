@@ -21,7 +21,8 @@ void FEMRelay1250LinearModel::createElement2Material()
     //double* bdata = new double[] { 0, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4 };
     //double* hdata = new double[] { 0, 663.146, 1067.5, 1705.23, 2463.11, 3841.67, 5425.74, 7957.75, 12298.3,
     //    20462.8, 32169.6, 61213.4, 111408, 175070, 261469, 318310 };
-    addLinearMaterial("PM", 1.12 * 4 * PI * 1e-7, 1.3 / 1.12 / (4 * PI * 1e-7), 0);
+    //addLinearMaterial("PM", 1.12 * 4 * PI * 1e-7, 1.3 / 1.12 / (4 * PI * 1e-7), 0);
+    addPermMagentMaterial("PM", 1.12 * (4 * PI * 1e-7), 1.3 / 1.12 / (4 * PI * 1e-7), 1.21, PI);
     addLinearMaterial("Soft Iron", 1. / 664.);  //整型常数/整型常数得到的还是整型
     FEMCoil coil;
     coil.xyz = 1;

@@ -4,10 +4,12 @@ FEMMaterial::FEMMaterial():
 	BHpoints(0),
 	mu(PI * 4e-7),
 	h_c(0),
+	b_r(0),
 	theta_m(0),
 	Hdata(nullptr),
 	Bdata(nullptr),
-	linearflag(true)
+	linearflag(true),
+	gpuflag(false)
 {
 }
 
@@ -142,17 +144,22 @@ void FEMMaterial::setLinearFlag(const bool islinear)
 	linearflag = islinear;
 }
 
-void FEMMaterial::setmu(const double mu)
+void FEMMaterial::setMu(const double mu)
 {
 	this->mu = mu;
 }
 
-void FEMMaterial::seth_c(const double h_c)
+void FEMMaterial::setH_c(const double h_c)
 {
 	this->h_c = h_c;
 }
 
-void FEMMaterial::settheta_m(const double theta_m)
+void FEMMaterial::setB_r(const double b_r)
+{
+	this->b_r = b_r;
+}
+
+void FEMMaterial::setTheta_m(const double theta_m)
 {
 	this->theta_m = theta_m;
 }

@@ -25,9 +25,10 @@ public:
 	void setBdata(double* const bdata);
 	void setHdata(double* const hdata);
 	void setLinearFlag(const bool islinear);
-	void setmu(const double mu);
-	void seth_c(const double h_c);
-	void settheta_m(const double theta_m);
+	void setMu(const double mu);
+	void setH_c(const double h_c);
+	void setB_r(const double b_r);
+	void setTheta_m(const double theta_m);
 	void setFEMCoil(const FEMCoil coil);
 
 	bool getLinearFlag();
@@ -93,12 +94,13 @@ private:
 	std::string name;
 	double mu;
 	double h_c;	//永磁的矫顽场强
-	double theta_m;	//磁化角度
+	double b_r;
+	double theta_m;	//磁场与x轴正方向的夹角
 	double* Bdata;
 	double* Hdata;
 	int BHpoints;
 	bool linearflag;
-	bool gpuflag{ false };	//判断Bdata和Hdata是否分配为Unified Memory，以选择析构方式
+	bool gpuflag;	//判断Bdata和Hdata是否分配为Unified Memory，以选择析构方式
 	FEMCoil coil;
 };
 

@@ -19,7 +19,8 @@ protected:
 	virtual void setDimension() = 0;
 	virtual void setFile() = 0;	/*设置几何or网格文件名称*/
 	void addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata);	/*添加非线性材料*/
-	void addLinearMaterial(std::string _name, double _mu, double _h_c = 0, double _theta_m = 0);	  /*添加线性材料*/
+	void addLinearMaterial(std::string _name, double _mu);	  /*添加线性材料*/
+	void addPermMagentMaterial(std::string _name, double _mu, double _h_c, double _b_r, double _theta_m);
 	void addCoil(std::string _name, FEMCoil _coil);
 	virtual void createElement2Material() = 0;	/*设置单元材料类型*/
 	virtual void bulidGeometry2Load() = 0;		/*设置负载*/

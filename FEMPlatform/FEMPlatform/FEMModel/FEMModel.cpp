@@ -72,15 +72,26 @@ void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _b
     materiallist.push_back(material);
 }
 
-void FEMModel::addLinearMaterial(std::string _name, double _mu, double _h_c, double _theta_m)
+void FEMModel::addLinearMaterial(std::string _name, double _mu)
 {
     FEMMaterial* material = new FEMMaterial;
     material->setName(_name);
     material->setBHpoints(0);
     material->setLinearFlag(true);
-    material->setmu(_mu);
-    material->seth_c(_h_c);
-    material->settheta_m(_theta_m);
+    material->setMu(_mu);
+    materiallist.push_back(material);
+}
+
+void FEMModel::addPermMagentMaterial(std::string _name, double _mu, double _h_c, double _b_r, double _theta_m)
+{
+    FEMMaterial* material = new FEMMaterial;
+    material->setName(_name);
+    material->setLinearFlag(true);
+    material->setMu(_mu);
+    material->setBHpoints(0);
+    material->setH_c(_h_c);
+    material->setB_r(_b_r);
+    material->setTheta_m(_theta_m);
     materiallist.push_back(material);
 }
 
@@ -90,7 +101,7 @@ void FEMModel::addCoil(std::string _name, FEMCoil _coil)
     material->setName(_name);
     material->setBHpoints(0);
     material->setLinearFlag(true);
-    material->setmu(4 * PI * 1e-7);
+    material->setMu(4 * PI * 1e-7);
     material->setFEMCoil(_coil);
     materiallist.push_back(material);
 }
