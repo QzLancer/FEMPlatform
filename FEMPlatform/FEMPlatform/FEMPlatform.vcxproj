@@ -158,6 +158,7 @@
     <ClCompile Include="FEMDataType\FEMElement.cpp" />
     <ClCompile Include="FEMModel\FEMRelay1250Model.cpp" />
     <ClCompile Include="FEMModel\FEMRelay1250LinearModel.cpp" />
+    <ClCompile Include="FEMMovingPart.cpp" />
     <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
     <ClCompile Include="FEMModel\FEMContactorNonLinearModel.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="FEMDataType\FEMElement.h" />
     <ClInclude Include="FEMModel\FEMRelay1250Model.h" />
     <ClInclude Include="FEMModel\FEMRelay1250LinearModel.h" />
+    <ClInclude Include="FEMMovingPart.h" />
     <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
     <ClInclude Include="FEMModel\FEMContactorNonLinearModel.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />

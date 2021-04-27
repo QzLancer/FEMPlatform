@@ -53,3 +53,15 @@ void FEMContactorLinearModel::setUnitRatio()
 {
     unitratio = 1;
 }
+
+void FEMContactorLinearModel::buildGeometry2Deformed()
+{
+    deformedlist.push_back(2);
+}
+
+void FEMContactorLinearModel::buildGeometry2MovingPart()
+{
+    FEMMovingPart moving1;
+    moving1.direction[2] = 1;
+    movingmap[3] = moving1;
+}

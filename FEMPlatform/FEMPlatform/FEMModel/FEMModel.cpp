@@ -1,5 +1,7 @@
 #include "FEMModel.h"
 
+#include <iostream>
+
 FEMModel::DIMENSION FEMModel::getDimension() const
 {
     return dimension;
@@ -59,6 +61,10 @@ void FEMModel::init()
     bulidGeometry2Load();
     buildGeometry2Constrain();
     setUnitRatio();
+    buildGeometry2Deformed();
+    buildGeometry2Constrain();
+    buildGeometry2MovingPart();
+
 }
 
 void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata)

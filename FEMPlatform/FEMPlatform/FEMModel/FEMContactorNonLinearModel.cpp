@@ -54,3 +54,15 @@ void FEMContactorNonLinearModel::setUnitRatio()
 {
     unitratio = 1;
 }
+
+void FEMContactorNonLinearModel::buildGeometry2Deformed()
+{
+    deformedlist.push_back(13);
+}
+
+void FEMContactorNonLinearModel::buildGeometry2MovingPart()
+{
+    FEMMovingPart moving1;
+    moving1.direction[2] = 1;
+    movingmap[3] = moving1;
+}

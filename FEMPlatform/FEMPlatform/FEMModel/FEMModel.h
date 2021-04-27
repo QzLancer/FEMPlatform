@@ -6,6 +6,7 @@
 
 #include "../FEMMaterial.h"
 #include "../FEMBoundary.h"
+#include "../FEMMovingPart.h"
 
 #define PI 3.14159265358979323846
 
@@ -26,6 +27,8 @@ protected:
 	virtual void bulidGeometry2Load() = 0;		/*设置负载*/
 	virtual void buildGeometry2Constrain() = 0;	/*设置边界条件*/
 	virtual void setUnitRatio() = 0; 
+	virtual void buildGeometry2Deformed() = 0; /*设置形变区域*/
+	virtual void buildGeometry2MovingPart() = 0; /*设置运动区域*/
 
 public:
 	void init();	/*设计模式：Template模式*/
@@ -55,4 +58,6 @@ protected:
 	std::map<int, FEMMaterial*> materialmap;
 	std::map<int, double> loadmap;
 	std::map<int, FEMBoundary*> boundarymap;
+	std::vector<int> deformedlist;	//形变区域
+	std::map<int, FEMMovingPart>movingmap;	//运动区域
 };

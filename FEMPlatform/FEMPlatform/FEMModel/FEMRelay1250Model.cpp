@@ -87,3 +87,16 @@ void FEMRelay1250Model::setUnitRatio()
 {
     unitratio = 0.001;
 }
+
+void FEMRelay1250Model::buildGeometry2Deformed()
+{
+    deformedlist.push_back(13);
+}
+
+void FEMRelay1250Model::buildGeometry2MovingPart()
+{
+    FEMMovingPart moving1;
+    moving1.direction[2] = 1;
+    moving1.limit[2].min = -6.2;
+    movingmap[1] = moving1;
+}

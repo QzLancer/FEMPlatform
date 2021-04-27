@@ -11,5 +11,7 @@ public:
 	virtual void bulidGeometry2Load() override;
 	virtual void buildGeometry2Constrain() override;
 	virtual void setUnitRatio() override;
+	virtual void buildGeometry2Deformed() override;
+	virtual void buildGeometry2MovingPart() override;
 };
 

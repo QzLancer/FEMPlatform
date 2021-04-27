@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include "FEMSolveStrategy.h"
 #include "../FEMDataType.h"
