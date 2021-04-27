@@ -88,6 +88,16 @@ public:
 		return linearflag;
 	};
 
+	__device__ double getH_cinDevice()
+	{
+		return h_c;
+	};
+
+	__device__ double getTheta_minDevice()
+	{
+		return theta_m;
+	};
+
 	//GPU
 	void GPUCopy(FEMMaterial& material);
 private:

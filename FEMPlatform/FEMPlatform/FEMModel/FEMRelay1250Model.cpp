@@ -14,8 +14,9 @@ void FEMRelay1250Model::setDimension()
 
 void FEMRelay1250Model::setFile()
 {
-	geofile = "../../model/geo/JRS1250/JRS1250bgmband.geo";
+	//geofile = "../../model/geo/JRS1250/JRS1250bgmband.geo";
     //meshfile = "../../model/geo/JRS1250/JRS1250bgmband.geo_0_22888.msh";
+    meshfile = "../../model/geo/JRS1250/JRS1250bgmband.geo_0_31081.msh";
 }
 
 void FEMRelay1250Model::createElement2Material()

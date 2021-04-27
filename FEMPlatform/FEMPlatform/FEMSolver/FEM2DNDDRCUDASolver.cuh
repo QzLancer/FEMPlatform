@@ -21,8 +21,8 @@ public:
 protected:
 
 private:
-	int CudaThrdNum = 128;
-	int CudaBlckNum = 128;
+	int CudaThrdNum = 300;
+	int CudaBlckNum = 256;
 
 	CNode* d_mp_node;
 	CTriElement* d_mp_triele;

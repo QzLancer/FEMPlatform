@@ -20,7 +20,7 @@ void FEM2DNDDRCUDASolver::solve()
 	//makeTrangleinDevice << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
 	//cudaDeviceSynchronize();
 
-
+	 
 	double* a, * b;
 	cudaMalloc(&a, m_num_nodes * sizeof(double));
 	cudaMalloc(&b, m_num_nodes * sizeof(double));
@@ -30,7 +30,8 @@ void FEM2DNDDRCUDASolver::solve()
 		calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
 		cudaDeviceSynchronize();
 
-		if ((iter + 1) % 100 == 0) {
+		//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		if ((iter + 1 ) % 100 == 0) {
 			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
 		}
 		if (error > maxerror) {
@@ -43,7 +44,21 @@ void FEM2DNDDRCUDASolver::solve()
 		}
 	}
 
+	//把内容拷贝回CPU
 	cudaMemcpy(mp_node, d_mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyDeviceToHost);
+	cudaMemcpy(mp_triele, d_mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyDeviceToHost);
+	A.resize(m_num_nodes);
+	for (int i = 0; i < m_num_nodes; ++i) {
+		A[i] = mp_node[i].A;
+	}
+	B.resize(m_num_triele);
+	Bx.resize(m_num_triele);
+	By.resize(m_num_triele);
+	for (int i = 0; i < m_num_triele; ++i) {
+		B[i] = mp_triele[i].B;
+		Bx[i] = mp_triele[i].Bx;
+		By[i] = mp_triele[i].By;
+	}
 
 	cudaFree(b);
 	cudaFree(a);
@@ -237,6 +252,8 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 			int nodenumber = d_mp_node[n].NeighbourElementNumber[k];
 			double mu = triele.material->getMuinDevice(d_mp_triele[i_tri].B);
 			double mut = triele.material->getMuinDevice(d_mp_triele[i_tri].B) * triele.xdot;
+			//printf("TriElement: %d, Mu: %f\n", i_tri, mu);
+			//__syncthreads();
 			//处理线性单元
 			if (triele.material->getLinearFlaginDevice() == true) {
 				for (int i = 0; i < 3; ++i) {
@@ -244,6 +261,9 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 					if (nodenumber == i) {
 						S += Se;
 						F += triele.J * triele.area / 3;
+						double h_c = triele.material->getH_cinDevice();
+						double theta_m = triele.material->getTheta_minDevice();
+						F += h_c / 2 * (triele.R[i] * __cosf(theta_m) - triele.Q[i] * __sinf(theta_m));
 					}
 					else {
 						F -= Se * d_mp_node[triele.n[i]].At_old;

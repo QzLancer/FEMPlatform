@@ -189,6 +189,9 @@ void FEMMaterial::GPUCopy(FEMMaterial& material)
 	mu = material.mu;
 	BHpoints = material.BHpoints;
 	linearflag = material.linearflag;
+	h_c = material.h_c;
+	theta_m = material.theta_m;
+	coil = material.coil;
 	gpuflag = true;
 	if (linearflag == false) {
 		cudaMallocManaged((void**)&Bdata, BHpoints * sizeof(double));
