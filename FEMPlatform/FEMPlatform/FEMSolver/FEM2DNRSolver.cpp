@@ -3,12 +3,6 @@
 #include <fstream>
 void FEM2DNRSolver::solve()
 {
-	A.resize(m_num_nodes);
-	At.resize(m_num_nodes);
-	Bx.resize(m_num_triele);
-	By.resize(m_num_triele);
-	B.resize(m_num_triele);
-
 	//计算三角形单元几何部分
 	makeTrangle();
 	//处理边界条件、材料和负载
@@ -76,24 +70,24 @@ void FEM2DNRSolver::solve()
 				vector<double> Fj(3, 0);	//新增的右侧项
 				double mu, mut, dvdb, dvdbt, Bt, sigmai, sigmaj;
 				//mu = triele.material->getMu(B[i_tri]);
-				mu = triele.material->getMu(B[i_tri]);
+				mu = triele.material->getMu(mp_triele[i_tri].B);
 				mut = mu * triele.xdot;
-				dvdb = triele.material->getdvdB(B[i_tri]);
+				dvdb = triele.material->getdvdB(mp_triele[i_tri].B);
 				dvdbt = dvdb / triele.xdot / triele.xdot;
-				Bt = B[i_tri] * triele.xdot;
+				Bt = mp_triele[i_tri].B * triele.xdot;
 				vector<int> n(3);
 				n[0] = triele.n[0], n[1] = triele.n[1], n[2] = triele.n[2];
 				for (int i = 0; i < 3; ++i) {
-					sigmai = (triele.C[i][0] * At[n[0]] + triele.C[i][1] * At[n[1]] + triele.C[i][2] * At[n[2]]);
+					sigmai = (triele.C[i][0] * mp_node[n[0]].At + triele.C[i][1] * mp_node[n[1]].At + triele.C[i][2] * mp_node[n[2]].At);
 					for (int j = 0; j < 3; ++j) {
-						sigmaj = (triele.C[j][0] * At[n[0]] + triele.C[j][1] * At[n[1]] + triele.C[j][2] * At[n[2]]);
+						sigmaj = (triele.C[j][0] * mp_node[n[0]].At + triele.C[j][1] * mp_node[n[1]].At + triele.C[j][2] * mp_node[n[2]].At);
 						if (Bt != 0) {
 							J[i][j] = triele.C[i][j] / mut + sigmai * sigmaj / Bt / triele.area;
 						}
 						else {
 							J[i][j] = triele.C[i][j] / mut;
 						}
-						Fj[i] += (J[i][j] - triele.C[i][j] / mut) * At[n[i]];
+						Fj[i] += (J[i][j] - triele.C[i][j] / mut) * mp_node[n[i]].At;
 					}
 				}
 				//装配
@@ -121,8 +115,8 @@ void FEM2DNRSolver::solve()
 		vector<double> res1 = matsolver->solveMatrix(locs, vals, F, pos, num_freenodes);
 		for (int i = 0; i < num_freenodes; ++i) {
 			int index = node_reorder[i];
-			At[index] = res1[i];
-			A[index] = At[index] / mp_node[index].x;
+			mp_node[index].At = res1[i];
+			mp_node[index].A = mp_node[index].At / mp_node[index].x;
 		}
 		//更新磁场结果
 		updateB();
@@ -133,13 +127,15 @@ void FEM2DNRSolver::solve()
 		//判断收敛性
 		double error = 0, a = 0, b = 0;
 		for (int i = 0; i < m_num_nodes; ++i) {
-			a += (A[i] - A_old[i]) * (A[i] - A_old[i]);
-			b += A[i] * A[i];
+			a += (mp_node[i].A - A_old[i]) * (mp_node[i].A - A_old[i]);
+			b += mp_node[i].A * mp_node[i].A;
 		}
 		error = sqrt(a) / sqrt(b);
 		cout << "Relative error: " << error << endl;
 		if (error > maxerror) {
-			A_old = A;
+			for (int i = 0; i < m_num_nodes; ++i) {
+				A_old[i] = mp_node[i].A;
+			}
 		}
 		else {
 			cout << "Nonlinear iteration finish.\n";

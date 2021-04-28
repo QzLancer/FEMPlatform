@@ -1,5 +1,111 @@
 #include "FEM2DSolver.h"
 
+void FEM2DSolver::solveMagneticForce()
+{
+	vector<bool> deformednode(m_num_nodes, false);
+	vector<bool> movenode(m_num_nodes, false);
+	vector<int> deformelement;
+	vector<int> moveelement;
+
+	//遍历全部单元，标记节点
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		for (auto a : deformedlist) {
+			if (mp_triele[i_tri].domain == a) {
+				deformelement.push_back(i_tri);
+				//把三个节点标记为形变区域节点
+				for (int i = 0; i < 3; ++i) {
+					deformednode[mp_triele[i_tri].n[i]] = true;
+				}
+			}
+		}
+	}
+
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		for (auto& a : movingmap) {
+			if (mp_triele[i_tri].domain == a.first) {
+				moveelement.push_back(i_tri);
+				//把三个节点标记为运动区域节点
+				for (int i = 0; i < 3; ++i) {
+					movenode[mp_triele[i_tri].n[i]] = true;
+				}
+			}
+		}
+	}
+
+	//遍历全部形变区域单元，如果单元内节点也处在运动单元上,
+	//计算相应的单元电磁力和节点电磁力
+	//师兄代码里的A是At吗？？？
+	for (auto i_tri : deformelement) {
+		CTriElement triele = mp_triele[i_tri];
+		double rc = triele.rc;
+		double area = triele.area;
+		double mu = triele.material->getMu(triele.B);
+		double QA = triele.Q[0] * mp_node[triele.n[0]].At + triele.Q[1] * mp_node[triele.n[1]].At + triele.Q[2] * mp_node[triele.n[2]].At;
+		double RA = triele.R[0] * mp_node[triele.n[0]].At + triele.R[1] * mp_node[triele.n[1]].At + triele.R[2] * mp_node[triele.n[2]].At;
+		double tmp = PI / 4 / mu;	//???
+		double dvdB2 = triele.material->getdvdB2(triele.B);
+		double tmp1 = PI / 4 * (QA * QA + RA * RA) / area / rc * dvdB2 / 4;
+		double dQdy[3][3];
+		double dRdx[3][3];
+		double ac = area * rc;
+		double ac2 = ac * ac;
+		double ac3 = ac2 * ac;
+
+		dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
+		dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
+		dQdy[2][0] = -1; dQdy[2][1] = 1; dQdy[2][2] = 0;
+
+		dRdx[0][0] = 0; dRdx[0][1] = 1; dRdx[0][2] = -1;
+		dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
+		dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
+
+		double dSdx, dSdy;
+		double dQAdy, dRAdx;
+		double dBxdx, dBydx, dBxdy, dBydy;
+		for (int i = 0; i < 3; ++i) {
+			int n = mp_triele[i_tri].n[i];
+			if (movenode[n] == true) {
+				//x方向
+				dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
+				dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
+				mp_node[n].NodeForcex -= tmp * (2 * RA / ac * dRAdx);
+				mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+				mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
+				mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
+				//y方向
+				dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
+				dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
+				mp_node[n].NodeForcey -= tmp * ((QA * QA + RA * RA) * (-1) / ac2 * rc * dSdy);
+				mp_node[n].NodeForcey -= tmp * (2 * QA / ac * dQAdy);
+				mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
+				mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
+			}
+		}
+	}
+
+	//遍历全部运动区域单元，如果单元内节点也处在形变单元上,
+	//计算相应的单元电磁力和节点电磁力
+	for (auto i_tri : moveelement) {
+		for (int i = 0; i < 3; ++i) {
+			int n = mp_triele[i_tri].n[i];
+			if (deformednode[n] == true) {
+				
+			}
+		}
+	}
+
+	//计算衔铁电磁力之和
+	double Fx = 0, Fy = 0;
+	for (int n = 0; n < m_num_nodes; ++n) {
+		if (movenode[n] == true) {
+			Fx += mp_node[n].NodeForcex;
+			Fy += mp_node[n].NodeForcey;
+		}
+	}
+
+	printf("Fx:%10.8e,Fy:%10.8e\n", Fx, Fy);
+}
+
 void FEM2DSolver::makeTrangle()
 {
 	for (int index = 0; index < m_num_triele; ++index) {
@@ -150,14 +256,14 @@ void FEM2DSolver::updateB()
 		double bx = 0, by = 0;
 		for (int i = 0; i < 3; ++i) {
 			int n = mp_triele[i_tri].n[i];
-			bx += mp_triele[i_tri].R[i] * A[n];
-			by += mp_triele[i_tri].Q[i] * A[n];
+			bx += mp_triele[i_tri].R[i] * mp_node[n].A;
+			by += mp_triele[i_tri].Q[i] * mp_node[n].A;
 		}
 		bx = bx / 2 / mp_triele[i_tri].area;
-		Bx[i_tri] = bx;
+		mp_triele[i_tri].Bx = bx;
 		by = -by / 2 / mp_triele[i_tri].area;
-		By[i_tri] = by;
-		B[i_tri] = sqrt(bx * bx + by * by);
+		mp_triele[i_tri].By = by;
+		mp_triele[i_tri].B = sqrt(bx * bx + by * by);
 	}
 }
 
@@ -166,13 +272,13 @@ void FEM2DSolver::updateB(int i_tri)
 	double bx = 0, by = 0;
 	for (int i = 0; i < 3; ++i) {
 		int n = mp_triele[i_tri].n[i];
-		bx += mp_triele[i_tri].R[i] * A[n];
-		by += mp_triele[i_tri].Q[i] * A[n];
+		bx += mp_triele[i_tri].R[i] * mp_node[n].A;
+		by += mp_triele[i_tri].Q[i] * mp_node[n].A;
 	}
 	bx = bx / 2 / mp_triele[i_tri].area;
-	Bx[i_tri] = bx;
+	mp_triele[i_tri].Bx = bx;
 	by = -by / 2 / mp_triele[i_tri].area;
-	By[i_tri] = by;
-	B[i_tri] = sqrt(bx * bx + by * by);
+	mp_triele[i_tri].By = by;
+	mp_triele[i_tri].B = sqrt(bx * bx + by * by);
 }
 

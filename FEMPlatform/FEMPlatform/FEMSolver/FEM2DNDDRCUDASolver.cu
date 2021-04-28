@@ -47,18 +47,18 @@ void FEM2DNDDRCUDASolver::solve()
 	//°ÑÄÚÈÝ¿½±´»ØCPU
 	cudaMemcpy(mp_node, d_mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyDeviceToHost);
 	cudaMemcpy(mp_triele, d_mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyDeviceToHost);
-	A.resize(m_num_nodes);
-	for (int i = 0; i < m_num_nodes; ++i) {
-		A[i] = mp_node[i].A;
-	}
-	B.resize(m_num_triele);
-	Bx.resize(m_num_triele);
-	By.resize(m_num_triele);
-	for (int i = 0; i < m_num_triele; ++i) {
-		B[i] = mp_triele[i].B;
-		Bx[i] = mp_triele[i].Bx;
-		By[i] = mp_triele[i].By;
-	}
+	//A.resize(m_num_nodes);
+	//for (int i = 0; i < m_num_nodes; ++i) {
+	//	A[i] = mp_node[i].A;
+	//}
+	//B.resize(m_num_triele);
+	//Bx.resize(m_num_triele);
+	//By.resize(m_num_triele);
+	//for (int i = 0; i < m_num_triele; ++i) {
+	//	B[i] = mp_triele[i].B;
+	//	Bx[i] = mp_triele[i].Bx;
+	//	By[i] = mp_triele[i].By;
+	//}
 
 	cudaFree(b);
 	cudaFree(a);

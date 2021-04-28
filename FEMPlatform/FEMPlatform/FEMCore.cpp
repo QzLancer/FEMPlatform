@@ -95,7 +95,10 @@ void FEMCore::solve()
 	solver->setMaterial(model->getMaterialMap());
 	solver->setLoad(model->getLoadMap());
 	solver->setBoundary(model->getBoundaryMap());
+	solver->setDeformedDomain(model->getDeformedList());
+	solver->setMovingPart(model->getMovingMap());
 	solver->solve();
+	solver->solveMagneticForce();	//电磁力计算，目前是静态特性的思路放在core中调用
 }
 
 void FEMCore::postprocess()

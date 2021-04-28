@@ -46,7 +46,8 @@ public:
 	std::map<int, FEMBoundary*> getBoundaryMap() const;
 	std::string getModelName() const;
 	double getUnitRatio() const;
-
+	std::vector<int> getDeformedList() const;
+	std::map<int, FEMMovingPart> getMovingMap() const;
 
 protected:
 	double unitratio{1};	//默认单位是m，如果输入的几何参数是mm，则需要将ratio置为0.001；

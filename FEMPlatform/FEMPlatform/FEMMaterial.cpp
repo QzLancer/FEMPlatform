@@ -77,6 +77,14 @@ double FEMMaterial::getdvdB(double B)
     return -b / (B * B);
 }
 
+double FEMMaterial::getdvdB2(double B)
+{
+	double slope, H, b;
+	if (linearflag == true || B < 1e-9) return 0;
+	getkHb(B, &slope, &H, &b);
+	return -b / (B * B * B * 2);
+}
+
 //线性插值计算斜率k，磁场强度H
 void FEMMaterial::getkHb(double B, double* k, double* H, double* b)
 {

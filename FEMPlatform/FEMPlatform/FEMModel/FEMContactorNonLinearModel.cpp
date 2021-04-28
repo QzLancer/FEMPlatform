@@ -27,11 +27,11 @@ void FEMContactorNonLinearModel::createElement2Material()
     addNonlinearMaterial("Soft Iron", 63, bdata, hdata);
 
     //针对当前模型设置材料，和上面的添加材料功能应该分离到两个不同的类
-    materialmap[1] = materiallist[0];
-    materialmap[2] = materiallist[0];
-    materialmap[3] = materiallist[1];
-    materialmap[4] = materiallist[1];
-    materialmap[5] = materiallist[0];
+    materialmap[1] = materiallist[0];   //空气
+    materialmap[2] = materiallist[0];   //压缩空气
+    materialmap[3] = materiallist[1];   //衔铁
+    materialmap[4] = materiallist[1];   //轭铁
+    materialmap[5] = materiallist[0];   //线圈
 }
 
 void FEMContactorNonLinearModel::bulidGeometry2Load()
@@ -57,12 +57,12 @@ void FEMContactorNonLinearModel::setUnitRatio()
 
 void FEMContactorNonLinearModel::buildGeometry2Deformed()
 {
-    deformedlist.push_back(13);
+    deformedlist.push_back(2);
 }
 
 void FEMContactorNonLinearModel::buildGeometry2MovingPart()
 {
     FEMMovingPart moving1;
-    moving1.direction[2] = 1;
+    moving1.direction[1] = 1;
     movingmap[3] = moving1;
 }

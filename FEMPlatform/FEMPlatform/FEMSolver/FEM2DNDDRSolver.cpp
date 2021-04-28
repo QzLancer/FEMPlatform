@@ -4,11 +4,11 @@
 #include <omp.h>
 void FEM2DNDDRSolver::solve()
 {
-	A.resize(m_num_nodes);
-	At.resize(m_num_nodes);
-	Bx.resize(m_num_triele);
-	By.resize(m_num_triele);
-	B.resize(m_num_triele);
+	//A.resize(m_num_nodes);
+	//At.resize(m_num_nodes);
+	//Bx.resize(m_num_triele);
+	//By.resize(m_num_triele);
+	//B.resize(m_num_triele);
 	//计算三角形单元几何部分
 	makeTrangle();
 	//处理边界条件、材料和负载
@@ -135,7 +135,7 @@ void FEM2DNDDRSolver::solve()
 					int i_tri = nddrnode[n].NeighbourElementId[k];
 					CTriElement triele = mp_triele[i_tri];
 					int nodenumber = nddrnode[n].NeighbourElementNumber[k];
-					double mut = triele.material->getMu(B[i_tri]) * triele.xdot;
+					double mut = triele.material->getMu(triele.B) * triele.xdot;
 					//printf("mu: %f\n", mut);
 					//处理线性单元
 					if (triele.material->getLinearFlag() == true) {
@@ -157,11 +157,11 @@ void FEM2DNDDRSolver::solve()
 					//处理非线性单元
 					else {
 						double mu, mut, dvdb, dvdbt, Bt, sigmai = 0, sigmaj = 0;
-						mu = triele.material->getMu(B[i_tri]);
+						mu = triele.material->getMu(triele.B);
 						mut = mu * triele.xdot;
-						dvdb = triele.material->getdvdB(B[i_tri]);
+						dvdb = triele.material->getdvdB(triele.B);
 						dvdbt = dvdb / triele.xdot / triele.xdot;
-						Bt = B[i_tri] * triele.xdot;
+						Bt = triele.B * triele.xdot;
 						for (int i = 0; i < 3; ++i) {
 							for (int m = 0; m < 3; ++m) {
 								if (m == nodenumber) {
@@ -205,15 +205,15 @@ void FEM2DNDDRSolver::solve()
 				}
 				Ati = F / S;
 				//NR迭代收敛性判断 
-				double a = (Ati - At[n]) * (Ati - At[n]);
+				double a = (Ati - mp_node[n].At) * (Ati - mp_node[n].At);
 				double b = Ati * Ati;
 				double NRerror = sqrt(a) / sqrt(b);
 				if (Ati == 0) {
 					continue;
 				}
 				if (NRerror > maxerror) {
-					At[n] = Ati;
-					A[n] = At[n] / mp_node[n].x;
+					mp_node[n].At = Ati;
+					mp_node[n].A = mp_node[n].At / mp_node[n].x;
 					for (int i = 0; i < nddrnode[n].NumberofNeighbourElement; ++i) {
 						updateB(nddrnode[n].NeighbourElementId[i]);
 					}
@@ -230,15 +230,17 @@ void FEM2DNDDRSolver::solve()
 		//判断全局收敛性
 		double error = 0, a = 0, b = 0;
 		for (int i = 0; i < m_num_nodes; ++i) {
-			a += (At[i] - At_old[i]) * (At[i] - At_old[i]);
-			b += At[i] * At[i];
+			a += (mp_node[i].At - At_old[i]) * (mp_node[i].At - At_old[i]);
+			b += mp_node[i].At * mp_node[i].At;
 		}
 		error = sqrt(a) / sqrt(b);
 		if ((iter + 1) % 100 == 0) {
 			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
 		}
 		if (error > maxerror) {
-			At_old = At;
+			for (int i = 0; i < m_num_nodes; ++i) {
+				At_old[i] = mp_node[i].At;
+			}
 		}
 		else {
 			cout << "Iteration step: " << iter + 1 << endl;

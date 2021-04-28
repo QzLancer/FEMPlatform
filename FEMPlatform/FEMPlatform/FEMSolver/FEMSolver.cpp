@@ -159,7 +159,7 @@ void FEMSolver::writeVtkFile(std::string _name)
 	fprintf(fp, "SCALARS A double 1\n");
 	fprintf(fp, "LOOKUP_TABLE %s\n", "Atable");
 	for (int i = 0; i < m_num_nodes; ++i) {
-		fprintf(fp, "%f\n", A[i]);
+		fprintf(fp, "%f\n", mp_node[i].A);
 	}
 
 	//单元标量磁感应强度
@@ -167,12 +167,12 @@ void FEMSolver::writeVtkFile(std::string _name)
 	fprintf(fp, "SCALARS %s double %d\n", "Bnorm", 1);
 	fprintf(fp, "LOOKUP_TABLE %s\n", "Btable");
 	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
-		fprintf(fp, "%lf\n", B[i_tri]);
+		fprintf(fp, "%lf\n", mp_triele[i_tri].B);
 	}
 
 	fprintf(fp, "\nVECTORS %s double\n", "Bvector");
 	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
-		fprintf(fp, "%lf %lf %lf\n", Bx[i_tri], By[i_tri], 0.0);
+		fprintf(fp, "%lf %lf %lf\n", mp_triele[i_tri].Bx, mp_triele[i_tri].By, 0.0);
 	}
 	fclose(fp);
 }
@@ -192,7 +192,7 @@ void FEMSolver::writeTxtFile(std::string _name)
 		exit(0);
 	}
 	for (int i = 0; i < m_num_nodes; ++i) {
-		fprintf(fp, "%lf %lf %lf\n", mp_node[i].x, mp_node[i].y, A[i]);
+		fprintf(fp, "%lf %lf %lf\n", mp_node[i].x, mp_node[i].y, mp_node[i].A);
 	}
 }
 
@@ -248,7 +248,17 @@ void FEMSolver::writeGeometryVtkFile(std::string _name)
 	fclose(fp);
 }
 
-std::vector<double> FEMSolver::getA() const
+void FEMSolver::setDeformedDomain(const std::vector<int> _deformedlist)
 {
-    return A;
+	deformedlist = _deformedlist;
 }
+
+void FEMSolver::setMovingPart(const std::map<int, FEMMovingPart> _movingmap)
+{
+	movingmap = _movingmap;
+}
+
+//std::vector<double> FEMSolver::getA() const
+//{
+//    return A;
+//}

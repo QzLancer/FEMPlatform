@@ -14,9 +14,9 @@ void FEMRelay1250Model::setDimension()
 
 void FEMRelay1250Model::setFile()
 {
-	//geofile = "../../model/geo/JRS1250/JRS1250bgmband.geo";
+	geofile = "../../model/geo/JRS1250/JRS1250bgmband.geo";
     //meshfile = "../../model/geo/JRS1250/JRS1250bgmband.geo_0_22888.msh";
-    meshfile = "../../model/geo/JRS1250/JRS1250bgmband.geo_0_31081.msh";
+    //meshfile = "../../model/geo/JRS1250/JRS1250bgmband.geo_0_31081.msh";
 }
 
 void FEMRelay1250Model::createElement2Material()
@@ -96,7 +96,7 @@ void FEMRelay1250Model::buildGeometry2Deformed()
 void FEMRelay1250Model::buildGeometry2MovingPart()
 {
     FEMMovingPart moving1;
-    moving1.direction[2] = 1;
-    moving1.limit[2].min = -6.2;
+    moving1.direction[1] = 1;
+    moving1.limit[1].min = -0.0062;
     movingmap[1] = moving1;
 }

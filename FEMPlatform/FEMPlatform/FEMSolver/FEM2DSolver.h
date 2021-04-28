@@ -5,6 +5,7 @@ class FEM2DSolver :
 {
 public:
     virtual void solve() = 0;
+    virtual void solveMagneticForce();
 
 protected:
     void makeTrangle();

@@ -11,6 +11,7 @@
 #include <iostream>
 #include <algorithm>
 #include <math.h>
+#include "..\FEMMovingPart.h"
 
 #define PI 3.14159265358979323846
 
@@ -25,6 +26,7 @@ public:
 	FEMSolver();
 	virtual ~FEMSolver();
 	virtual void solve() = 0;
+	virtual void solveMagneticForce() = 0;
 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
 	void setMatrixSolver(MatrixSolver* const _matsolver);
@@ -40,8 +42,10 @@ public:
 	void writeVtkFile(std::string _name);
 	void writeTxtFile(std::string _name);
 	void writeGeometryVtkFile(std::string _name);
+	virtual void setDeformedDomain(const std::vector<int> _deformedlist);
+	virtual void setMovingPart(const std::map<int, FEMMovingPart> _movingmap);
 
-	std::vector<double> getA() const;
+	//std::vector<double> getA() const;
 
 protected:
 	virtual void processBoundaryCondition() = 0;
@@ -63,6 +67,8 @@ protected:
 	std::map<int, FEMMaterial*> materialmap;
 	std::map<int, double> loadmap;
 	std::map<int, FEMBoundary*> boundarymap;
+	std::vector<int> deformedlist;	//形变区域
+	std::map<int, FEMMovingPart>movingmap;	//运动区域
 
 	int maxitersteps;
 	double maxerror;
@@ -71,8 +77,8 @@ protected:
 	std::vector<int> node_reorder;	//前num_dof个元素对应非边界节点，之后的元素对应第一类边界条件
 	std::vector<int> node_pos;	//原节点编号对应的reorder后的节点编号
 
-	std::vector<double> A{ 0 };
-	std::vector<double> At{ 0 };
-	std::vector<double> Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
+	//std::vector<double> A{ 0 };
+	//std::vector<double> At{ 0 };
+	//std::vector<double> Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
 };
 

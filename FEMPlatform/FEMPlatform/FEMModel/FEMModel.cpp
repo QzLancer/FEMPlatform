@@ -47,6 +47,16 @@ double FEMModel::getUnitRatio() const
     return unitratio;
 }
 
+std::vector<int> FEMModel::getDeformedList() const
+{
+    return deformedlist;
+}
+
+std::map<int, FEMMovingPart> FEMModel::getMovingMap() const
+{
+    return movingmap;
+}
+
 FEMModel::FEMModel()
 {
 
@@ -64,7 +74,6 @@ void FEMModel::init()
     buildGeometry2Deformed();
     buildGeometry2Constrain();
     buildGeometry2MovingPart();
-
 }
 
 void FEMModel::addNonlinearMaterial(std::string _name, int _bhpoints, double* _bdata, double* _hdata)
