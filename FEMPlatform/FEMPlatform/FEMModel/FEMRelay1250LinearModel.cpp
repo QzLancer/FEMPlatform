@@ -7,7 +7,7 @@ void FEMRelay1250LinearModel::setModelName()
 
 void FEMRelay1250LinearModel::setDimension()
 {
-	dimension = DIMENSION::TWO;
+	dimension = DIMENSION::D2AXISM;
 }
 
 void FEMRelay1250LinearModel::setFile()

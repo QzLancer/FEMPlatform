@@ -23,7 +23,7 @@ void FEMCore::setModel(FEMModel* _model)
 {
 	model = _model;
 	//根据维度选择分网管理器类型
-	if (model->getDimension() == FEMModel::DIMENSION::TWO) {
+	if (model->getDimension() == FEMModel::DIMENSION::D2AXISM || model->getDimension() == FEMModel::DIMENSION::D2PLANE) {
 		meshmanager = new FEM2DMeshManager;
 
 	}
@@ -60,14 +60,18 @@ void FEMCore::setAnalysisType(string analysistype)
 
 void FEMCore::setFEMSolveStrategy(string solvestrategy)
 {
+
 	if (solvestrategy == "NR") {
 		solver = new FEM2DNRSolver;
+		solver->dimension = model->getDimension();
 	}
 	else if (solvestrategy == "NDDR") {
 		solver = new FEM2DNDDRSolver;
+		solver->dimension = model->getDimension();
 	}
 	else if (solvestrategy == "NDDRGPU") {
 		solver = new FEM2DNDDRCUDASolver;
+		solver->dimension = model->getDimension();
 	}
 	else {
 		cout << "Error: invalid solve strategy!\n";
@@ -86,7 +90,7 @@ void FEMCore::setMatrixSolver(string matrixsolver)
 	}
 }
 
-void FEMCore::solve()
+void FEMCore::solveStatic()
 {
 	solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
 	solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
@@ -97,8 +101,8 @@ void FEMCore::solve()
 	solver->setBoundary(model->getBoundaryMap());
 	solver->setDeformedDomain(model->getDeformedList());
 	solver->setMovingPart(model->getMovingMap());
-	solver->solve();
-	solver->solveMagneticForce();	//电磁力计算，目前是静态特性的思路放在core中调用
+	solver->solveStatic();
+	//solver->solveMagneticForce();	//电磁力计算，目前是静态特性的思路放在core中调用
 }
 
 void FEMCore::postprocess()

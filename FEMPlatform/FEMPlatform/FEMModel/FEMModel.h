@@ -34,8 +34,9 @@ public:
 	void init();	/*设计模式：Template模式*/
 	enum class DIMENSION {
 		ONE = 1,
-		TWO = 2,
-		THREE = 3
+		D2AXISM = 2,
+		THREE = 3,
+		D2PLANE = 4
 	};
 	DIMENSION getDimension() const;
 	std::string getMeshFile() const;

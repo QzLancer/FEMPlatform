@@ -22,6 +22,8 @@ public:
 	virtual void readGeoFile(string geofile);
 	virtual void readMeshFile(string meshfile = "") = 0;
 	virtual void meshUnitConvert(double unitratio);
+	virtual void remesh(double dx, double dy);
+	void deleteMeshDomain(int dimension, int domain);
 
 	int getNumofNodes() const;
 	CNode* getNodes() const;

@@ -114,4 +114,3 @@ private:
 	bool gpuflag;	//判断Bdata和Hdata是否分配为Unified Memory，以选择析构方式
 	FEMCoil coil;
 };
-

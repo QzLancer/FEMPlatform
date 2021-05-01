@@ -5,6 +5,7 @@
 #include "FEMModel/FEMContactorNonLinearModel.h"
 #include "FEMModel/FEMRelay1250Model.h"
 #include "FEMModel/FEMRelay1250LinearModel.h"
+#include "FEMModel/FEMTransformerModel.h"
 
 #include <iostream>
 #include <time.h>
@@ -14,12 +15,12 @@ std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 20000;
-double maxerror = 1e-5;
+double maxerror = 1e-9;
 
 int main()
 {
     FEMCore core;
-    FEMModel* model = new FEMRelay1250Model;
+    FEMModel* model = new FEMTransformerModel;
     model->init();
 
     core.setModel(model);
@@ -31,7 +32,7 @@ int main()
     core.setMaxError(maxerror);
     clock_t start, end;
     start = clock();
-    core.solve();
+    core.solveStatic();
     end = clock();
     cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
     core.postprocess();

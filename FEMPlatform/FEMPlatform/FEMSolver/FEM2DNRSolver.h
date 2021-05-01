@@ -10,8 +10,9 @@ class FEM2DNRSolver :
     public FEM2DSolver
 {
 public:
-    virtual void solve() override;
-
+    virtual void solveStatic() override;
+    void solve2DAxim();
+    void solve2DPlane();
 protected:
 
 

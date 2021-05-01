@@ -4,8 +4,9 @@ class FEM2DSolver :
     public FEMSolver
 {
 public:
-    virtual void solve() = 0;
-    virtual void solveMagneticForce();
+    virtual void solveStatic() = 0;
+    virtual void solveMagneticForce() override;
+    virtual void solveDynamic() override;
 
 protected:
     void makeTrangle();

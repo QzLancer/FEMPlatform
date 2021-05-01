@@ -5,6 +5,7 @@
 #include "../FEMMaterial.h"
 #include "../FEMBoundary.h"
 #include "../MatrixSolver/MatrixSolver.h"
+#include "../FEMModel/FEMModel.h"
 
 #include <vector>
 #include <map>
@@ -25,8 +26,9 @@ class FEMSolver
 public:
 	FEMSolver();
 	virtual ~FEMSolver();
-	virtual void solve() = 0;
+	virtual void solveStatic() = 0;
 	virtual void solveMagneticForce() = 0;
+	virtual void solveDynamic() = 0;
 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
 	void setMatrixSolver(MatrixSolver* const _matsolver);
@@ -46,6 +48,7 @@ public:
 	virtual void setMovingPart(const std::map<int, FEMMovingPart> _movingmap);
 
 	//std::vector<double> getA() const;
+	FEMModel::DIMENSION dimension;
 
 protected:
 	virtual void processBoundaryCondition() = 0;

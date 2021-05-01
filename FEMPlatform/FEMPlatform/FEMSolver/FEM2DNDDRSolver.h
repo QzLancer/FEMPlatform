@@ -6,7 +6,9 @@ class FEM2DNDDRSolver :
     public FEM2DSolver
 {
 public:
-    virtual void solve() override;
+    virtual void solveStatic() override;
+	void solve2DAxim();
+	void solve2DPlane();
 
 private:
 	struct NDDR_FEMNode

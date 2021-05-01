@@ -6,7 +6,7 @@
 
 __managed__ double error = 0;
 
-void FEM2DNDDRCUDASolver::solve()
+void FEM2DNDDRCUDASolver::solveStatic()
 {
 	//CPU处理初始条件，然后数据拷贝到GPU中
 	processBoundaryCondition();

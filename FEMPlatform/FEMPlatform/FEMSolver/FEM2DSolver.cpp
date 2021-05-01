@@ -106,6 +106,11 @@ void FEM2DSolver::solveMagneticForce()
 	printf("Fx:%10.8e,Fy:%10.8e\n", Fx, Fy);
 }
 
+void FEM2DSolver::solveDynamic()
+{
+	
+}
+
 void FEM2DSolver::makeTrangle()
 {
 	for (int index = 0; index < m_num_triele; ++index) {

@@ -7,7 +7,7 @@ void FEMContactorLinearModel::setModelName()
 
 void FEMContactorLinearModel::setDimension()
 {
-    dimension = DIMENSION::TWO;
+    dimension = DIMENSION::D2AXISM;
 }
 
 void FEMContactorLinearModel::setFile()

@@ -57,6 +57,18 @@ double FEMMaterial::getMu(double B)
 	//}
 	//return mu;
 
+	if (name == "Soft Iron1") {
+		if (B <= 0.6) {
+			double H = 500 * B;
+			return 0.002;
+		}
+		else if (B > 0.6 || B <= 20) {
+			double H = 500 * B + 3000 * (B - 0.6)*(B - 0.6)*(B - 0.6);
+			return B/H;
+			////return 0.002;
+		}
+	}
+
 	double slope, H, b;
 	if (linearflag == true) {
 		return mu;
@@ -71,6 +83,19 @@ double FEMMaterial::getMu(double B)
 
 double FEMMaterial::getdvdB(double B)
 {
+	if (name == "Soft Iron1") {
+		if (B <= 0.6) {
+			return 0;
+		}
+		else if (B > 0.6 || B <= 20) {
+			//double dvdb = 18 * (B - 0.6) * (B - 0.6) * B;
+			//dvdb -= 6 * (B - 0.6) * (B - 0.6) * (B - 0.6);
+			//dvdb /= B * B;
+			//return dvdb;
+			//return 0;
+			return 1 / getMu(B + 0.000001) / (B + 0.000001);
+		}
+	}
     double slope, H, b;
     if (BHpoints == 0 || B < 1e-9) return 0;
 	getkHb(B, &slope, &H, &b);
