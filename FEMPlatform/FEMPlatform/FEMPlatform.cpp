@@ -6,21 +6,22 @@
 #include "FEMModel/FEMRelay1250Model.h"
 #include "FEMModel/FEMRelay1250LinearModel.h"
 #include "FEMModel/FEMTransformerModel.h"
+#include "FEMModel/FEMTrans3PhaseModel.h"
 
 #include <iostream>
 #include <time.h>
 
 std::string analysistype = "static";
-std::string solvestrategy = "NR";
+std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 20000;
+int maxitersteps = 10000;
 double maxerror = 1e-9;
 
 int main()
 {
     FEMCore core;
-    FEMModel* model = new FEMTransformerModel;
+    FEMModel* model = new FEMContactorNonLinearModel;
     model->init();
 
     core.setModel(model);

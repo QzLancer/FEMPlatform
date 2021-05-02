@@ -162,6 +162,7 @@
     <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
     <ClCompile Include="FEMModel\FEMContactorNonLinearModel.cpp" />
     <ClCompile Include="FEMModel\FEMTransformerModel.cpp" />
+    <ClCompile Include="FEMModel\FEMTrans3PhaseModel.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
     <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
     <ClCompile Include="FEMBoundary.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
     <ClInclude Include="FEMModel\FEMContactorNonLinearModel.h" />
     <ClInclude Include="FEMModel\FEMTransformerModel.h" />
+    <ClInclude Include="FEMModel\FEMTrans3PhaseModel.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
     <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
     <ClInclude Include="FEMBoundary.h" />

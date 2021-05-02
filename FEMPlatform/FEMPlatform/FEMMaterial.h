@@ -99,6 +99,8 @@ public:
 		return theta_m;
 	};
 
+
+
 	//GPU
 	void GPUCopy(FEMMaterial& material);
 private:
