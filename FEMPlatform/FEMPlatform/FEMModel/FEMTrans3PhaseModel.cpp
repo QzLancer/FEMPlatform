@@ -7,12 +7,12 @@ void FEMTrans3PhaseModel::setModelName()
 
 void FEMTrans3PhaseModel::setDimension()
 {
-	dimension = DIMENSION::D2PLANE;
+	dimension = DIMENSION::D2AXISM ;
 }
 
 void FEMTrans3PhaseModel::setFile()
 {
-	meshfile = "../../model/geo/transformer/transformer3Phase_1042.mphtxt";
+	meshfile = "../../model/geo/transformer/transformer3Phase_889.mphtxt";
 }
 
 void FEMTrans3PhaseModel::createElement2Material()

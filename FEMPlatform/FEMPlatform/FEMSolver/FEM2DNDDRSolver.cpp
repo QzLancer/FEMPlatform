@@ -114,7 +114,8 @@ void FEM2DNDDRSolver::solveStatic()
 //	}
 
 	//子域内部采用牛顿迭代
-
+	clock_t start, end;
+	start = clock();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
 		//solve2DAxim();
 		solve2DAxim1();
@@ -124,6 +125,8 @@ void FEM2DNDDRSolver::solveStatic()
 		//solve2DPlane1();
 		solve2DPlane2();
 	}
+	end = clock();
+	cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
 }
 
 void FEM2DNDDRSolver::solve2DAxim()
@@ -266,7 +269,7 @@ void FEM2DNDDRSolver::solve2DAxim()
 
 void FEM2DNDDRSolver::solve2DAxim1()
 {
-	vector<double> At_old(m_num_nodes, 0);
+	//vector<double> At_old(m_num_nodes, 0);
 	for (int iter = 0; iter < maxitersteps; ++iter) {
 		//cout << "Iteration step " << iter + 1 << " start." << endl;
 #pragma omp parallel for num_threads(8)
@@ -302,7 +305,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 								F += h_c / 2 * (triele.R[i] * cos(theta_m) - triele.Q[i] * sin(theta_m));
 							}
 							else {
-								F -= Se * At_old[triele.n[i]];
+								F -= Se * mp_node[triele.n[i]].At_old;
 							}
 						}
 					}
@@ -320,7 +323,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 									sigmai[i] += triele.C[i][m] * Ati;
 								}
 								else {
-									sigmai[i] += triele.C[i][m] * At_old[triele.n[m]];
+									sigmai[i] += triele.C[i][m] * mp_node[triele.n[m]].At_old;
 								}
 							}
 						}
@@ -336,8 +339,8 @@ void FEM2DNDDRSolver::solve2DAxim1()
 								F += (J - triele.C[nodenumber][i] / mut) * Ati;
 							}
 							else {
-								F += (J - triele.C[nodenumber][i] / mut) * At_old[triele.n[i]];
-								F -= J * At_old[triele.n[i]];
+								F += (J - triele.C[nodenumber][i] / mut) * mp_node[triele.n[i]].At_old;
+								F -= J * mp_node[triele.n[i]].At_old;
 							}
 						}
 						//if (sigmai != 0 && sigmaj != 0) 
@@ -370,25 +373,32 @@ void FEM2DNDDRSolver::solve2DAxim1()
 		}
 
 		//判断全局收敛性
-		double error = 0, a = 0, b = 0;
+		//double error = 0, a = 0, b = 0;
+		//for (int i = 0; i < m_num_nodes; ++i) {
+		//	a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
+		//	b += mp_node[i].At * mp_node[i].At;
+		//}
+		//error = sqrt(a) / sqrt(b);
+		//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+
+		//if ((iter + 1) % 100 == 0) {
+		//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//}
+		//if (error > maxerror) {
+		//	for (int i = 0; i < m_num_nodes; ++i) {
+		//		At_old[i] = mp_node[i].At;
+		//	}
+		//}
+		//else {
+		//	cout << "Iteration step: " << iter + 1 << endl;
+		//	cout << "Nonlinear NDDR iteration finish.\n";
+		//	return;
+		//}
+#pragma omp parallel for num_threads(8)
 		for (int i = 0; i < m_num_nodes; ++i) {
-			a += (mp_node[i].At - At_old[i]) * (mp_node[i].At - At_old[i]);
-			b += mp_node[i].At * mp_node[i].At;
+			mp_node[i].At_old = mp_node[i].At;
 		}
-		error = sqrt(a) / sqrt(b);
-		if ((iter + 1) % 100 == 0) {
-			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-		}
-		if (error > maxerror) {
-			for (int i = 0; i < m_num_nodes; ++i) {
-				At_old[i] = mp_node[i].At;
-			}
-		}
-		else {
-			cout << "Iteration step: " << iter + 1 << endl;
-			cout << "Nonlinear NDDR iteration finish.\n";
-			return;
-		}
+
 	}
 }
 
@@ -671,30 +681,30 @@ void FEM2DNDDRSolver::solve2DPlane1()
 
 void FEM2DNDDRSolver::solve2DPlane2()
 {
-	for (int RelaxCount = 0; RelaxCount < 1000; RelaxCount++) {
+	for (int RelaxCount = 0; RelaxCount < 2500; RelaxCount++) {
 		Update_Magnetic_Node_A();
 
 
-		double a = 0, b = 0;
-		for (int i = 0; i < m_num_nodes; ++i) {
-			a += (mp_node[i].A - mp_node[i].A_old) * (mp_node[i].A - mp_node[i].A_old);
-			b += mp_node[i].A * mp_node[i].A;
-		}
-		double error = sqrt(a) / sqrt(b);
-		cout << "step: " << 2 * RelaxCount << ", error: " << error << endl;
+		//double a = 0, b = 0;
+		//for (int i = 0; i < m_num_nodes; ++i) {
+		//	a += (mp_node[i].A - mp_node[i].A_old) * (mp_node[i].A - mp_node[i].A_old);
+		//	b += mp_node[i].A * mp_node[i].A;
+		//}
+		//double error = sqrt(a) / sqrt(b);
+		//cout << "step: " << 2 * RelaxCount << ", error: " << error << endl;
 
 		Update_Magnetic_Node_A_old();
 
-		a = 0; b = 0;
-		for (int i = 0; i < m_num_nodes; ++i) {
-			a += (mp_node[i].A - mp_node[i].A_old) * (mp_node[i].A - mp_node[i].A_old);
-			b += mp_node[i].A * mp_node[i].A;
-		}
-		error = sqrt(a) / sqrt(b);
-		cout << "step: " << 2 * RelaxCount  + 1 << ", error: " << error << endl;
+		//a = 0; b = 0;
+		//for (int i = 0; i < m_num_nodes; ++i) {
+		//	a += (mp_node[i].A - mp_node[i].A_old) * (mp_node[i].A - mp_node[i].A_old);
+		//	b += mp_node[i].A * mp_node[i].A;
+		//}
+		//error = sqrt(a) / sqrt(b);
+		//cout << "step: " << 2 * RelaxCount  + 1 << ", error: " << error << endl;
 	}
 
-	updateB();
+	//updateB();
 }
 
 void FEM2DNDDRSolver::Update_Magnetic_Node_A()

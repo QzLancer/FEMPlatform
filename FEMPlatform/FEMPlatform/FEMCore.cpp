@@ -101,6 +101,7 @@ void FEMCore::solveStatic()
 	solver->setBoundary(model->getBoundaryMap());
 	solver->setDeformedDomain(model->getDeformedList());
 	solver->setMovingPart(model->getMovingMap());
+
 	solver->solveStatic();
 	//solver->solveMagneticForce();	//电磁力计算，目前是静态特性的思路放在core中调用
 }

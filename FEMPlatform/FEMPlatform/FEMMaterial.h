@@ -39,6 +39,17 @@ public:
 	//把实现放到源文件中，会出现nvlink error，不知道怎么解决
 	__device__ double getMuinDevice(double B = 0)
 	{
+		//if (B <= 0.6) {
+		//	double H = 500 * B;
+		//	return 0.002;
+		//}
+		//else if (B > 0.6 || B <= 20) {
+		//	double H = 500 * B + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6);
+		//	return B / H;
+		//	////return 0.002;
+		//}
+
+
 		double slope, H, b;
 		//printf("__device__ double getMuinDevice, B = %f\n", B);
 		if (linearflag == true) {
@@ -77,6 +88,19 @@ public:
 
 	__device__ double getdvdBinDevice(double B)
 	{
+		//if (B <= 0.6) {
+		//	return 0;
+		//}
+		//else if (B > 0.6 || B <= 20) {
+		//	double dvdb = 9000 * (B - 0.6) * (B - 0.6) * B;
+		//	dvdb -= 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6);
+		//	dvdb /= B * B;
+		//	return dvdb;
+		//	//return 0;
+		//	//return 1 / getMu(B + 0.000001) / (B + 0.000001);
+		//}
+
+
 		double slope, H, b;
 		if (BHpoints == 0 || B < 1e-9) return 0;
 		getkHbinDevice(B, &slope, &H, &b);

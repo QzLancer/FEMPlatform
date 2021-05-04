@@ -33,7 +33,7 @@ private:
 	void processNDDRNode();
 };
 
-__global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele);
+__global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele);
 
 __global__ void calculateGlobalError(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele, double* a, double* b);
 
@@ -42,3 +42,7 @@ __global__ void copyAttoAtold(int d_m_num_nodes, CNode* d_mp_node);
 __global__ void makeTrangleinDevice(int numofTrangle, CNode* d_mp_node, CTriElement* d_mp_triele);
 
 __global__ void assignMattoTriEle(int numofTrangle, CTriElement* d_mp_triele, FEMMaterial* d_materialarray);
+
+__global__ void nodeAnalysisPlane(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele);
+
+__global__ void copyAtoAold(int d_m_num_nodes, CNode* d_mp_node);

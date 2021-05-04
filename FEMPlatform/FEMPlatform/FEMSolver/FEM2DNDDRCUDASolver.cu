@@ -25,25 +25,62 @@ void FEM2DNDDRCUDASolver::solveStatic()
 	cudaMalloc(&a, m_num_nodes * sizeof(double));
 	cudaMalloc(&b, m_num_nodes * sizeof(double));
 	error = 0;
-	for (int iter = 0; iter < maxitersteps; ++iter) {
-		nodeAnalysis << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
-		calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
-		cudaDeviceSynchronize();
+	cudaEvent_t start, stop;//unit: ms
 
-		//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-		if ((iter + 1 ) % 100 == 0) {
-			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-		}
-		if (error > maxerror) {
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaEventRecord(start, 0);
+
+	if (dimension == FEMModel::DIMENSION::D2AXISM) {
+		for (int iter = 0; iter < maxitersteps; ++iter) {
+			nodeAnalysisAxism << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
+			//calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
+			//cudaDeviceSynchronize();
+
+			//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			//if ((iter + 1 ) % 100 == 0) {
+			//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			//}
+			//if (error > maxerror) {
+			//	copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+			//}
+			//else {
+			//	cout << "Iteration step: " << iter + 1 << endl;
+			//	cout << "Nonlinear NDDR iteration finish.\n";
+			//	break;
+			//}
 			copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-		}
-		else {
-			cout << "Iteration step: " << iter + 1 << endl;
-			cout << "Nonlinear NDDR iteration finish.\n";
-			break;
+
 		}
 	}
+	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
+		for (int iter = 0; iter < maxitersteps; ++iter) {
+			nodeAnalysisPlane << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
+			//calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
+			//cudaDeviceSynchronize();
 
+			//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			//if ((iter + 1) % 100 == 0) {
+			//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			//}
+			//if (error > maxerror) {
+			//	copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+			//}
+			//else {
+			//	cout << "Iteration step: " << iter + 1 << endl;
+			//	cout << "Nonlinear NDDR iteration finish.\n";
+			//	break;
+			//}
+
+			copyAtoAold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+		}
+	}
+	cudaDeviceSynchronize();
+	cudaEventRecord(stop, 0);
+	cudaEventSynchronize(stop);
+	float elapsedTime;
+	cudaEventElapsedTime(&elapsedTime, start, stop);
+	printf("\nElapsed time for NDDR Iteration is %.4f s\n", elapsedTime / 1000);
 	//把内容拷贝回CPU
 	cudaMemcpy(mp_node, d_mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyDeviceToHost);
 	cudaMemcpy(mp_triele, d_mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyDeviceToHost);
@@ -232,7 +269,7 @@ void FEM2DNDDRCUDASolver::processNDDRNode()
 	}
 }
 
-__global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele)
+__global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele)
 {
 	int n = threadIdx.x + blockIdx.x * blockDim.x;
 	if (n >= d_m_num_nodes)
@@ -240,7 +277,7 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 	if (d_mp_node[n].bdr == 1)
 		return;
 	//节点内部迭代过程
-	int maxNRitersteps = 1;
+	int maxNRitersteps = 6;
 	double Ati = 0;
 	for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 		double S = 0, F = 0;
@@ -250,7 +287,7 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 			int i_tri = d_mp_node[n].NeighbourElementId[k];
 			CTriElement triele = d_mp_triele[i_tri];
 			int nodenumber = d_mp_node[n].NeighbourElementNumber[k];
-			double mu = triele.material->getMuinDevice(d_mp_triele[i_tri].B);
+			//double mu = triele.material->getMuinDevice(d_mp_triele[i_tri].B);
 			double mut = triele.material->getMuinDevice(d_mp_triele[i_tri].B) * triele.xdot;
 			//printf("TriElement: %d, Mu: %f\n", i_tri, mu);
 			//__syncthreads();
@@ -261,9 +298,9 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 					if (nodenumber == i) {
 						S += Se;
 						F += triele.J * triele.area / 3;
-						double h_c = triele.material->getH_cinDevice();
-						double theta_m = triele.material->getTheta_minDevice();
-						F += h_c / 2 * (triele.R[i] * __cosf(theta_m) - triele.Q[i] * __sinf(theta_m));
+						//double h_c = triele.material->getH_cinDevice();
+						//double theta_m = triele.material->getTheta_minDevice();
+						//F += h_c / 2 * (triele.R[i] * __cosf(theta_m) - triele.Q[i] * __sinf(theta_m));
 					}
 					else {
 						F -= Se * d_mp_node[triele.n[i]].At_old;
@@ -272,33 +309,33 @@ __global__ void nodeAnalysis(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d
 			}
 			//处理非线性单元
 			else {
-				double dvdb, dvdbt, Bt, sigmai = 0, sigmaj = 0;
+				double dvdb, dvdbt, Bt, sigmai[3]{0, 0, 0};
 				dvdb = triele.material->getdvdBinDevice(d_mp_triele[i_tri].B);
 				dvdbt = dvdb / triele.xdot / triele.xdot;
 				Bt = d_mp_triele[i_tri].B * triele.xdot;
 				for (int i = 0; i < 3; ++i) {
 					for (int m = 0; m < 3; ++m) {
 						if (m == nodenumber) {
-							sigmai += triele.C[i][m] * Ati;
+							sigmai[i] += triele.C[i][m] * Ati;
 						}
 						else {
-							sigmai += triele.C[i][m] * d_mp_node[triele.n[m]].At_old;
+							sigmai[i] += triele.C[i][m] * d_mp_node[triele.n[m]].At_old;
 						}
 					}
-					for (int j = 0; j < 3; ++j) {
-						for (int m = 0; m < 3; ++m) {
-							if (m == nodenumber) {
-								sigmaj += triele.C[j][m] * Ati;
-							}
-							else {
-								sigmaj += triele.C[j][m] * d_mp_node[triele.n[m]].At_old;
-							}
-						}
-					}
+					//for (int j = 0; j < 3; ++j) {
+					//	for (int m = 0; m < 3; ++m) {
+					//		if (m == nodenumber) {
+					//			sigmaj += triele.C[j][m] * Ati;
+					//		}
+					//		else {
+					//			sigmaj += triele.C[j][m] * d_mp_node[triele.n[m]].At_old;
+					//		}
+					//	}
+					//}
 				}
 				for (int i = 0; i < 3; ++i) {
 					if (Bt != 0) {
-						J = triele.C[nodenumber][i] / mut + sigmai * sigmaj / Bt / triele.area;
+						J = triele.C[nodenumber][i] / mut + dvdbt * sigmai[nodenumber] * sigmai[i] / Bt / triele.area;
 					}
 					else {
 						J = triele.C[nodenumber][i] / mut;
@@ -463,4 +500,126 @@ __global__ void assignMattoTriEle(int numofTrangle, CTriElement* d_mp_triele, FE
 
 	int matid = d_mp_triele[i_tri].domain - 1;
 	d_mp_triele[i_tri].material = &d_materialarray[matid];
+}
+
+__global__ void nodeAnalysisPlane(int d_m_num_nodes, CNode* d_mp_node, CTriElement* d_mp_triele)
+{
+	int n = threadIdx.x + blockIdx.x * blockDim.x;
+	if (n >= d_m_num_nodes)
+		return;
+	if (d_mp_node[n].bdr == 1)
+		return;
+	//节点内部迭代过程
+	int maxNRitersteps = 6;
+	double Ai = 0;
+	for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
+		double S = 0, F = 0;
+		double J = 0, Fj = 0;
+		//装配过程
+		for (int k = 0; k < d_mp_node[n].NumberofNeighbourElement; ++k) {
+			int i_tri = d_mp_node[n].NeighbourElementId[k];
+			CTriElement triele = d_mp_triele[i_tri];
+			int nodenumber = d_mp_node[n].NeighbourElementNumber[k];
+			double mu = triele.material->getMuinDevice(d_mp_triele[i_tri].B);
+			//printf("TriElement: %d, Mu: %f\n", i_tri, mu);
+			//__syncthreads();
+			//处理线性单元
+			if (triele.material->getLinearFlaginDevice() == true) {
+				for (int i = 0; i < 3; ++i) {
+					double Se = triele.C[nodenumber][i] / mu;
+					if (nodenumber == i) {
+						S += Se;
+						F += triele.J * triele.area / 3;
+						//double h_c = triele.material->getH_cinDevice();
+						//double theta_m = triele.material->getTheta_minDevice();
+						//F += h_c / 2 * (triele.R[i] * __cosf(theta_m) - triele.Q[i] * __sinf(theta_m));
+					}
+					else {
+						F -= Se * d_mp_node[triele.n[i]].A_old;
+					}
+				}
+			}
+			//处理非线性单元
+			else {
+				double dvdb, B, sigmai[3]{ 0, 0, 0 };
+				dvdb = triele.material->getdvdBinDevice(d_mp_triele[i_tri].B);
+				B = d_mp_triele[i_tri].B;
+				for (int i = 0; i < 3; ++i) {
+					for (int m = 0; m < 3; ++m) {
+						if (m == nodenumber) {
+							sigmai[i] += triele.C[i][m] * Ai;
+						}
+						else {
+							sigmai[i] += triele.C[i][m] * d_mp_node[triele.n[m]].A_old;
+						}
+					}
+					//for (int j = 0; j < 3; ++j) {
+					//	for (int m = 0; m < 3; ++m) {
+					//		if (m == nodenumber) {
+					//			sigmaj += triele.C[j][m] * Ati;
+					//		}
+					//		else {
+					//			sigmaj += triele.C[j][m] * d_mp_node[triele.n[m]].At_old;
+					//		}
+					//	}
+					//}
+				}
+				for (int i = 0; i < 3; ++i) {
+					if (B != 0) {
+						J = triele.C[nodenumber][i] / mu + dvdb * sigmai[nodenumber] * sigmai[i] / B / triele.area;
+					}
+					else {
+						J = triele.C[nodenumber][i] / mu;
+					}
+					if (nodenumber == i) {
+						S += J;
+						F += (J - triele.C[nodenumber][i] / mu) * Ai;
+					}
+					else {
+						F += (J - triele.C[nodenumber][i] / mu) * d_mp_node[triele.n[i]].A_old;
+						F -= J * d_mp_node[triele.n[i]].A_old;
+					}
+				}
+			}
+		}
+		Ai = F / S;
+		//NR迭代收敛性判断
+		double a = (Ai - d_mp_node[n].At) * (Ai - d_mp_node[n].At);
+		double b = Ai * Ai;
+		double NRerror = sqrtf(a) / sqrtf(b);
+		if (Ai == 0) {
+			continue;
+		}
+		if (NRerror > 1e-5) {
+			d_mp_node[n].A = Ai;
+			for (int i = 0; i < d_mp_node[n].NumberofNeighbourElement; ++i) {
+				//updateB
+				double bx = 0, by = 0;
+				int i_tri = d_mp_node[n].NeighbourElementId[i];
+				for (int j = 0; j < 3; ++j) {
+					int n = d_mp_triele[i_tri].n[j];
+					bx += d_mp_triele[i_tri].R[j] * d_mp_node[n].A;
+					by += d_mp_triele[i_tri].Q[j] * d_mp_node[n].A;
+				}
+				bx = bx / 2 / d_mp_triele[i_tri].area;
+				d_mp_triele[i_tri].Bx = bx;
+				by = -by / 2 / d_mp_triele[i_tri].area;
+				d_mp_triele[i_tri].By = by;
+				d_mp_triele[i_tri].B = sqrtf(bx * bx + by * by);
+			}
+		}
+		else {
+			break;
+		}
+	}
+}
+
+__global__ void copyAtoAold(int d_m_num_nodes, CNode* d_mp_node)
+{
+	int n = blockDim.x * blockIdx.x + threadIdx.x;
+	if (n >= d_m_num_nodes) {
+		return;
+	}
+
+	d_mp_node[n].A_old = d_mp_node[n].A;
 }

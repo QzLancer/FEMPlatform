@@ -12,7 +12,7 @@ void FEMContactorLinearModel::setDimension()
 
 void FEMContactorLinearModel::setFile()
 {
-    meshfile = "../../model/model14120.mphtxt";
+    meshfile = "../../model/model3656.mphtxt";
 }
 
 void FEMContactorLinearModel::createElement2Material()
