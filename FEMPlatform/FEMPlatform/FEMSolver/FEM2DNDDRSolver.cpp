@@ -120,9 +120,9 @@ void FEM2DNDDRSolver::solveStatic()
 		solve2DAxim1();
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
-		solve2DPlane();
+		//solve2DPlane();
 		//solve2DPlane1();
-		//solve2DPlane2();
+		solve2DPlane2();
 	}
 }
 
