@@ -12,10 +12,10 @@
 #include <time.h>
 
 std::string analysistype = "static";  
-std::string solvestrategy = "NDDR";
+std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 10000;
+int maxitersteps = 20000;
 double maxerror = 1e-9;
 
 int main()

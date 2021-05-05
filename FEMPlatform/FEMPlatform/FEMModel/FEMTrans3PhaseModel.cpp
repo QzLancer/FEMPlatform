@@ -7,11 +7,13 @@ void FEMTrans3PhaseModel::setModelName()
 
 void FEMTrans3PhaseModel::setDimension()
 {
-	dimension = DIMENSION::D2AXISM ;
+	dimension = DIMENSION::D2AXISM;
 }
 
 void FEMTrans3PhaseModel::setFile()
 {
+	//889个分网单元的，和我的模型对不上
+	//meshfile = "../../model/geo/transformer/transformer3Phase_1042.mphtxt";
 	meshfile = "../../model/geo/transformer/transformer3Phase_889.mphtxt";
 }
 
@@ -28,7 +30,7 @@ void FEMTrans3PhaseModel::createElement2Material()
 	materialmap[1] = materiallist[0];   
 	materialmap[2] = materiallist[0];   
 	materialmap[3] = materiallist[0];   
-	materialmap[4] = materiallist[2];   //铁芯
+	materialmap[4] = materiallist[1];   //铁芯
 	materialmap[5] = materiallist[0];   
 	materialmap[6] = materiallist[0];   
 	materialmap[7] = materiallist[0];   
