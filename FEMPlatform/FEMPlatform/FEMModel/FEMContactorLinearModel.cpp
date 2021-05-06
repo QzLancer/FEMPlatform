@@ -35,7 +35,7 @@ void FEMContactorLinearModel::createElement2Material()
 
 void FEMContactorLinearModel::bulidGeometry2Load()
 {
-    loadmap[5] = 8e5;
+    loadmap[5] = 8e6 ;
 }
 
 void FEMContactorLinearModel::buildGeometry2Constrain()

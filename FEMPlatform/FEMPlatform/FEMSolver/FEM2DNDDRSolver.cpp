@@ -407,106 +407,102 @@ void FEM2DNDDRSolver::solve2DAxim1()
 void FEM2DNDDRSolver::solve2DAxim2()
 {
 	for (int iter = 0; iter < maxitersteps; ++iter) {
-		//cout << "Iteration step " << iter + 1 << " start." << endl;
 #pragma omp parallel for num_threads(8)
-		for (int n = 0; n < m_num_nodes; ++n) {
-
-			if (mp_node[n].bdr == 1) {
-				continue;
-			}
-			//节点内部迭代过程
-			double At = 0, dAt = 0, Jac, ku, J0 = 0, ku0 = 0, Js;
-			double B2, B, VB2, B2A;
-			int ID = 0;
+		for (int i = 0; i < m_num_nodes; ++i) {
+			double A, At, dAt, Jac, k, J0, k0, NRerror, Js;
+			double B2, B, V, Vt, VB2, B2A;
+			int ID;
 			int RelaxCount, count = 0;
 			int NRCount = 6;
 			double RelaxFactor = 1;
-			double Vet = 0;
-			int maxNRitersteps = 6;
-			int nodenumber;
-			CTriElement triele;
-			for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
-				Jac = 0, ku = 0;
-				//装配过程
-				for (int k = 0; k < mp_node[n].NumberofNeighbourElement; ++k) {
-					ID = mp_node[n].NeighbourElementId[k];
-					nodenumber = mp_node[n].NeighbourElementNumber[k];
-					triele = mp_triele[ID];
-					double AtLocal[3]{ 0, 0, 0 }, ALocal[3]{ 0, 0, 0 };
-					for (int i = 0; i < 3; ++i) {
-						if (i == nodenumber) {
-							AtLocal[i] = At;
-						}
-						else {
-							AtLocal[i] = mp_node[triele.n[i]].At_old;
-						}
-					}
-					double A = At / triele.xdot;
-					for (int i = 0; i < 3; ++i) {
-						if (i == nodenumber) {
-							ALocal[i] = At / triele.xdot;
-						}
-						else {
-							ALocal[i] = mp_node[triele.n[i]].At_old / triele.xdot;
-						}
-					}
-
-					double RHSContri[3]{ 0, 0, 0 };
-					for (int i = 0; i < 3; ++i) {
-						for (int j = 0; j < 3; ++j) {
-							RHSContri[i] += triele.C[i][j] * AtLocal[j];
-						}
-					}
-
-					ID = mp_node[n].NeighbourElementId[k];
-					Js = triele.J * triele.area / 3;
-
-					//线性单元，计算右侧列向量时，也要考虑A？？？
-					if (mp_triele[ID].material->getLinearFlag() == true)	//线性空气单元
+			double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{0, 0, 0};
+			if (mp_node[i].bdr != 1)
+			{
+				At = 0; dAt = 0; NRerror = 1; count = 0;
+				while (count < NRCount)
+				{
+					Jac = 0; k = 0;
+					for (int j = 0; j < mp_node[i].NumberofNeighbourElement; j++)
 					{
-						Vet = 1.0 / mp_triele[ID].material->getMu(0.1) / triele.xdot;
-						J0 = Vet * triele.C[nodenumber][nodenumber];
-						ku0 = Js - Vet * RHSContri[nodenumber];
+						ID = mp_node[i].NeighbourElementId[j];
+						Js = mp_triele[ID].J * mp_triele[ID].area / 3;
+						int nodenumber = mp_node[i].NeighbourElementNumber[j];
+						for (int m = 0; m < 3; ++m) {
+							if (m == nodenumber) {
+								AtLocal[m] = At;
+							}
+							else {
+								AtLocal[m] = mp_node[mp_triele[ID].n[m]].At_old;
+							}
+							ALocal[m] = AtLocal[m] / mp_triele[ID].xdot;
+							A = At / mp_triele[ID].xdot;
+						}
+						double RHSContri = 0;
+						for (int m = 0; m < 3; ++m) {
 
+							RHSContri += mp_triele[ID].C[nodenumber][m] * AtLocal[m];
+						}
+
+						//线性单元，计算右侧列向量时，也要考虑A？？？
+						if (mp_triele[ID].material->getLinearFlag() == true)	//线性空气单元
+						{
+							Vt = 1.0 / mp_triele[ID].material->getMu(0) / mp_triele[ID].xdot;
+							J0 = Vt * mp_triele[ID].C[nodenumber][nodenumber];
+							k0 = Js - Vt * RHSContri;
+
+							//V = 1.0 / mp_triele[ID].material->getMu(0);
+							//J0 = V * mp_triele[ID].C[nodenumber][nodenumber];
+							//k0 = Js - V * RHSContri;
+						}
+
+						else	//非线性单元
+						{
+							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (ALocal[0] - ALocal[1]) * (ALocal[0] - ALocal[1]) + mp_triele[ID].C[1][2] * (ALocal[1] - ALocal[2]) * (ALocal[1] - ALocal[2]) + mp_triele[ID].C[0][2] * (ALocal[0] - ALocal[2]) * (ALocal[0] - ALocal[2]));
+							B = sqrt(B2);	//计算B，用于处理非线性
+							Vt = 1.0 / mp_triele[ID].material->getMu(B) / mp_triele[ID].xdot;
+							VB2 = mp_triele[ID].material->getdvdB2(B);
+							B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[nodenumber][0] * (A - ALocal[0]) + 2 * mp_triele[ID].C[nodenumber][1] * (A - ALocal[1]) + 2 * mp_triele[ID].C[nodenumber][2] * (A - ALocal[2]));
+							J0 = B2A * VB2 * RHSContri / mp_triele[ID].xdot / mp_triele[ID].xdot + Vt * mp_triele[ID].C[nodenumber][nodenumber];
+							k0 = Js - Vt * RHSContri;
+
+							//B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + mp_triele[ID].C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + mp_triele[ID].C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
+							//B = sqrt(B2);	//计算B，用于处理非线性
+							//V = 1.0 / mp_triele[ID].material->getMu(B);
+							//VB2 = mp_triele[ID].material->getdvdB2(B);
+							//B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[nodenumber][0] * (A - AtLocal[0]) + 2 * mp_triele[ID].C[nodenumber][1] * (A - AtLocal[1]) + 2 * mp_triele[ID].C[nodenumber][2] * (A - AtLocal[2]));
+							//J0 = B2A * VB2 * RHSContri + V * mp_triele[ID].C[nodenumber][nodenumber];
+							//k0 = Js - V * RHSContri;
+						}
+
+						Jac = Jac + J0;
+						k = k + k0;
 					}
-					//处理非线性单元
+					dAt = k / Jac;
+					At = At + RelaxFactor * dAt;
+
+					double a = dAt * dAt;
+					double b = At * At;
+					double NRerror = sqrt(a) / sqrt(b);
+					if (At == 0) {
+						break;
+					}
+					if (NRerror > maxerror) {
+						continue;
+					}
 					else {
-
-						//估计是非线性单元的半径的处理上出现了问题
-						B2 = -1 / triele.area * (triele.C[0][1] * (ALocal[0] - ALocal[1]) * (ALocal[0] - ALocal[1]) + triele.C[1][2] * (ALocal[1] - ALocal[2]) * (ALocal[1] - ALocal[2]) + triele.C[0][2] * (ALocal[0] - ALocal[2]) * (ALocal[0] - ALocal[2]));
-						B = sqrt(B2);
-
-						Vet = 1.0 / mp_triele[ID].material->getMu(B) / triele.xdot;
-
-						VB2 = triele.material->getdvdB2(B);
-						B2A = -1 / triele.area * (2 * triele.C[nodenumber][0] * (A - ALocal[0]) + 2 * triele.C[nodenumber][1] * (A - ALocal[1]) + 2 * triele.C[nodenumber][2] * (A - ALocal[2]));
-						J0 = B2A * VB2 * RHSContri[nodenumber] / triele.xdot / triele.xdot + Vet * triele.C[nodenumber][nodenumber];
-
-						//VB2 = triele.material->getdvdB2(B) / triele.xdot;
-						//B2A = -1 / triele.area * (2 * triele.C[nodenumber][0] * (At - AtLocal[0]) + 2 * triele.C[nodenumber][1] * (At - AtLocal[1]) + 2 * triele.C[nodenumber][2] * (At - AtLocal[2]));
-						//J0 = B2A * VB2 * RHSContri[nodenumber] + Vet * triele.C[nodenumber][nodenumber];
-
-						ku0 = Js - Vet * RHSContri[nodenumber];
-
+						//if (NRiter != 1) {
+						//	printf("NRerror: %.20f\n", NRerror);
+						//	cout << "NRerror: " << NRerror << endl;
+						//	printf("n: %d, NRiter: %d\n", n, NRiter);
+						//}
+						break;
 					}
-
-					Jac = Jac + J0;
-					ku = ku + ku0;
+					count++;
 				}
 
-				dAt = ku / Jac;
-				At = At + dAt;
-
+				mp_node[i].At = At;
 			}
-
-
-			mp_node[n].At = At;
-
 		}
-
-		//for (int i = 0; i < m_num_nodes; ++i) {
-		//	cout << "mp_node[i].A: " << mp_node[i].A << endl;
-		//}
 
 		//判断全局收敛性
 		double error = 0, a = 0, b = 0;
@@ -520,29 +516,22 @@ void FEM2DNDDRSolver::solve2DAxim2()
 		//}
 		cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
 		if (error > maxerror) {
+			//这一步影响效率
 			for (int i = 0; i < m_num_nodes; ++i) {
 				mp_node[i].At_old = mp_node[i].At;
 			}
 		}
 		else {
-			for (int i = 0; i < m_num_nodes; ++i) {
-				if(mp_node[i].x != 0)
-					mp_node[i].A = mp_node[i].At / mp_node[i].x;
-				cout << "i: " << i << "mp_node[i].A: " << mp_node[i].A << endl;
-			}
-			updateB();
 			cout << "Iteration step: " << iter + 1 << endl;
 			cout << "Nonlinear NDDR iteration finish.\n";
 			return;
 		}
 
+		for (int i = 0; i < m_num_nodes; ++i) {
+			if (mp_node[i].x != 0)
+				mp_node[i].A = mp_node[i].At / mp_node[i].x;
+		}
 	}
-
-	for (int i = 0; i < m_num_nodes; ++i) {
-		if (mp_node[i].x != 0)
-			mp_node[i].A = mp_node[i].At / mp_node[i].x;
-	}
-	updateB();
 }
 
 void FEM2DNDDRSolver::solve2DPlane()
@@ -690,7 +679,7 @@ void FEM2DNDDRSolver::solve2DPlane1()
 			double B2, B, V, VB2, B2A;
 			int ID;
 			int RelaxCount, count = 0;
-			int NRCount = 1;
+			int NRCount = 6;
 			double RelaxFactor = 1;
 			if (mp_node[i].bdr != 1)
 			{
@@ -736,7 +725,7 @@ void FEM2DNDDRSolver::solve2DPlane1()
 							VB2 = mp_triele[ID].material->getdvdB2(B);
 							B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[nodenumber][0] * (A - ALocal[0]) + 2 * mp_triele[ID].C[nodenumber][1] * (A - ALocal[1]) + 2 * mp_triele[ID].C[nodenumber][2] * (A - ALocal[2]));
 							J0 = B2A * VB2 * RHSContri + V * mp_triele[ID].C[nodenumber][nodenumber];
-							k0 = Js - V * RHSContri/*(mp_triele[ID].C[nodenumber][0] * ALocal[0] + mp_triele[ID].C[nodenumber][1] * ALocal[1] + mp_triele[ID].C[nodenumber][2] * ALocal[2])*/;
+							k0 = Js - V * RHSContri;
 						}
 
 						Jac = Jac + J0;

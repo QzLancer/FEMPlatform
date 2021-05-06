@@ -34,22 +34,22 @@ void FEM2DNDDRCUDASolver::solveStatic()
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
 		for (int iter = 0; iter < maxitersteps; ++iter) {
 			nodeAnalysisAxism << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
-			//calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
-			//cudaDeviceSynchronize();
+			calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
+			cudaDeviceSynchronize();
 
-			//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-			//if ((iter + 1 ) % 100 == 0) {
-			//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-			//}
-			//if (error > maxerror) {
-			//	copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-			//}
-			//else {
-			//	cout << "Iteration step: " << iter + 1 << endl;
-			//	cout << "Nonlinear NDDR iteration finish.\n";
-			//	break;
-			//}
-			copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			if ((iter + 1 ) % 100 == 0) {
+				cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			}
+			if (error > maxerror) {
+				copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+			}
+			else {
+				cout << "Iteration step: " << iter + 1 << endl;
+				cout << "Nonlinear NDDR iteration finish.\n";
+				break;
+			}
+			//copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
 
 		}
 	}
@@ -72,7 +72,7 @@ void FEM2DNDDRCUDASolver::solveStatic()
 			//	break;
 			//}
 
-			copyAtoAold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+			//copyAtoAold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
 		}
 	}
 	cudaDeviceSynchronize();
@@ -277,7 +277,7 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 	if (d_mp_node[n].bdr == 1)
 		return;
 	//节点内部迭代过程
-	int maxNRitersteps = 1;
+	int maxNRitersteps = 6;
 	double Ati = 0;
 	for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 		double S = 0, F = 0;
