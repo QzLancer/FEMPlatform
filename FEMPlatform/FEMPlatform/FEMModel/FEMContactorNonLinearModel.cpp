@@ -39,7 +39,7 @@ void FEMContactorNonLinearModel::createElement2Material()
 
 void FEMContactorNonLinearModel::bulidGeometry2Load()
 {
-    loadmap[5] = 8e7;
+    loadmap[5] = 8e6;
 }
 
 void FEMContactorNonLinearModel::buildGeometry2Constrain()
@@ -47,7 +47,7 @@ void FEMContactorNonLinearModel::buildGeometry2Constrain()
     boundarymap[1] = new FEMAxialSymmetry;
     boundarymap[3] = new FEMAxialSymmetry;
     boundarymap[5] = new FEMAxialSymmetry;
-    std::vector<int> id = { 2, 31, 32, 37, 38, 48, 49, 52, 53, 59, 60, 61, 62, 63, 64 };   //怎么验证边界是正确的？
+    std::vector<int> id = { 2, 7, 31, 32, 37, 38, 48, 49, 52, 53, 59, 60, 61, 62, 63, 64 };   //怎么验证边界是正确的？
     for (auto a : id) {
         boundarymap[a] = new FEMMagneticInsulation;
     }

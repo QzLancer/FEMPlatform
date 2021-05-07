@@ -407,7 +407,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 void FEM2DNDDRSolver::solve2DAxim2()
 {
 	for (int iter = 0; iter < maxitersteps; ++iter) {
-#pragma omp parallel for num_threads(8)
+//#pragma omp parallel for num_threads(8)
 		for (int i = 0; i < m_num_nodes; ++i) {
 			double A, At, dAt, Jac, k, J0, k0, NRerror, Js;
 			double B2, B, V, Vt, VB2, B2A;
@@ -479,7 +479,7 @@ void FEM2DNDDRSolver::solve2DAxim2()
 					}
 					dAt = k / Jac;
 					At = At + RelaxFactor * dAt;
-
+					//printf("k: %f, Jac: %f, dAt: %.20f, At: %.20f\n", k, Jac, dAt, At);
 					double a = dAt * dAt;
 					double b = At * At;
 					double NRerror = sqrt(a) / sqrt(b);
