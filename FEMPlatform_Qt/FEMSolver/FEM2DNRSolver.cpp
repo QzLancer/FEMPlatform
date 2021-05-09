@@ -24,7 +24,25 @@ void FEM2DNRSolver::solveStatic()
 
 void FEM2DNRSolver::solveDynamic()
 {
+	string name = "RelayDynamic";
 	cout << "void FEM2DNRSolver::solveDynamic()" << endl;
+	double dis[5] = { 0, 0.0005, 0.0005, 0.0005, 0.0005 };
+	cout << "solve step 0...\n";
+	solveStatic();
+	writeVtkFile(name + "_0.vtk" );
+	cout << "step 0 solve vinish.\n\n";
+	for (int i = 0; i < 5; ++i) {
+		cout << "solve step " << i + 1 << "...\n";
+		meshmanager->remesh(name, i + 1, 0, dis[i]);
+		meshmanager->readMeshFile();
+		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		solveStatic();
+		writeVtkFile(name + "_" + to_string(i+1));
+		cout << "step " << i + 1 << " solve finish.\n\n";
+	}
 }
 
 void FEM2DNRSolver::solve2DAxim()

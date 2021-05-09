@@ -105,6 +105,15 @@ void FEMCore::solve(string analysistype)
 		solver->solveStatic();
 	}
 	else if (analysistype == "dynamic") {
+		solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		solver->setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		solver->setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		solver->setMaterial(model->getMaterialMap());
+		solver->setLoad(model->getLoadMap());
+		solver->setBoundary(model->getBoundaryMap());
+		solver->setDeformedDomain(model->getDeformedList());
+		solver->setMovingPart(model->getMovingMap());
 		solver->setMeshManager(meshmanager);
 		solver->solveDynamic();
 	}

@@ -37,6 +37,10 @@ void FEM2DMeshManager::readMeshFile(string meshfile)
 
 void FEM2DMeshManager::read2DMphtxt(string meshfile)
 {
+    if (mp_node != nullptr) delete[] mp_node;
+    if (mp_vtxele != nullptr) delete[] mp_vtxele;
+    if (mp_edgele != nullptr) delete[] mp_edgele;
+    if (mp_triele != nullptr) delete[] mp_triele;
     cout << meshfile << endl;
     FILE* fp = nullptr;
     int err;
@@ -181,6 +185,10 @@ void FEM2DMeshManager::read2DMphtxt(string meshfile)
 
 void FEM2DMeshManager::read2DMsh(string meshfile)
 {
+    if (mp_node != nullptr) delete[] mp_node;
+    if (mp_vtxele != nullptr) delete[] mp_vtxele;
+    if (mp_edgele != nullptr) delete[] mp_edgele;
+    if (mp_triele != nullptr) delete[] mp_triele;
     cout << "Read Gmsh mesh file: " << meshfile << endl;
     FILE* fp = nullptr;
     int err;

@@ -56,6 +56,7 @@ void FEMMeshManager::readGeoFile(string geofile)
 		gmsh::open(geofile);
  		cout << "Opening model " << geofile << endl << endl;
 		printf("Meshing...\n");
+		model = GModel::current();
 		/** 初次分网，重分网必须先有一个网格 **/
 		gmsh::model::mesh::generate();
 		meshfile = geofile + "_0.msh";
@@ -71,14 +72,13 @@ void FEMMeshManager::meshUnitConvert(double unitratio)
 	}
 }
 
-void FEMMeshManager::remesh(int current_step, double dx, double dy)
+void FEMMeshManager::remesh(string filename, int current_step, double dx, double dy)
 {
-	char nameMsh[256];
-	sprintf(nameMsh, "%s_%02d.msh", fileName, current_step);
+	meshfile = "D:/femplatform/model/" + filename + "_" + to_string(current_step) + ".msh";
 	/** 未发生位移就不要分了 **/
 	if (fabs(dx) < 1e-10 && fabs(dy) < 1e-10) {
 		printf("Skipping remeshing.\n");
-		gmsh::write(nameMsh);
+		gmsh::write(meshfile);
 		return;
 	}
 
@@ -108,8 +108,9 @@ void FEMMeshManager::remesh(int current_step, double dx, double dy)
 		printf("remesh air domain...\n");
 		f_air->mesh(true);
 	}
-	gmsh::write(nameMsh);
+	gmsh::write(meshfile);
 	printf("Finish remesh 2d\n");
+
 }
 
 

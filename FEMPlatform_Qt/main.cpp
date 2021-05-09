@@ -9,7 +9,7 @@
 #include <iostream>
 #include <time.h>
 
-std::string analysistype = "static";
+std::string analysistype = "dynamic";
 std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     core.solve(analysistype);
 
 
-    core.postprocess();
+    //core.postprocess();
 
     return 0;
 }

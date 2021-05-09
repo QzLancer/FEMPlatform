@@ -27,7 +27,7 @@ public:
 	virtual void readGeoFile(string geofile);
 	virtual void readMeshFile(string meshfile = "") = 0;
 	virtual void meshUnitConvert(double unitratio);
-	virtual void remesh(int current_step, double dx, double dy);
+	virtual void remesh(string filename, int current_step, double dx, double dy);
 
 
 	int getNumofNodes() const;
@@ -59,11 +59,10 @@ protected:
 	CTriElement* mp_triele;
 
 	string meshfile;
-	string fileName;
 	
 	int next_int(char **start);
 	GModel* model;
-	int tag_remesh;
-	int tag_armature;
+	int tag_remesh{5};
+	int tag_armature{1};
 };
 

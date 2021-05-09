@@ -111,7 +111,7 @@ void FEMSolver::writeVtkFile(std::string _name)
 	std::string name = std::string("D:/femplatform/result/");
 	name += _name;
 	name += "_";
-	name += to_string(m_num_nodes) + std::string(".vtk");
+	name += /*to_string(m_num_nodes) +*/ std::string(".vtk");
 	FILE* fp = nullptr;
 	int err;
 	char ch[256];
@@ -201,7 +201,7 @@ void FEMSolver::writeGeometryVtkFile(std::string _name)
 	std::string name = std::string("D:/femplatform/result/");
 	name += _name;
 	name += "_";
-	name += to_string(m_num_nodes);
+	//name += to_string(m_num_nodes);
 	name += "Geo" + std::string(".vtk");
 	FILE* fp = nullptr;
 	int err;
