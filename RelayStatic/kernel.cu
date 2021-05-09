@@ -6,8 +6,8 @@
 #include <Algorithm>
 #include <string>
 
-#define CudaThrdNum 256;
-#define CudaBlckNum 256;
+const int CudaThrdNum = 64;
+const int CudaBlckNum = 32;
 const double CurrentDensity = 8e6;
 const int maxitersteps = 20000;
 #define Mu0 1.256637e-6;
@@ -47,7 +47,7 @@ struct CTriElement {
     double Q[3]{ 0 };// Qi, Qj, Qk;
     double R[3]{ 0 };// Ri, Rj, Rk;
     double C[3][3];// 单元系数矩阵
-    double area{ 0 };
+    double area{ 0 }; 
     double rc, zc;
     double xdot;
     int domain{ 0 };
@@ -102,13 +102,13 @@ int main()
     cudaMalloc(&a, m_num_nodes * sizeof(double));
     cudaMalloc(&b, m_num_nodes * sizeof(double));
     cudaMalloc(&d_error, sizeof(double));
-    for (int iter = 0; iter < 5000; ++iter) {
-        UpdateSolutiontoA1 << <256, 256 >> > (m_num_nodes, d_mp_triele, d_mp_node);
+    for (int iter = 0; iter < 671; ++iter) {
+        UpdateSolutiontoA1 << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node);
         //calculateGlobalError << <256, 256 >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
         //cudaDeviceSynchronize();
         //cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
         //printf("iter: %d, error: %.20f\n",iter, error);
-        UpdateAttoAtold << <256, 256 >> > (m_num_nodes, d_mp_node);
+        UpdateAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
     }
     cudaDeviceSynchronize();
     //GET_TIME(T_end);
@@ -139,7 +139,7 @@ void FEM_Host_Data_Prepare() {
 }
 
 void LoadMeshInfo() {
-    string meshfile = "../model/model3656.mphtxt";
+    string meshfile = "../model/model1848.mphtxt";
     //分网文件为mphtxt的情况
     
     cout << meshfile << endl;
@@ -580,8 +580,21 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                 {
                     B2 = -1 / d_MyElem[ID].area * (d_MyElem[ID].C[0][1] * (ALocal[0] - ALocal[1]) * (ALocal[0] - ALocal[1]) + d_MyElem[ID].C[1][2] * (ALocal[1] - ALocal[2]) * (ALocal[1] - ALocal[2]) + d_MyElem[ID].C[0][2] * (ALocal[0] - ALocal[2]) * (ALocal[0] - ALocal[2]));
                     B = sqrt(B2);	//计算B，用于处理非线性
-                    Vt = getV(B) / d_MyElem[ID].xdot;
-                    VB2 = getdVdB2(B);
+                    //Vt = getV(B) / d_MyElem[ID].xdot;
+                    //VB2 = getdVdB2(B);
+                    if (B <= 0.6) {
+                        Vt = 500;
+                    }
+                    else {
+                        Vt =  500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+                    }
+                    Vt = Vt / d_MyElem[ID].xdot;
+                    if (B <= 0.6) {
+                        VB2 =  0;
+                    }
+                    else {
+                        VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+                    }
                     B2A = -1 / d_MyElem[ID].area * (2 * d_MyElem[ID].C[nodenumber][0] * (A - ALocal[0]) + 2 * d_MyElem[ID].C[nodenumber][1] * (A - ALocal[1]) + 2 * d_MyElem[ID].C[nodenumber][2] * (A - ALocal[2]));
                     J0 = B2A * VB2 * RHSContri / d_MyElem[ID].xdot / d_MyElem[ID].xdot + Vt * d_MyElem[ID].C[nodenumber][nodenumber];
                     k0 = Js - Vt * RHSContri;
@@ -608,6 +621,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                 break;
             }
             if (NRerror > 1e-9) {
+                count++;
                 continue;
             }
             else {
@@ -618,7 +632,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                 //}
                 break;
             }
-            count++;
+            //count++;
         }
 
         d_MyNode[i].At = At;

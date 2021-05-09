@@ -1,0 +1,788 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{ECE8BBCF-FFB8-3E35-AE1C-A10BF7E4E71C}</ProjectGuid>
+    <RootNamespace>FEMPlatform_Qt</RootNamespace>
+    <Keyword>QtVS_v304</Keyword>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.19041.0</WindowsTargetPlatformMinVersion>
+    <QtMsBuild Condition="'$(QtMsBuild)'=='' or !Exists('$(QtMsBuild)\qt.targets')">$(MSBuildProjectDirectory)\QtMsBuild</QtMsBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <PlatformToolset>v142</PlatformToolset>
+    <OutputDirectory>debug\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>debug\</IntermediateDirectory>
+    <PrimaryOutput>FEMPlatform_Qt</PrimaryOutput>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <PlatformToolset>v142</PlatformToolset>
+    <OutputDirectory>release\</OutputDirectory>
+    <ATLMinimizesCRunTimeLibraryUsage>false</ATLMinimizesCRunTimeLibraryUsage>
+    <CharacterSet>NotSet</CharacterSet>
+    <ConfigurationType>Application</ConfigurationType>
+    <IntermediateDirectory>release\</IntermediateDirectory>
+    <PrimaryOutput>FEMPlatform_Qt</PrimaryOutput>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
+    <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
+  </Target>
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt_defaults.props')">
+    <Import Project="$(QtMsBuild)\qt_defaults.props" />
+  </ImportGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>release\</OutDir>
+    <IntDir>release\</IntDir>
+    <TargetName>FEMPlatform_Qt</TargetName>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>debug\</OutDir>
+    <IntDir>debug\</IntDir>
+    <TargetName>FEMPlatform_Qt</TargetName>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <QtInstall>5.14.2</QtInstall>
+    <QtModules>core;gui</QtModules>
+  </PropertyGroup>
+  <PropertyGroup Label="QtSettings" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <QtInstall>5.14.2</QtInstall>
+    <QtModules>core;gui</QtModules>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
+    <Import Project="$(QtMsBuild)\qt.props" />
+  </ImportGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>D:\femplatform\SuperLU_MT\SRC;GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>debug\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4819;4100;4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>debug\</ObjectFileName>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_CONSOLE;_UNICODE;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DEPRECATED_WARNINGS;_USE_MATH_DEFINES;NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;_AFXDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\femplatform\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <OutputFile>$(OutDir)\FEMPlatform_Qt.exe</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_CONSOLE;_UNICODE;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DEPRECATED_WARNINGS;_USE_MATH_DEFINES;NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;_AFXDLL;QT_GUI_LIB;QT_CORE_LIB;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
+      <AssemblerListingLocation>release\</AssemblerListingLocation>
+      <BrowseInformation>false</BrowseInformation>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <DisableSpecificWarnings>4819;4100;4577;4467;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <ObjectFileName>release\</ObjectFileName>
+      <Optimization>MaxSpeed</Optimization>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_CONSOLE;_UNICODE;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DEPRECATED_WARNINGS;_USE_MATH_DEFINES;NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;_AFXDLL;NDEBUG;QT_NO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <ProgramDataBaseFileName>
+      </ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <WarningLevel>Level3</WarningLevel>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>gmsh.lib;openblas.lib;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\gmsh_1;..\..\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <IgnoreImportLibrary>true</IgnoreImportLibrary>
+      <LinkIncremental>false</LinkIncremental>
+      <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)\FEMPlatform_Qt.exe</OutputFile>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <SubSystem>Console</SubSystem>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Link>
+    <Midl>
+      <DefaultCharType>Unsigned</DefaultCharType>
+      <EnableErrorChecks>None</EnableErrorChecks>
+      <WarningLevel>0</WarningLevel>
+    </Midl>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_CONSOLE;_UNICODE;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DEPRECATED_WARNINGS;_USE_MATH_DEFINES;NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;_AFXDLL;NDEBUG;QT_NO_DEBUG;QT_GUI_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="FEMBoundary.cpp" />
+    <ClCompile Include="FEMCoil.cpp" />
+    <ClCompile Include="FEMCore.cpp" />
+    <ClCompile Include="FEMDataType.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
+    <ClCompile Include="FEMDataType\FEMElement.cpp" />
+    <ClCompile Include="FEMDataType\FEMNode.cpp" />
+    <ClCompile Include="FEMMaterial.cpp" />
+    <ClCompile Include="FEMModel\FEMContactorLinearModel.cpp" />
+    <ClCompile Include="FEMModel\FEMContactorNonLinearModel.cpp" />
+    <ClCompile Include="FEMModel\FEMModel.cpp" />
+    <ClCompile Include="FEMModel\FEMRelay1250LinearModel.cpp" />
+    <ClCompile Include="FEMModel\FEMRelay1250Model.cpp" />
+    <ClCompile Include="FEMMovingPart.cpp" />
+    <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
+    <ClCompile Include="FEMSolver\FEM2DNRSolver.cpp" />
+    <ClCompile Include="FEMSolver\FEM2DSolver.cpp" />
+    <ClCompile Include="FEMSolver\FEMSolver.cpp" />
+    <ClCompile Include="FEMSolver\FEMSolveStrategy.cpp" />
+    <ClCompile Include="gmsh\Geo\ACISEdge.cpp" />
+    <ClCompile Include="gmsh\Geo\ACISFace.cpp" />
+    <ClCompile Include="gmsh\Geo\ACISVertex.cpp" />
+    <ClCompile Include="gmsh\Mesh\BDS.cpp" />
+    <ClCompile Include="gmsh\Mesh\BackgroundMesh.cpp" />
+    <ClCompile Include="gmsh\Mesh\BackgroundMeshTools.cpp" />
+    <ClCompile Include="gmsh\Numeric\BasisFactory.cpp" />
+    <ClCompile Include="gmsh\Numeric\BergotBasis.cpp" />
+    <ClCompile Include="gmsh\Mesh\BoundaryLayers.cpp" />
+    <ClCompile Include="gmsh\Geo\CGNSUtils.cpp" />
+    <ClCompile Include="gmsh\Geo\Cell.cpp" />
+    <ClCompile Include="gmsh\Geo\CellComplex.cpp" />
+    <ClCompile Include="gmsh\Geo\Chain.cpp" />
+    <ClCompile Include="gmsh\Geo\ChainComplex.cpp" />
+    <ClCompile Include="gmsh\Post\ColorTable.cpp" />
+    <ClCompile Include="gmsh\Common\CommandLine.cpp" />
+    <ClCompile Include="gmsh\Numeric\CondNumBasis.cpp" />
+    <ClCompile Include="gmsh\Numeric\ConjugateGradients.cpp" />
+    <ClCompile Include="gmsh\Common\Context.cpp" />
+    <ClCompile Include="gmsh\Common\CreateFile.cpp" />
+    <ClCompile Include="gmsh\Mesh\DivideAndConquer.cpp" />
+    <ClCompile Include="gmsh\Numeric\ElementType.cpp" />
+    <ClCompile Include="gmsh\Geo\ExtrudeParams.cpp" />
+    <ClCompile Include="gmsh\Mesh\Field.cpp" />
+    <ClCompile Include="gmsh\Numeric\FuncSpaceData.cpp" />
+    <ClCompile Include="gmsh\Parser\FunctionManager.cpp" />
+    <ClCompile Include="gmsh\Geo\GEdge.cpp" />
+    <ClCompile Include="gmsh\Geo\GEdgeLoop.cpp" />
+    <ClCompile Include="gmsh\Geo\GEntity.cpp" />
+    <ClCompile Include="gmsh\Geo\GFace.cpp" />
+    <ClCompile Include="gmsh\Geo\GModel.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelCreateTopologyFromMesh.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_ACIS.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_ACTRAN.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_BDF.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_CELUM.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_CGNS.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_DIFF.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_GEO.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_GEOM.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_INP.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_IR3.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_KEY.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MAIL.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MATLAB.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MED.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MESH.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MSH.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MSH2.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MSH3.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_MSH4.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_NEU.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_OCC.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_P3D.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_PLY.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_POS.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_SAMCEF.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_STL.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_SU2.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_TOCHNOG.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_UNV.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_VRML.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelIO_VTK.cpp" />
+    <ClCompile Include="gmsh\Geo\GModelVertexArrays.cpp" />
+    <ClCompile Include="gmsh\Geo\GRegion.cpp" />
+    <ClCompile Include="gmsh\Geo\GVertex.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussIntegration.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussJacobi1D.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussLegendreSimplex.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadratureHex.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadratureLin.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadraturePri.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadraturePyr.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadratureQuad.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadratureTet.cpp" />
+    <ClCompile Include="gmsh\Numeric\GaussQuadratureTri.cpp" />
+    <ClCompile Include="gmsh\Mesh\Generator.cpp" />
+    <ClCompile Include="gmsh\Geo\Geo.cpp" />
+    <ClCompile Include="gmsh\Geo\GeoInterpolation.cpp" />
+    <ClCompile Include="gmsh\Geo\GeoStringInterface.cpp" />
+    <ClCompile Include="gmsh\Geo\GeomMeshMatcher.cpp" />
+    <ClCompile Include="gmsh\Parser\Gmsh.tab.cpp" />
+    <ClCompile Include="gmsh\Parser\Gmsh.yy.cpp" />
+    <ClCompile Include="gmsh\Common\GmshGlobal.cpp" />
+    <ClCompile Include="gmsh\Common\GmshMessage.cpp" />
+    <ClCompile Include="gmsh\Mesh\HighOrder.cpp" />
+    <ClCompile Include="gmsh\Numeric\HilbertCurve.cpp" />
+    <ClCompile Include="gmsh\Geo\Homology.cpp" />
+    <ClCompile Include="gmsh\Numeric\InnerVertexPlacement.cpp" />
+    <ClCompile Include="gmsh\Numeric\Iso.cpp" />
+    <ClCompile Include="gmsh\Numeric\JacobianBasis.cpp" />
+    <ClCompile Include="gmsh\Common\ListUtils.cpp" />
+    <ClCompile Include="gmsh\Geo\MEdge.cpp" />
+    <ClCompile Include="gmsh\Geo\MElement.cpp" />
+    <ClCompile Include="gmsh\Geo\MElementCut.cpp" />
+    <ClCompile Include="gmsh\Geo\MElementOctree.cpp" />
+    <ClCompile Include="gmsh\Geo\MFace.cpp" />
+    <ClCompile Include="gmsh\Geo\MHexahedron.cpp" />
+    <ClCompile Include="gmsh\Geo\MLine.cpp" />
+    <ClCompile Include="gmsh\Geo\MPrism.cpp" />
+    <ClCompile Include="gmsh\Geo\MPyramid.cpp" />
+    <ClCompile Include="gmsh\Geo\MQuadrangle.cpp" />
+    <ClCompile Include="gmsh\Geo\MSubElement.cpp" />
+    <ClCompile Include="gmsh\Geo\MTetrahedron.cpp" />
+    <ClCompile Include="gmsh\Geo\MTriangle.cpp" />
+    <ClCompile Include="gmsh\Geo\MTrihedron.cpp" />
+    <ClCompile Include="gmsh\Geo\MVertex.cpp" />
+    <ClCompile Include="gmsh\Geo\MVertexBoundaryLayerData.cpp" />
+    <ClCompile Include="gmsh\Common\MallocUtils.cpp" />
+    <ClCompile Include="gmsh\Numeric\Numeric.cpp" />
+    <ClCompile Include="gmsh\Geo\OCCEdge.cpp" />
+    <ClCompile Include="gmsh\Geo\OCCFace.cpp" />
+    <ClCompile Include="gmsh\Geo\OCCRegion.cpp" />
+    <ClCompile Include="gmsh\Geo\OCCVertex.cpp" />
+    <ClCompile Include="gmsh\Common\OS.cpp" />
+    <ClCompile Include="gmsh\Common\Octree.cpp" />
+    <ClCompile Include="gmsh\Common\OctreeInternals.cpp" />
+    <ClCompile Include="gmsh\Common\OpenFile.cpp" />
+    <ClCompile Include="gmsh\Common\Options.cpp" />
+    <ClCompile Include="gmsh\Geo\SOrientedBoundingBox.cpp" />
+    <ClCompile Include="gmsh\Geo\STensor3.cpp" />
+    <ClCompile Include="gmsh\Common\SmoothData.cpp" />
+    <ClCompile Include="gmsh\Common\StringUtils.cpp" />
+    <ClCompile Include="gmsh\Common\TreeUtils.cpp" />
+    <ClCompile Include="gmsh\Common\VertexArray.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\adfront2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\adfront3.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\adtree.cpp" />
+    <ClCompile Include="gmsh\Geo\affineTransformation.cpp" />
+    <ClCompile Include="gmsh\Numeric\approximationError.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\array.cpp" />
+    <ClCompile Include="gmsh\Common\avl.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\basegeom.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\bcfunctions.cpp" />
+    <ClCompile Include="gmsh\Numeric\bezierBasis.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\linalg\bfgs.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\bisect.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\bitarray.cpp" />
+    <ClCompile Include="gmsh\Geo\boundaryLayersData.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\boundarylayer.cpp" />
+    <ClCompile Include="gmsh\Geo\closestPoint.cpp" />
+    <ClCompile Include="gmsh\Geo\closestVertex.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\clusters.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\curvedelems.cpp" />
+    <ClCompile Include="gmsh\Numeric\decasteljau.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\delaunay.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\delaunay2d.cpp" />
+    <ClCompile Include="gmsh\Mesh\delaunay3d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\linalg\densemat.cpp" />
+    <ClCompile Include="gmsh\Geo\discreteEdge.cpp" />
+    <ClCompile Include="gmsh\Geo\discreteFace.cpp" />
+    <ClCompile Include="gmsh\Numeric\discreteFrechetDistance.cpp" />
+    <ClCompile Include="gmsh\Geo\discreteRegion.cpp" />
+    <ClCompile Include="gmsh\Geo\discreteVertex.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\dynamicmem.cpp" />
+    <ClCompile Include="gmsh\Mesh\filterElements.cpp" />
+    <ClCompile Include="gmsh\Geo\findLinks.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\flags.cpp" />
+    <ClCompile Include="gmsh\Numeric\fullMatrix.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\geom2d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\geom3d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\geomfuncs.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\geomsearch.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\geomtest3d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\global.cpp" />
+    <ClCompile Include="gmsh\Common\gmsh.cpp" />
+    <ClCompile Include="gmsh\Geo\gmshEdge.cpp" />
+    <ClCompile Include="gmsh\Geo\gmshFace.cpp" />
+    <ClCompile Include="gmsh\Geo\gmshLevelset.cpp" />
+    <ClCompile Include="gmsh\Common\gmshPopplerWrapper.cpp" />
+    <ClCompile Include="gmsh\Geo\gmshRegion.cpp" />
+    <ClCompile Include="gmsh\Geo\gmshSurface.cpp" />
+    <ClCompile Include="gmsh\Geo\gmshVertex.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\hashtabl.cpp" />
+    <ClCompile Include="gmsh\Numeric\hausdorffDistance.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\hprefinement.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\improve2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\improve2gen.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\improve3.cpp" />
+    <ClCompile Include="gmsh\Numeric\incompleteBasis.cpp" />
+    <ClCompile Include="gmsh\Geo\intersectCurveSurface.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\linalg\linopt.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\linalg\linsearch.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\localh.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="gmsh\Numeric\mathEvaluator.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGEdge.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGEdgeExtruded.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFace.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFaceBDS.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFaceBamg.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFaceDelaunayInsertion.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFaceExtruded.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFaceOptimize.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGFaceTransfinite.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegion.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionBoundaryLayer.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionBoundaryRecovery.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionCarveHole.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionDelaunayInsertion.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionExtruded.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionHxt.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionLocalMeshMod.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionMMG3D.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionNetgen.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegionTransfinite.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshGRegiontetgen.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshMetric.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshPartition.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshRefine.cpp" />
+    <ClCompile Include="gmsh\Mesh\meshRelocateVertex.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshclass.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshfunc.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshfunc2d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshing2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshing3.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshtool.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\meshtype.cpp" />
+    <ClCompile Include="gmsh\Numeric\miniBasis.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\msghandler.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\mystring.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\netrule2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\netrule3.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\ngexception.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\nglib_gmsh.cpp" />
+    <ClCompile Include="gmsh\Numeric\nodalBasis.cpp" />
+    <ClCompile Include="gmsh\Common\onelabUtils.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\optmem.cpp" />
+    <ClCompile Include="gmsh\Numeric\orthogonalBasis.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\parallelmesh.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\paralleltop.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\parser2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\parser3.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\parthreads.cpp" />
+    <ClCompile Include="gmsh\Numeric\pointsGenerators.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\linalg\polynomial.cpp" />
+    <ClCompile Include="gmsh\Numeric\polynomialBasis.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\prism2rls.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\profiler.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\pyramid2rls.cpp" />
+    <ClCompile Include="gmsh\Numeric\pyramidalBasis.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\pyramidrls.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\quadrls.cpp" />
+    <ClCompile Include="gmsh\Mesh\qualityMeasures.cpp" />
+    <ClCompile Include="gmsh\Mesh\qualityMeasuresJacobian.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\refine.cpp" />
+    <ClCompile Include="gmsh\Numeric\robustPredicates.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\ruler2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\ruler3.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\secondorder.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\seti.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\smoothing2.5.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\smoothing2.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\smoothing3.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\sort.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\spbita2d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\specials.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\spline.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\splinegeometry.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\symbolta.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\general\table.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\tetrarls.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\topology.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\gprim\transform3d.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\triarls.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\validate.cpp" />
+    <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\zrefine.cpp" />
+    <ClCompile Include="MatrixSolver\MatrixSolver.cpp" />
+    <ClCompile Include="MatrixSolver\SluMTMatrixSolver.cpp" />
+    <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
+    <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
+    <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FEMDataType\FEMElement.h" />
+    <ClInclude Include="FEMDataType\FEMNode.h" />
+    <ClInclude Include="FEMModel\FEMContactorLinearModel.h" />
+    <ClInclude Include="FEMModel\FEMContactorNonLinearModel.h" />
+    <ClInclude Include="FEMModel\FEMModel.h" />
+    <ClInclude Include="FEMModel\FEMRelay1250LinearModel.h" />
+    <ClInclude Include="FEMModel\FEMRelay1250Model.h" />
+    <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
+    <ClInclude Include="FEMSolver\FEM2DNRSolver.h" />
+    <ClInclude Include="FEMSolver\FEM2DSolver.h" />
+    <ClInclude Include="FEMSolver\FEMSolver.h" />
+    <ClInclude Include="FEMSolver\FEMSolveStrategy.h" />
+    <ClInclude Include="MatrixSolver\MatrixSolver.h" />
+    <ClInclude Include="MatrixSolver\SluMTMatrixSolver.h" />
+    <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
+    <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
+    <ClInclude Include="MeshManager\FEMMeshManager.h" />
+    <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cuh" />
+    <ClInclude Include="FEMBoundary.h" />
+    <ClInclude Include="FEMCoil.h" />
+    <ClInclude Include="FEMCore.h" />
+    <ClInclude Include="FEMDataType.h" />
+    <ClInclude Include="FEMMaterial.h" />
+    <ClInclude Include="FEMMovingPart.h" />
+    <ClInclude Include="gmsh\Geo\ACISEdge.h" />
+    <ClInclude Include="gmsh\Geo\ACISFace.h" />
+    <ClInclude Include="gmsh\Geo\ACISVertex.h" />
+    <ClInclude Include="gmsh\Mesh\BDS.h" />
+    <ClInclude Include="gmsh\Mesh\BackgroundMesh.h" />
+    <ClInclude Include="gmsh\Mesh\BackgroundMeshTools.h" />
+    <ClInclude Include="gmsh\Numeric\BasisFactory.h" />
+    <ClInclude Include="gmsh\Numeric\BergotBasis.h" />
+    <ClInclude Include="gmsh\Mesh\BoundaryLayers.h" />
+    <ClInclude Include="gmsh\Geo\CGNSOptions.h" />
+    <ClInclude Include="gmsh\Geo\CGNSUtils.h" />
+    <ClInclude Include="gmsh\Geo\Cell.h" />
+    <ClInclude Include="gmsh\Geo\CellComplex.h" />
+    <ClInclude Include="gmsh\Geo\Chain.h" />
+    <ClInclude Include="gmsh\Geo\ChainComplex.h" />
+    <ClInclude Include="gmsh\Post\ColorTable.h" />
+    <ClInclude Include="gmsh\Common\Colors.h" />
+    <ClInclude Include="gmsh\Common\CommandLine.h" />
+    <ClInclude Include="gmsh\Numeric\CondNumBasis.h" />
+    <ClInclude Include="gmsh\Numeric\ConjugateGradients.h" />
+    <ClInclude Include="gmsh\Common\Context.h" />
+    <ClInclude Include="gmsh\Common\CreateFile.h" />
+    <ClInclude Include="gmsh\Common\DefaultOptions.h" />
+    <ClInclude Include="gmsh\Mesh\DivideAndConquer.h" />
+    <ClInclude Include="gmsh\Numeric\ElementType.h" />
+    <ClInclude Include="gmsh\Geo\ExtrudeParams.h" />
+    <ClInclude Include="gmsh\Mesh\Field.h" />
+    <ClInclude Include="gmsh\Mesh\FieldPython.h" />
+    <ClInclude Include="gmsh\Numeric\FuncSpaceData.h" />
+    <ClInclude Include="gmsh\Parser\FunctionManager.h" />
+    <ClInclude Include="gmsh\Geo\GEdge.h" />
+    <ClInclude Include="gmsh\Geo\GEdgeLoop.h" />
+    <ClInclude Include="gmsh\Geo\GEntity.h" />
+    <ClInclude Include="gmsh\Geo\GFace.h" />
+    <ClInclude Include="gmsh\Geo\GModel.h" />
+    <ClInclude Include="gmsh\Geo\GModelCreateTopologyFromMesh.h" />
+    <ClInclude Include="gmsh\Geo\GModelIO_ACIS.h" />
+    <ClInclude Include="gmsh\Geo\GModelIO_GEO.h" />
+    <ClInclude Include="gmsh\Geo\GModelIO_OCC.h" />
+    <ClInclude Include="gmsh\Geo\GPoint.h" />
+    <ClInclude Include="gmsh\Geo\GRegion.h" />
+    <ClInclude Include="gmsh\Geo\GVertex.h" />
+    <ClInclude Include="gmsh\Numeric\GaussIntegration.h" />
+    <ClInclude Include="gmsh\Numeric\GaussJacobi1D.h" />
+    <ClInclude Include="gmsh\Numeric\GaussLegendre1D.h" />
+    <ClInclude Include="gmsh\Mesh\Generator.h" />
+    <ClInclude Include="gmsh\Geo\Geo.h" />
+    <ClInclude Include="gmsh\Geo\GeoDefines.h" />
+    <ClInclude Include="gmsh\Geo\GeoInterpolation.h" />
+    <ClInclude Include="gmsh\Geo\GeoStringInterface.h" />
+    <ClInclude Include="gmsh\Geo\GeomMeshMatcher.h" />
+    <ClInclude Include="gmsh\Parser\Gmsh.tab.hpp" />
+    <ClInclude Include="gmsh\Common\GmshConfig.h" />
+    <ClInclude Include="gmsh\Common\GmshDefines.h" />
+    <ClInclude Include="gmsh\Common\GmshGlobal.h" />
+    <ClInclude Include="gmsh\Common\GmshMessage.h" />
+    <ClInclude Include="gmsh\Common\GmshVersion.h" />
+    <ClInclude Include="gmsh\Common\Hash.h" />
+    <ClInclude Include="gmsh\Mesh\HighOrder.h" />
+    <ClInclude Include="gmsh\Numeric\HilbertCurve.h" />
+    <ClInclude Include="gmsh\Geo\Homology.h" />
+    <ClInclude Include="gmsh\Numeric\InnerVertexPlacement.h" />
+    <ClInclude Include="gmsh\Numeric\Iso.h" />
+    <ClInclude Include="gmsh\Numeric\JacobianBasis.h" />
+    <ClInclude Include="gmsh\Common\ListUtils.h" />
+    <ClInclude Include="gmsh\Geo\MEdge.h" />
+    <ClInclude Include="gmsh\Geo\MEdgeHash.h" />
+    <ClInclude Include="gmsh\Geo\MElement.h" />
+    <ClInclude Include="gmsh\Geo\MElementCut.h" />
+    <ClInclude Include="gmsh\Geo\MElementOctree.h" />
+    <ClInclude Include="gmsh\Geo\MFace.h" />
+    <ClInclude Include="gmsh\Geo\MFaceHash.h" />
+    <ClInclude Include="gmsh\Geo\MHexahedron.h" />
+    <ClInclude Include="gmsh\Geo\MLine.h" />
+    <ClInclude Include="gmsh\Geo\MPoint.h" />
+    <ClInclude Include="gmsh\Geo\MPrism.h" />
+    <ClInclude Include="gmsh\Geo\MPyramid.h" />
+    <ClInclude Include="gmsh\Geo\MQuadrangle.h" />
+    <ClInclude Include="gmsh\Geo\MSubElement.h" />
+    <ClInclude Include="gmsh\Geo\MTetrahedron.h" />
+    <ClInclude Include="gmsh\Geo\MTriangle.h" />
+    <ClInclude Include="gmsh\Geo\MTrihedron.h" />
+    <ClInclude Include="gmsh\Geo\MVertex.h" />
+    <ClInclude Include="gmsh\Geo\MVertexBoundaryLayerData.h" />
+    <ClInclude Include="gmsh\Geo\MVertexRTree.h" />
+    <ClInclude Include="gmsh\Common\MallocUtils.h" />
+    <ClInclude Include="gmsh\Numeric\Numeric.h" />
+    <ClInclude Include="gmsh\Geo\OCCAttributes.h" />
+    <ClInclude Include="gmsh\Geo\OCCEdge.h" />
+    <ClInclude Include="gmsh\Geo\OCCFace.h" />
+    <ClInclude Include="gmsh\Geo\OCCRegion.h" />
+    <ClInclude Include="gmsh\Geo\OCCVertex.h" />
+    <ClInclude Include="gmsh\Common\OS.h" />
+    <ClInclude Include="gmsh\Common\Octree.h" />
+    <ClInclude Include="gmsh\Common\OctreeInternals.h" />
+    <ClInclude Include="gmsh\Common\OpenFile.h" />
+    <ClInclude Include="gmsh\Common\Options.h" />
+    <ClInclude Include="gmsh\Geo\Pair.h" />
+    <ClInclude Include="gmsh\Parser\Parser.h" />
+    <ClInclude Include="gmsh\Geo\Range.h" />
+    <ClInclude Include="gmsh\Geo\SBoundingBox3d.h" />
+    <ClInclude Include="gmsh\Geo\SOrientedBoundingBox.h" />
+    <ClInclude Include="gmsh\Geo\SPoint2.h" />
+    <ClInclude Include="gmsh\Geo\SPoint3.h" />
+    <ClInclude Include="gmsh\Geo\STensor3.h" />
+    <ClInclude Include="gmsh\Geo\SVector3.h" />
+    <ClInclude Include="gmsh\Common\SmoothData.h" />
+    <ClInclude Include="gmsh\Common\StringUtils.h" />
+    <ClInclude Include="gmsh\Common\TreeUtils.h" />
+    <ClInclude Include="gmsh\Common\VertexArray.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\acisgeom.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\adfront2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\adfront3.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\adtree.hpp" />
+    <ClInclude Include="gmsh\Geo\affineTransformation.h" />
+    <ClInclude Include="gmsh\Numeric\approximationError.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\array.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\autodiff.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\autoptr.hpp" />
+    <ClInclude Include="gmsh\Common\avl.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\basegeom.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\bcfunctions.hpp" />
+    <ClInclude Include="gmsh\Numeric\bezierBasis.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\bisect.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\bitarray.hpp" />
+    <ClInclude Include="gmsh\Geo\boundaryLayersData.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\boundarylayer.hpp" />
+    <ClInclude Include="gmsh\Numeric\cartesian.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\classifyhpel.hpp" />
+    <ClInclude Include="gmsh\Geo\closestPoint.h" />
+    <ClInclude Include="gmsh\Geo\closestVertex.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\clusters.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\csg.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\curvedelems.hpp" />
+    <ClInclude Include="gmsh\Numeric\decasteljau.h" />
+    <ClInclude Include="gmsh\Mesh\delaunay3d.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\linalg\densemat.hpp" />
+    <ClInclude Include="gmsh\Geo\discreteEdge.h" />
+    <ClInclude Include="gmsh\Geo\discreteFace.h" />
+    <ClInclude Include="gmsh\Numeric\discreteFrechetDistance.h" />
+    <ClInclude Include="gmsh\Geo\discreteRegion.h" />
+    <ClInclude Include="gmsh\Geo\discreteVertex.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\dynamicmem.hpp" />
+    <ClInclude Include="gmsh\Mesh\filterElements.h" />
+    <ClInclude Include="gmsh\Geo\findLinks.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\findip.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\findip2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\flags.hpp" />
+    <ClInclude Include="gmsh\Numeric\fullMatrix.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geom2d.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geom3d.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\geometry2d.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geomfuncs.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geomobjects.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geomobjects2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geomops.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geomops2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\geomsearch.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\geomtest3d.hpp" />
+    <ClInclude Include="gmsh\Geo\ghostEdge.h" />
+    <ClInclude Include="gmsh\Geo\ghostFace.h" />
+    <ClInclude Include="gmsh\Geo\ghostRegion.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\global.hpp" />
+    <ClInclude Include="gmsh\Common\gmsh.h" />
+    <ClInclude Include="gmsh\Geo\gmshEdge.h" />
+    <ClInclude Include="gmsh\Geo\gmshFace.h" />
+    <ClInclude Include="gmsh\Geo\gmshLevelset.h" />
+    <ClInclude Include="gmsh\Common\gmshPopplerWrapper.h" />
+    <ClInclude Include="gmsh\Geo\gmshRegion.h" />
+    <ClInclude Include="gmsh\Geo\gmshSurface.h" />
+    <ClInclude Include="gmsh\Geo\gmshVertex.h" />
+    <ClInclude Include="gmsh\Common\gmshc.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\gprim.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\gprim.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\hashtabl.hpp" />
+    <ClInclude Include="gmsh\Numeric\hausdorffDistance.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_hex.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_prism.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_pyramid.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_quad.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_segm.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_tet.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hpref_trig.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\hprefinement.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\improve2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\improve3.hpp" />
+    <ClInclude Include="gmsh\Numeric\incompleteBasis.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\incvis.hpp" />
+    <ClInclude Include="gmsh\Geo\intersectCurveSurface.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\linalg.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\linalg\linalg.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\localh.hpp" />
+    <ClInclude Include="gmsh\Numeric\mathEvaluator.h" />
+    <ClInclude Include="gmsh\Mesh\meshGEdge.h" />
+    <ClInclude Include="gmsh\Mesh\meshGFace.h" />
+    <ClInclude Include="gmsh\Mesh\meshGFaceBDS.h" />
+    <ClInclude Include="gmsh\Mesh\meshGFaceBamg.h" />
+    <ClInclude Include="gmsh\Mesh\meshGFaceDelaunayInsertion.h" />
+    <ClInclude Include="gmsh\Mesh\meshGFaceOptimize.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegion.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegionBoundaryRecovery.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegionDelaunayInsertion.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegionHxt.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegionLocalMeshMod.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegionMMG3D.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegionNetgen.h" />
+    <ClInclude Include="gmsh\Mesh\meshGRegiontetgen.h" />
+    <ClInclude Include="gmsh\Mesh\meshMetric.h" />
+    <ClInclude Include="gmsh\Mesh\meshPartition.h" />
+    <ClInclude Include="gmsh\Mesh\meshRelocateVertex.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshclass.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshfunc.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\meshing.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshing.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshing2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshing3.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshtool.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\meshtype.hpp" />
+    <ClInclude Include="gmsh\Numeric\miniBasis.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\mpi_interface.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\msghandler.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\myadt.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\myadt.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\mydefs.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\mystdlib.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\mystring.hpp" />
+    <ClInclude Include="gmsh\Numeric\nanoflann.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\netgenout.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\ngexception.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\nginterface.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\nginterface_v2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\nglib\nglib.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\nglib_gmsh.h" />
+    <ClInclude Include="gmsh\Numeric\nodalBasis.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\occgeom.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\opti.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\linalg\opti.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\optmem.hpp" />
+    <ClInclude Include="gmsh\Numeric\orthogonalBasis.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\parallel.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\parallelinterface.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\paralleltop.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\parthreads.hpp" />
+    <ClInclude Include="gmsh\Geo\partitionEdge.h" />
+    <ClInclude Include="gmsh\Geo\partitionFace.h" />
+    <ClInclude Include="gmsh\Geo\partitionRegion.h" />
+    <ClInclude Include="gmsh\Geo\partitionVertex.h" />
+    <ClInclude Include="gmsh\Common\picojson.h" />
+    <ClInclude Include="gmsh\Numeric\pointsGenerators.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\linalg\polynomial.hpp" />
+    <ClInclude Include="gmsh\Numeric\polynomialBasis.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\profiler.hpp" />
+    <ClInclude Include="gmsh\Numeric\pyramidalBasis.h" />
+    <ClInclude Include="gmsh\Mesh\qualityMeasures.h" />
+    <ClInclude Include="gmsh\Mesh\qualityMeasuresJacobian.h" />
+    <ClInclude Include="gmsh\Numeric\robustPredicates.h" />
+    <ClInclude Include="gmsh\Common\rtree.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\ruler2.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\ruler3.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\seti.hpp" />
+    <ClInclude Include="gmsh\Numeric\simpleFunction.h" />
+    <ClInclude Include="gmsh\Numeric\simpleFunctionPython.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\sort.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\spbita2d.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\specials.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\spline.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\splinegeometry.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\stack.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\stlgeom.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\symbolta.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\table.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\general\template.hpp" />
+    <ClInclude Include="gmsh\Mesh\tetgenBR.h" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\topology.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\gprim\transform3d.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\meshing\validate.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\linalg\vector.hpp" />
+    <ClInclude Include="gmsh\contrib\Netgen\libsrc\include\visual.hpp" />
+    <ClInclude Include="gmsh\Geo\xyEdge.h" />
+    <ClInclude Include="gmsh\Geo\xyFace.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="GeneratedFiles\moc_predefs.h.cbt">
+      <FileType>Document</FileType>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(QTDIR)\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">cl -Bx"$(QTDIR)\bin\qmake.exe" -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /wd4819 /wd4100 -Zi -MDd -W3 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E $(QTDIR)\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;GeneratedFiles\moc_predefs.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate moc_predefs.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">GeneratedFiles\$(ConfigurationName)\moc_predefs.h;%(Outputs)</Outputs>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(QTDIR)\mkspecs\features\data\dummy.cpp;%(AdditionalInputs)</AdditionalInputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">cl -Bx"$(QTDIR)\bin\qmake.exe" -nologo -Zc:wchar_t -FS -Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus /wd4819 /wd4100 -O2 -MD -W3 -w34189 -w44996 -w44456 -w44457 -w44458 -wd4577 -wd4467 -E $(QTDIR)\mkspecs\features\data\dummy.cpp 2&gt;NUL &gt;GeneratedFiles\moc_predefs.h</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Generate moc_predefs.h</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">GeneratedFiles\$(ConfigurationName)\moc_predefs.h;%(Outputs)</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cu" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
+    <Import Project="$(QtMsBuild)\qt.targets" />
+  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.1.targets" />
+  </ImportGroup>
+</Project>

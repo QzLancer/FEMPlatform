@@ -81,7 +81,7 @@ void FEMMeshManager::deleteMeshDomain(int dimension, int domain)
 	cout << "Delete mesh Domain" << domain <<"...\n";
 	pair<int, int> domainpair(dimension, 13);
 	gmsh::vectorpair vecpair = { domainpair };
-	gmsh::model::mesh::clear();
+	//gmsh::model::mesh::clear();
 }
 
 int FEMMeshManager::getNumofNodes() const
