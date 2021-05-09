@@ -11,6 +11,7 @@ class FEM2DNRSolver :
 {
 public:
     virtual void solveStatic() override;
+    virtual void solveDynamic() override;
     void solve2DAxim();
     void solve2DPlane();
 protected:

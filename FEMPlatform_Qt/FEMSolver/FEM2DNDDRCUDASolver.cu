@@ -102,6 +102,11 @@ void FEM2DNDDRCUDASolver::solveStatic()
 	GPUFree();
 }
 
+void FEM2DNDDRCUDASolver::solveDynamic()
+{
+
+}
+
 FEM2DNDDRCUDASolver::~FEM2DNDDRCUDASolver()
 {
 	//if (mp_triele != nullptr) {

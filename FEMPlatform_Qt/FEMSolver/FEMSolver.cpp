@@ -108,7 +108,7 @@ void FEMSolver::setMaxError(const double _error)
 void FEMSolver::writeVtkFile(std::string _name)
 {
 	writeGeometryVtkFile(_name);
-	std::string name = std::string("../../result/");
+	std::string name = std::string("D:/femplatform/result/");
 	name += _name;
 	name += "_";
 	name += to_string(m_num_nodes) + std::string(".vtk");
@@ -117,7 +117,7 @@ void FEMSolver::writeVtkFile(std::string _name)
 	char ch[256];
 	err = fopen_s(&fp, name.c_str(), "w");
 	if (!fp) {
-		std::cout << "Error: openning file!" << endl;
+		std::cout << "Error: opening file!" << endl;
 		exit(0);
 	}
 	/*
@@ -179,7 +179,7 @@ void FEMSolver::writeVtkFile(std::string _name)
 
 void FEMSolver::writeTxtFile(std::string _name)
 {
-	std::string name = std::string("../../result/");
+	std::string name = std::string("D:/femplatform/result/");
 	name += _name;
 	name += "_";
 	name += to_string(m_num_nodes) + std::string(".txt");
@@ -188,7 +188,7 @@ void FEMSolver::writeTxtFile(std::string _name)
 	char ch[256];
 	err = fopen_s(&fp, name.c_str(), "w");
 	if (!fp) {
-		std::cout << "Error: openning file!" << endl;
+		std::cout << "Error: opening file!" << endl;
 		exit(0);
 	}
 	for (int i = 0; i < m_num_nodes; ++i) {
@@ -198,7 +198,7 @@ void FEMSolver::writeTxtFile(std::string _name)
 
 void FEMSolver::writeGeometryVtkFile(std::string _name)
 {
-	std::string name = std::string("../../result/");
+	std::string name = std::string("D:/femplatform/result/");
 	name += _name;
 	name += "_";
 	name += to_string(m_num_nodes);
@@ -208,7 +208,7 @@ void FEMSolver::writeGeometryVtkFile(std::string _name)
 	char ch[256];
 	err = fopen_s(&fp, name.c_str(), "w");
 	if (!fp) {
-		std::cout << "Error: openning file!" << endl;
+		std::cout << "Error: opening file!" << endl;
 		exit(0);
 	}
 	/*
@@ -256,6 +256,11 @@ void FEMSolver::setDeformedDomain(const std::vector<int> _deformedlist)
 void FEMSolver::setMovingPart(const std::map<int, FEMMovingPart> _movingmap)
 {
 	movingmap = _movingmap;
+}
+
+void FEMSolver::setMeshManager(FEMMeshManager* _meshmanager)
+{
+	meshmanager = _meshmanager;
 }
 
 //std::vector<double> FEMSolver::getA() const

@@ -106,11 +106,6 @@ void FEM2DSolver::solveMagneticForce()
 	printf("Fx:%10.8e,Fy:%10.8e\n", Fx, Fy);
 }
 
-void FEM2DSolver::solveDynamic()
-{
-	
-}
-
 void FEM2DSolver::makeTrangle()
 {
 	for (int index = 0; index < m_num_triele; ++index) {
@@ -205,7 +200,7 @@ void FEM2DSolver::processBoundaryCondition()
 	std::sort(boundarynodes.begin(), boundarynodes.end());
 	boundarynodes.erase(unique(boundarynodes.begin(), boundarynodes.end()), boundarynodes.end());
 
-	//输出边界点，可以通过matlab绘图判断是否检索出全部的边界
+	////输出边界点，可以通过matlab绘图判断是否检索出全部的边界
 	//for (auto a :boundarynodes) {
 	//	cout << mp_node[a].x << " " << mp_node[a].y << endl;
 	//}

@@ -90,19 +90,29 @@ void FEMCore::setMatrixSolver(string matrixsolver)
 	}
 }
 
-void FEMCore::solveStatic()
+void FEMCore::solve(string analysistype)
 {
-	solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-	solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-	solver->setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-	solver->setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-	solver->setMaterial(model->getMaterialMap());
-	solver->setLoad(model->getLoadMap());
-	solver->setBoundary(model->getBoundaryMap());
-	solver->setDeformedDomain(model->getDeformedList());
-	solver->setMovingPart(model->getMovingMap());
+	if (analysistype == "static") {
+		solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		solver->setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		solver->setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		solver->setMaterial(model->getMaterialMap());
+		solver->setLoad(model->getLoadMap());
+		solver->setBoundary(model->getBoundaryMap());
+		solver->setDeformedDomain(model->getDeformedList());
+		solver->setMovingPart(model->getMovingMap());
+		solver->solveStatic();
+	}
+	else if (analysistype == "dynamic") {
+		solver->setMeshManager(meshmanager);
+		solver->solveDynamic();
+	}
+	else {
+		cout << "Error: invalid analysis type!\n";
+		exit(0);
+	}
 
-	solver->solveStatic();
 	//solver->solveMagneticForce();	//电磁力计算，目前是静态特性的思路放在core中调用
 }
 

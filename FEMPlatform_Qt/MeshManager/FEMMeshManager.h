@@ -27,8 +27,8 @@ public:
 	virtual void readGeoFile(string geofile);
 	virtual void readMeshFile(string meshfile = "") = 0;
 	virtual void meshUnitConvert(double unitratio);
-	virtual void remesh(double dx, double dy);
-	void deleteMeshDomain(int dimension, int domain);
+	virtual void remesh(int current_step, double dx, double dy);
+
 
 	int getNumofNodes() const;
 	CNode* getNodes() const;
@@ -40,7 +40,8 @@ public:
 	CTriElement* getTriElements() const;
 
 
-private:
+private:	
+	void deleteFaceMesh(GFace* f);
 	void moveFace(GFace* f, double dx, double dy, double dz);
 	void updateField();
 
@@ -58,8 +59,11 @@ protected:
 	CTriElement* mp_triele;
 
 	string meshfile;
-
+	string fileName;
+	
 	int next_int(char **start);
-	static GModel* model;
+	GModel* model;
+	int tag_remesh;
+	int tag_armature;
 };
 

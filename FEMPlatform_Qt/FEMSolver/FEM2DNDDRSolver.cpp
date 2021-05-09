@@ -130,6 +130,10 @@ void FEM2DNDDRSolver::solveStatic()
 	cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
 }
 
+void FEM2DNDDRSolver::solveDynamic()
+{
+}
+
 void FEM2DNDDRSolver::solve2DAxim()
 {
 //	//vector<double> At_old(m_num_nodes, 0);

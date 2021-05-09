@@ -8,6 +8,7 @@ class FEM2DNDDRCUDASolver :
 {
 public:
     virtual void solveStatic() override;
+	virtual void solveDynamic() override;
 	virtual ~FEM2DNDDRCUDASolver() override;
 
 	//virtual void setNodes(const int _numofnodes, CNode* const _nodes) override;

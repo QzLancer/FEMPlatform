@@ -43,7 +43,7 @@ void FEM2DMeshManager::read2DMphtxt(string meshfile)
     char ch[256];
     err = fopen_s(&fp, meshfile.c_str(), "r");
     if (!fp) {
-        std::cout << "Error: openning file!" << endl;
+        std::cout << "Error: opening file!" << endl;
         exit(0);
     }
 
@@ -187,7 +187,7 @@ void FEM2DMeshManager::read2DMsh(string meshfile)
     char ch[256];
     err = fopen_s(&fp, meshfile.c_str(), "r");
     if (!fp) {
-        std::cout << "Error: openning file!" << endl;
+        std::cout << "Error: opening file!" << endl;
         exit(0);
     }
 

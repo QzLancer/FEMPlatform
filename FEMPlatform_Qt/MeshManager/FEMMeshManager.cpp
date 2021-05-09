@@ -71,18 +71,47 @@ void FEMMeshManager::meshUnitConvert(double unitratio)
 	}
 }
 
-void FEMMeshManager::remesh(double dx, double dy)
+void FEMMeshManager::remesh(int current_step, double dx, double dy)
 {
+	char nameMsh[256];
+	sprintf(nameMsh, "%s_%02d.msh", fileName, current_step);
+	/** 未发生位移就不要分了 **/
+	if (fabs(dx) < 1e-10 && fabs(dy) < 1e-10) {
+		printf("Skipping remeshing.\n");
+		gmsh::write(nameMsh);
+		return;
+	}
 
+	/** 删掉空气的分网 **/
+	GFace* f_xiantie = nullptr;
+	GFace* f_air = nullptr;
+	for (GModel::fiter it = model->firstFace(); it != model->lastFace(); ++it) {
+		if ((*it)->tag() == tag_remesh) {
+			f_air = (*it);
+		}
+		if ((*it)->tag() == tag_armature) {
+			f_xiantie = (*it);
+		}
+	}
+
+	/** 移动衔铁的分网 **/
+	if (f_xiantie) {
+		printf("moving armature region %d mesh dx=%lf,dy=%lf...\n", tag_armature, dx, dy);
+		moveFace(f_xiantie, dx, dy, 0);
+	}
+
+	if (f_air) {
+		/** 删除空气的分网 **/
+		printf("deleting air surface %d\n", tag_remesh);
+		deleteFaceMesh(f_air);
+		/** 对空气进行重分网 **/
+		printf("remesh air domain...\n");
+		f_air->mesh(true);
+	}
+	gmsh::write(nameMsh);
+	printf("Finish remesh 2d\n");
 }
 
-void FEMMeshManager::deleteMeshDomain(int dimension, int domain)
-{
-	cout << "Delete mesh Domain" << domain <<"...\n";
-	pair<int, int> domainpair(dimension, 13);
-	gmsh::vectorpair vecpair = { domainpair };
-	//gmsh::model::mesh::clear();
-}
 
 int FEMMeshManager::getNumofNodes() const
 {
@@ -132,6 +161,12 @@ int FEMMeshManager::next_int(char** start)
 	i = strtol(*start, &end, 10);
 	*start = end;
 	return(i);
+}
+
+void FEMMeshManager::deleteFaceMesh(GFace* f)
+{
+	deMeshGFace dem;
+	dem(f);
 }
 
 void FEMMeshManager::moveFace(GFace* f, double dx, double dy, double dz) {

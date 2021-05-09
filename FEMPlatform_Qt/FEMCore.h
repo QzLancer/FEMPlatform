@@ -27,7 +27,7 @@ public:
 	void setAnalysisType(string analysistype);
 	void setFEMSolveStrategy(string strategy);
 	void setMatrixSolver(string matrixsolver);
-	void solveStatic();
+	void solve(string analysistyp);
 	void postprocess();
 	void setMaxIterSteps(const int _maxitersteps);
 	void setMaxError(const double _error);

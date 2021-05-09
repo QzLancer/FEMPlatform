@@ -455,6 +455,7 @@
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
     <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
     <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
+    <ClCompile Include="FEMModel\RelayDynamicModel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FEMDataType\FEMElement.h" />
@@ -474,6 +475,7 @@
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />
     <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
     <ClInclude Include="MeshManager\FEMMeshManager.h" />
+    <ClInclude Include="FEMModel\RelayDynamicModel.h" />
     <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cuh" />
     <ClInclude Include="FEMBoundary.h" />
     <ClInclude Include="FEMCoil.h" />

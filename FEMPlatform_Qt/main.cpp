@@ -4,6 +4,7 @@
 #include "FEMModel/FEMContactorNonLinearModel.h"
 #include "FEMModel/FEMRelay1250Model.h"
 #include "FEMModel/FEMRelay1250LinearModel.h"
+#include "FEMModel/RelayDynamicModel.h"
 
 #include <iostream>
 #include <time.h>
@@ -17,10 +18,10 @@ double maxerror = 1e-5;
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+    //QCoreApplication a(argc, argv);
 
     FEMCore core;
-    FEMModel* model = new FEMRelay1250Model;
+    FEMModel* model = new RelayDynamicModel;
     model->init();
 
     core.setModel(model);
@@ -30,12 +31,11 @@ int main(int argc, char *argv[])
     core.setMatrixSolver(matrixsolver);
     core.setMaxIterSteps(maxitersteps);
     core.setMaxError(maxerror);
-    clock_t start, end;
-    start = clock();
-    core.solveStatic();
-    end = clock();
-    cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
+
+    core.solve(analysistype);
+
+
     core.postprocess();
 
-    return a.exec();
+    return 0;
 }

@@ -7,6 +7,7 @@ class FEM2DNDDRSolver :
 {
 public:
     virtual void solveStatic() override;
+	virtual void solveDynamic() override;
 	void solve2DAxim();
 	void solve2DAxim1();
 	void solve2DAxim2();

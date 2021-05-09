@@ -6,6 +6,7 @@
 #include "../FEMBoundary.h"
 #include "../MatrixSolver/MatrixSolver.h"
 #include "../FEMModel/FEMModel.h"
+#include "MeshManager/FEMMeshManager.h"
 
 #include <vector>
 #include <map>
@@ -27,8 +28,8 @@ public:
 	FEMSolver();
 	virtual ~FEMSolver();
 	virtual void solveStatic() = 0;
-	virtual void solveMagneticForce() = 0;
 	virtual void solveDynamic() = 0;
+	virtual void solveMagneticForce() = 0;
 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
 	void setMatrixSolver(MatrixSolver* const _matsolver);
@@ -46,6 +47,8 @@ public:
 	void writeGeometryVtkFile(std::string _name);
 	virtual void setDeformedDomain(const std::vector<int> _deformedlist);
 	virtual void setMovingPart(const std::map<int, FEMMovingPart> _movingmap);
+	void setMeshManager(FEMMeshManager* _meshmanager);
+
 
 	//std::vector<double> getA() const;
 	FEMModel::DIMENSION dimension;
@@ -83,5 +86,6 @@ protected:
 	//std::vector<double> A{ 0 };
 	//std::vector<double> At{ 0 };
 	//std::vector<double> Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
+	FEMMeshManager* meshmanager;
 };
 

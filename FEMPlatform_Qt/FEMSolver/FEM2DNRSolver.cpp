@@ -22,6 +22,11 @@ void FEM2DNRSolver::solveStatic()
 	cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
 }
 
+void FEM2DNRSolver::solveDynamic()
+{
+	cout << "void FEM2DNRSolver::solveDynamic()" << endl;
+}
+
 void FEM2DNRSolver::solve2DAxim()
 {
 	//考虑第一类边界条件的装配

@@ -5,8 +5,8 @@ class FEM2DSolver :
 {
 public:
     virtual void solveStatic() = 0;
+    virtual void solveDynamic() = 0;
     virtual void solveMagneticForce() override;
-    virtual void solveDynamic() override;
 
 protected:
     void makeTrangle();
