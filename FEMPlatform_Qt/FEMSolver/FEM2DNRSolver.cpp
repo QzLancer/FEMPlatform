@@ -1,6 +1,8 @@
 #include "FEM2DNRSolver.h"
 
 #include <fstream>
+#include <iostream>
+
 void FEM2DNRSolver::solveStatic()
 {
 	//计算三角形单元几何部分
@@ -14,6 +16,7 @@ void FEM2DNRSolver::solveStatic()
 	start = clock();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
 		solve2DAxim();
+		//solve2DAxim1();
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
 		solve2DPlane();
@@ -26,12 +29,17 @@ void FEM2DNRSolver::solveDynamic()
 {
 	string name = "RelayDynamic";
 	cout << "void FEM2DNRSolver::solveDynamic()" << endl;
-	double dis[5] = { 0, 0.0005, 0.0005, 0.0005, 0.0005 };
+	const int n = 10;
+	double dis[n] = { 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015};
+	double force[n+1];
 	cout << "solve step 0...\n";
 	solveStatic();
+	solveMagneticForce();
+	//solveMagneticForce1();
+	force[0] = Fy;
 	writeVtkFile(name + "_0.vtk" );
-	cout << "step 0 solve vinish.\n\n";
-	for (int i = 0; i < 5; ++i) {
+	cout << "step 0 solve finish.\n\n";
+	for (int i = 0; i < n; ++i) {
 		cout << "solve step " << i + 1 << "...\n";
 		meshmanager->remesh(name, i + 1, 0, dis[i]);
 		meshmanager->readMeshFile();
@@ -40,8 +48,14 @@ void FEM2DNRSolver::solveDynamic()
 		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
 		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
 		solveStatic();
+		solveMagneticForce();
+		force[i+1] = Fy;
 		writeVtkFile(name + "_" + to_string(i+1));
 		cout << "step " << i + 1 << " solve finish.\n\n";
+	}
+
+	for (int i = 0; i < n+1; ++i) {
+		cout << "i: " << i << ", Fy: " << force[i] << endl;
 	}
 }
 
@@ -155,6 +169,147 @@ void FEM2DNRSolver::solve2DAxim()
 			mp_node[index].At = res1[i];
 			mp_node[index].A = mp_node[index].At / mp_node[index].x;
 		}
+		//更新磁场结果
+		updateB();
+
+		double Bsum = 0;
+		//输出磁场值之和，观察最终是不是在两个磁场值之间振荡
+		for (int i = 0; i < m_num_triele; ++i) {
+			Bsum += mp_triele[i].B;
+		}
+		//cout << "Bsum: " << Bsum << endl;
+		printf("Bsum: %.20f\n", Bsum);
+
+		if (nonlinearelesize == 0) {
+			cout << "Linear problem solved!\n";
+			return;
+		}
+		//判断收敛性
+		double error = 0, a = 0, b = 0;
+		for (int i = 0; i < m_num_nodes; ++i) {
+			a += (mp_node[i].A - A_old[i]) * (mp_node[i].A - A_old[i]);
+			b += mp_node[i].A * mp_node[i].A;
+		}
+		error = sqrt(a) / sqrt(b);
+		cout << "Relative error: " << error << endl;
+		if (error > maxerror) {
+			for (int i = 0; i < m_num_nodes; ++i) {
+				A_old[i] = mp_node[i].A;
+			}
+		}
+		else {
+			cout << "Nonlinear iteration finish.\n";
+			return;
+		}
+	}
+
+	cout << "Warning: Number of iterations out of limit.\n";
+}
+
+void FEM2DNRSolver::solve2DAxim1()
+{
+	//考虑第一类边界条件的装配
+	std::vector<std::vector<int>> locs(2, std::vector<int>(9 * (size_t)(m_num_triele)));
+	std::vector<double> vals(9 * (size_t)(m_num_triele));
+	std::vector<double> F(num_freenodes);
+	int pos = 0;
+	int linearelesize = 0, nonlinearelesize = 0;
+
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		CTriElement triele = mp_triele[i_tri];
+		if (triele.material->getLinearFlag() == true) linearelesize++;
+		else nonlinearelesize++;
+		for (int i = 0; i < 3; ++i) {
+			int n1 = triele.n[i];
+			for (int j = 0; j < 3; ++j) {
+				int n2 = triele.n[j];
+				if (triele.material->getLinearFlag() == true) {
+					if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
+						double mu = triele.material->getMu();	//存在mu=0的情况
+						double Se = triele.C[i][j] / mu * 2 * PI * triele.xdot;
+						locs[0][pos] = node_pos[n1];
+						locs[1][pos] = node_pos[n2];
+						vals[pos] = Se;
+						++pos;
+					}
+				}
+			}
+			if (mp_node[n1].bdr != 1) {
+				double Fe = PI * (triele.xdot + 3 * mp_node[n1].x) * triele.J * triele.area / 6;
+				F[node_pos[n1]] += Fe;
+			}
+		}
+	}
+
+	//for (int i = 0; i < num_freenodes; ++i) {
+	//	if (node_pos[i] < num_freenodes && F[node_pos[i]] != 0) {
+	//		cout << "n: " << i << ", F: " << F[node_pos[i]] << endl;
+	//	}
+	//}
+
+	//非线性部分迭代
+	int pos1 = pos;
+	std::vector<double> F1 = F;
+	std::vector<double> A_old(m_num_nodes, 0);
+	for (int step = 0; step < maxitersteps; ++step) {
+		cout << "Iteration step " << step + 1 << " start." << endl;
+		pos = pos1;
+		F = F1;
+		for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+			CTriElement triele = mp_triele[i_tri];
+			if (triele.material->getLinearFlag() == false) {
+				//计算单元Jacobi矩阵
+				vector<vector<double>> J(3, vector<double>(3, 0));	//单元Jacobi矩阵
+				vector<double> Fj(3, 0);	//新增的右侧项
+				double mu, dvdb, B, sigmai, sigmaj;
+				B = mp_triele[i_tri].B;
+				mu = triele.material->getMu(B);
+				dvdb = triele.material->getdvdB(B);
+				vector<int> n(3);
+				n[0] = triele.n[0], n[1] = triele.n[1], n[2] = triele.n[2];
+				for (int i = 0; i < 3; ++i) {
+					sigmai = (triele.C[i][0] * mp_node[n[0]].A + triele.C[i][1] * mp_node[n[1]].A + triele.C[i][2] * mp_node[n[2]].A);
+					for (int j = 0; j < 3; ++j) {
+						sigmaj = (triele.C[j][0] * mp_node[n[0]].A + triele.C[j][1] * mp_node[n[1]].A + triele.C[j][2] * mp_node[n[2]].A);
+						if (B != 0) {
+							J[i][j] = triele.C[i][j] / mu + dvdb * sigmai * sigmaj / B / triele.area;
+						}
+						else {
+							J[i][j] = triele.C[i][j] / mu;
+						}
+						Fj[i] += (J[i][j] - triele.C[i][j] / mu) * mp_node[n[j]].A;
+					}
+				}
+				//装配
+				for (int i = 0; i < 3; ++i) {
+					int n1 = triele.n[i];
+					for (int j = 0; j < 3; ++j) {
+						int n2 = triele.n[j];
+						if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
+							locs[0][pos] = node_pos[n1];
+							locs[1][pos] = node_pos[n2];
+							vals[pos] = J[i][j];
+							++pos;
+						}
+					}
+					if (mp_node[n1].bdr != 1) {
+						F[node_pos[n1]] += Fj[i];
+					}
+				}
+			}
+		}
+		//求解
+		locs[0].resize(pos);
+		locs[1].resize(pos);
+
+		vector<double> res1 = matsolver->solveMatrix(locs, vals, F, pos, num_freenodes);
+		for (int i = 0; i < num_freenodes; ++i) {
+			int index = node_reorder[i];
+			mp_node[index].A = res1[i];
+			mp_node[index].At = mp_node[index].A * mp_node[index].x;
+			//cout << "mp_node[index].A: " << mp_node[index].A << endl;
+		}
+
 		//更新磁场结果
 		updateB();
 		if (nonlinearelesize == 0) {

@@ -13,8 +13,8 @@ std::string analysistype = "dynamic";
 std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 20000;
-double maxerror = 1e-5;
+int maxitersteps = 100;
+double maxerror = 1e-6;
 
 int main(int argc, char *argv[])
 {
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     core.solve(analysistype);
 
 
-    //core.postprocess();
+    core.postprocess();
 
     return 0;
 }

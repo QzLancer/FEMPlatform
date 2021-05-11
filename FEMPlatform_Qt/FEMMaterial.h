@@ -14,6 +14,7 @@ public:
 	FEMMaterial();
 	~FEMMaterial();
 	double getMu(double B = 0);
+	double getV(double B = 0);
 	double getdvdB(double B);	//线性处理
 	double getdvdB2(double B);
 	void getkHb(double B, double* k, double* H, double* b);

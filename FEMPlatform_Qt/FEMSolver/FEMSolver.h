@@ -30,6 +30,7 @@ public:
 	virtual void solveStatic() = 0;
 	virtual void solveDynamic() = 0;
 	virtual void solveMagneticForce() = 0;
+	virtual void solveMagneticForce1() = 0;
 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
 	void setMatrixSolver(MatrixSolver* const _matsolver);

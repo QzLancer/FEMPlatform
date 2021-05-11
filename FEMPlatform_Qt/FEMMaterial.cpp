@@ -81,6 +81,20 @@ double FEMMaterial::getMu(double B)
 	return B / H;
 }
 
+double FEMMaterial::getV(double B)
+{
+	double slope, H, b;
+	if (linearflag == true) {
+		return 1/mu;
+	}
+	else {
+		if (B < 1e-3)  return Hdata[1] / Bdata[1];
+		getkHb(B, &slope, &H, &b);
+	}
+	if (B / H < PI * 4e-7)  return 1 / (PI * 4e-7);
+	return H / B;
+}
+
 double FEMMaterial::getdvdB(double B)
 {
 	if (name == "Soft Iron1") {
@@ -100,6 +114,12 @@ double FEMMaterial::getdvdB(double B)
 	if (BHpoints == 0 || B < 1e-9) return 0;
 	getkHb(B, &slope, &H, &b);
 	return -b / (B * B);
+	//double db = 0.001;
+	//double v1 = getV(B + db);
+	//double v2 = getV(B);
+	//double dv = v1 - v2;
+	//return dv / db;
+
 }
 
 double FEMMaterial::getdvdB2(double B)
@@ -117,13 +137,14 @@ double FEMMaterial::getdvdB2(double B)
 	if (linearflag == true || B < 1e-9) return 0;
 	getkHb(B, &slope, &H, &b);
 	return -b / (B * B * B * 2);
+	//return getdvdB(B) / (B * 2);
 }
 
 //线性插值计算斜率k，磁场强度H
 void FEMMaterial::getkHb(double B, double* k, double* H, double* b)
 {
 	if (B >= Bdata[BHpoints - 1]) {
-		int  i = BHpoints - 2;
+		int  i = BHpoints - 1;
 		(*k) = (Hdata[i] - Hdata[i - 1]) / (Bdata[i] - Bdata[i - 1]);
 		(*b) = Hdata[i - 1] - (*k) * Bdata[i - 1];
 	}

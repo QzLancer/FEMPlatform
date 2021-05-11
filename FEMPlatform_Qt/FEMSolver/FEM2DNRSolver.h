@@ -13,6 +13,7 @@ public:
     virtual void solveStatic() override;
     virtual void solveDynamic() override;
     void solve2DAxim();
+    void solve2DAxim1();
     void solve2DPlane();
 protected:
 
