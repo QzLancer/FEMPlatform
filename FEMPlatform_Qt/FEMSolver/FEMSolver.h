@@ -45,6 +45,7 @@ public:
 	void setMaxError(const double _error);
 	void writeVtkFile(std::string _name);
 	void writeTxtFile(std::string _name);
+	void writeVtkFileNoAir(std::string _name, vector<int> air_domain);
 	void writeGeometryVtkFile(std::string _name);
 	virtual void setDeformedDomain(const std::vector<int> _deformedlist);
 	virtual void setMovingPart(const std::map<int, FEMMovingPart> _movingmap);

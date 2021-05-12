@@ -86,58 +86,58 @@ void FEM2DSolver::solveMagneticForce()
 		}
 	}
 
-	//遍历全部运动区域单元，如果单元内节点也处在形变单元上,
-	//计算相应的单元电磁力和节点电磁力
-	double dvdB2_sum = 0;
-	for (auto i_tri : moveelement) {
-		//CTriElement triele = mp_triele[i_tri];
-		//double rc = triele.rc;
-		//double area = triele.area;
-		//double mu = triele.material->getMu(triele.B);
-		//double QA = triele.Q[0] * mp_node[triele.n[0]].At + triele.Q[1] * mp_node[triele.n[1]].At + triele.Q[2] * mp_node[triele.n[2]].At;
-		//double RA = triele.R[0] * mp_node[triele.n[0]].At + triele.R[1] * mp_node[triele.n[1]].At + triele.R[2] * mp_node[triele.n[2]].At;
-		//double tmp = PI / 4 / mu;	//???
-		//double dvdB2 = triele.material->getdvdB2(triele.B);
-		////cout << "i_tri: " << i_tri << ", dvdB2: " << dvdB2 << endl;
-		//dvdB2_sum += dvdB2;
-		//double tmp1 = PI / 4 * (QA * QA + RA * RA) / area / rc * dvdB2 / 4;
-		//double dQdy[3][3];
-		//double dRdx[3][3];
-		//double ac = area * rc;
-		//double ac2 = ac * ac;
-		//double ac3 = ac2 * ac;
+	////遍历全部运动区域单元，如果单元内节点也处在形变单元上,
+	////计算相应的单元电磁力和节点电磁力
+	//double dvdB2_sum = 0;
+	//for (auto i_tri : moveelement) {
+	//	CTriElement triele = mp_triele[i_tri];
+	//	double rc = triele.rc;
+	//	double area = triele.area;
+	//	double mu = triele.material->getMu(triele.B);
+	//	double QA = triele.Q[0] * mp_node[triele.n[0]].At + triele.Q[1] * mp_node[triele.n[1]].At + triele.Q[2] * mp_node[triele.n[2]].At;
+	//	double RA = triele.R[0] * mp_node[triele.n[0]].At + triele.R[1] * mp_node[triele.n[1]].At + triele.R[2] * mp_node[triele.n[2]].At;
+	//	double tmp = PI / 4 / mu;	//???
+	//	double dvdB2 = triele.material->getdvdB2(triele.B);
+	//	//cout << "i_tri: " << i_tri << ", dvdB2: " << dvdB2 << endl;
+	//	dvdB2_sum += dvdB2;
+	//	double tmp1 = PI / 4 * (QA * QA + RA * RA) / area / rc * dvdB2 / 4;
+	//	double dQdy[3][3];
+	//	double dRdx[3][3];
+	//	double ac = area * rc;
+	//	double ac2 = ac * ac;
+	//	double ac3 = ac2 * ac;
 
-		//dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
-		//dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
-		//dQdy[2][0] = -1; dQdy[2][1] = 1; dQdy[2][2] = 0;
+	//	dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
+	//	dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
+	//	dQdy[2][0] = -1; dQdy[2][1] = 1; dQdy[2][2] = 0;
 
-		//dRdx[0][0] = 0; dRdx[0][1] = 1; dRdx[0][2] = -1;
-		//dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
-		//dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
+	//	dRdx[0][0] = 0; dRdx[0][1] = 1; dRdx[0][2] = -1;
+	//	dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
+	//	dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
 
-		//double dSdx, dSdy;
-		//double dQAdy, dRAdx;
-		//double dBxdx, dBydx, dBxdy, dBydy;
-		//for (int i = 0; i < 3; ++i) {
-		//	int n = mp_triele[i_tri].n[i];
-		//	if (deformednode[n] == true) {
-		//		//x方向
-		//		dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
-		//		dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
-		//		mp_node[n].NodeForcex -= tmp * (2 * RA / ac * dRAdx);
-		//		//mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
-		//		//mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
-		//		//mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
-		//		//y方向
-		//		dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
-		//		dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
-		//		mp_node[n].NodeForcey -= tmp * ((QA * QA + RA * RA) * (-1) / ac2 * rc * dSdy);
-		//		mp_node[n].NodeForcey -= tmp * (2 * QA / ac * dQAdy);
-		//		mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
-		//		mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
-		//	}
-		//}
-	}
+	//	double dSdx, dSdy;
+	//	double dQAdy, dRAdx;
+	//	double dBxdx, dBydx, dBxdy, dBydy;
+	//	for (int i = 0; i < 3; ++i) {
+	//		int n = mp_triele[i_tri].n[i];
+	//		if (deformednode[n] == true) {
+	//			//x方向
+	//			dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
+	//			dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
+	//			mp_node[n].NodeForcex -= tmp * (2 * RA / ac * dRAdx);
+	//			//mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+	//			//mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
+	//			//mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
+	//			//y方向
+	//			dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
+	//			dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
+	//			mp_node[n].NodeForcey -= tmp * ((QA * QA + RA * RA) * (-1) / ac2 * rc * dSdy);
+	//			mp_node[n].NodeForcey -= tmp * (2 * QA / ac * dQAdy);
+	//			//mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
+	//			//mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
+	//		}
+	//	}
+	//}
 
 	//计算衔铁电磁力之和
 	Fx = 0, Fy = 0;
@@ -147,7 +147,7 @@ void FEM2DSolver::solveMagneticForce()
 			Fy += mp_node[n].NodeForcey;
 		}
 	}
-	cout << "dvdB2_sum: " << dvdB2_sum << endl;
+	//cout << "dvdB2_sum: " << dvdB2_sum << endl;
 	printf("Fx:%10.8e,Fy:%10.8e\n", Fx, Fy);
 }
 
@@ -191,13 +191,19 @@ void FEM2DSolver::solveMagneticForce1()
 		double rc = triele.rc;
 		double area = triele.area;
 		double mu = triele.material->getMu(triele.B);
-		double QA = triele.Q[0] * mp_node[triele.n[0]].A + triele.Q[1] * mp_node[triele.n[1]].A + triele.Q[2] * mp_node[triele.n[2]].A;
-		double RA = triele.R[0] * mp_node[triele.n[0]].A + triele.R[1] * mp_node[triele.n[1]].A + triele.R[2] * mp_node[triele.n[2]].A;
-		double Bx = RA / 2 / area;
-		double By = -QA / 2 / area;
+		double QAt = triele.Q[0] * mp_node[triele.n[0]].At + triele.Q[1] * mp_node[triele.n[1]].At + triele.Q[2] * mp_node[triele.n[2]].At;
+		double RAt = triele.R[0] * mp_node[triele.n[0]].At + triele.R[1] * mp_node[triele.n[1]].At + triele.R[2] * mp_node[triele.n[2]].At;
+		double tmp = PI / 4 / mu;	//为什么要除以4???
 		double dvdB2 = triele.material->getdvdB2(triele.B);
+		if (dvdB2 != 0) {
+			cout << "i_tri: " << i_tri << endl;
+		}
+		double tmp1 = PI / 4 * (QAt * QAt + RAt * RAt) / area / rc * dvdB2 / 4;
 		double dQdy[3][3];
 		double dRdx[3][3];
+		double ac = area * rc;
+		double ac2 = ac * ac;
+		double ac3 = ac2 * ac;
 
 		dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
 		dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
@@ -207,7 +213,7 @@ void FEM2DSolver::solveMagneticForce1()
 		dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
 		dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
 
-		double dSdx, dSdy, dB2dx, dB2dy;
+		double dSdx, dSdy;
 		double dQAdy, dRAdx;
 		double dBxdx, dBydx, dBxdy, dBydy;
 		for (int i = 0; i < 3; ++i) {
@@ -215,20 +221,22 @@ void FEM2DSolver::solveMagneticForce1()
 			if (movenode[n] == true) {
 				//x方向
 				dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
-				dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].A + dRdx[i][1] * mp_node[triele.n[1]].A + dRdx[i][2] * mp_node[triele.n[2]].A);
-				dB2dx = 0.5 * RA * dRAdx / area / area;
-				mp_node[n].NodeForcex -= PI * rc * (Bx * Bx + By * By) * dSdx / mu;
-				mp_node[n].NodeForcex -= 2 * PI * rc * area * dB2dx / mu;
-				mp_node[n].NodeForcex -= PI * rc * area * (Bx * Bx + By * By) * dvdB2 * dB2dx;
+				dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
+				mp_node[n].NodeForcex -= tmp * (2 * RAt / ac * dRAdx);
+				mp_node[n].NodeForcex -= tmp * ((QAt * QAt + RAt * RAt) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+				mp_node[n].NodeForcex -= tmp1 * (2 * RAt / ac2 * dRAdx);
+				mp_node[n].NodeForcex -= tmp1 * ((QAt * QAt + RAt * RAt) * (-2 / ac3 * (area / 3 + rc * dSdx)));
 				//y方向
 				dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
-				dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].A + dQdy[i][1] * mp_node[triele.n[1]].A + dQdy[i][2] * mp_node[triele.n[2]].A);
-				dB2dy = 0.5 * QA * dQAdy / area / area;
-				mp_node[n].NodeForcey -= PI / 4 / mu * ((QA * QA + RA * RA) * (-1) / area / area * rc * dSdy);
-				//mp_node[n].NodeForcey -= (-1) * PI * rc / mu * Bx * RA * dSdy / area / area;
-				//mp_node[n].NodeForcey -= PI * rc / mu * (By / area * dQAdy - QA * By * dSdy / area / area);
-				//mp_node[n].NodeForcey -= PI * rc * area * dB2dy / mu ;
-				//mp_node[n].NodeForcey -= PI * rc * area * (Bx * Bx + By * By) * dvdB2 * dB2dy ;
+				dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
+				double dB2dy = -((RAt * RAt + QAt * QAt) * dSdy / 2 / area / area / area - QAt * dQAdy / 2 / area / area) / rc / rc;
+				//mp_node[n].NodeForcey -= tmp * ((QAt * QAt + RAt * RAt) /** (-1)*/ / ac2 * rc * dSdy);
+				mp_node[n].NodeForcey -= PI * rc * (QAt * QAt + RAt * RAt) / 4 / rc / rc / area / area * dSdy / mu;
+				mp_node[n].NodeForcey -= PI * rc * area * dB2dy / mu;
+				mp_node[n].NodeForcey -= PI * rc * area * (QAt * QAt + RAt * RAt) / 4 / rc / rc / area / area * dvdB2 * dB2dy;
+				//mp_node[n].NodeForcey -= tmp * (2 * QAt / ac * dQAdy);
+				//mp_node[n].NodeForcey -= tmp1 * ((QAt * QAt + RAt * RAt) * (-2) / ac3 * rc * dSdy);
+				//mp_node[n].NodeForcey -= tmp1 * (2 * QAt / ac2 * dQAdy);
 			}
 		}
 	}
@@ -237,50 +245,57 @@ void FEM2DSolver::solveMagneticForce1()
 	//计算相应的单元电磁力和节点电磁力
 	double dvdB2_sum = 0;
 	for (auto i_tri : moveelement) {
-		CTriElement triele = mp_triele[i_tri];
-		double rc = triele.rc;
-		double area = triele.area;
-		double mu = triele.material->getMu(triele.B);
-		double QA = triele.Q[0] * mp_node[triele.n[0]].A + triele.Q[1] * mp_node[triele.n[1]].A + triele.Q[2] * mp_node[triele.n[2]].A;
-		double RA = triele.R[0] * mp_node[triele.n[0]].A + triele.R[1] * mp_node[triele.n[1]].A + triele.R[2] * mp_node[triele.n[2]].A;
-		double Bx = RA / 2 / area;
-		double By = -QA / 2 / area;
-		double dvdB2 = triele.material->getdvdB2(triele.B);
-		double dQdy[3][3];
-		double dRdx[3][3];
+		//CTriElement triele = mp_triele[i_tri];
+		//double rc = triele.rc;
+		//double area = triele.area;
+		//double mu = triele.material->getMu(triele.B);
+		//double QAt = triele.Q[0] * mp_node[triele.n[0]].At + triele.Q[1] * mp_node[triele.n[1]].At + triele.Q[2] * mp_node[triele.n[2]].At;
+		//double RAt = triele.R[0] * mp_node[triele.n[0]].At + triele.R[1] * mp_node[triele.n[1]].At + triele.R[2] * mp_node[triele.n[2]].At;
+		//double tmp = PI / 4 / mu;	//???
+		//double dvdB2 = triele.material->getdvdB2(triele.B);
+		////cout << "i_tri: " << i_tri << ", dvdB2: " << dvdB2 << endl;
+		//dvdB2_sum += dvdB2;
+		//double tmp1 = PI / 4 * (QAt * QAt + RAt * RAt) / area / rc * dvdB2 / 4;
+		//double dQdy[3][3];
+		//double dRdx[3][3];
+		//double ac = area * rc;
+		//double ac2 = ac * ac;
+		//double ac3 = ac2 * ac;
 
-		dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
-		dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
-		dQdy[2][0] = -1; dQdy[2][1] = 1; dQdy[2][2] = 0;
+		//dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
+		//dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
+		//dQdy[2][0] = -1; dQdy[2][1] = 1; dQdy[2][2] = 0;
 
-		dRdx[0][0] = 0; dRdx[0][1] = 1; dRdx[0][2] = -1;
-		dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
-		dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
+		//dRdx[0][0] = 0; dRdx[0][1] = 1; dRdx[0][2] = -1;
+		//dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
+		//dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
 
-		double dSdx, dSdy, dB2dx, dB2dy;
-		double dQAdy, dRAdx;
-		double dBxdx, dBydx, dBxdy, dBydy;
-		for (int i = 0; i < 3; ++i) {
-			int n = mp_triele[i_tri].n[i];
-			if (deformednode[n] == true) {
-				//x方向
-				dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
-				dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].A + dRdx[i][1] * mp_node[triele.n[1]].A + dRdx[i][2] * mp_node[triele.n[2]].A);
-				dB2dx = 0.5 * RA * dRAdx / area / area;
-				mp_node[n].NodeForcex -= PI * rc * (Bx * Bx + By * By) * dSdx / mu;
-				mp_node[n].NodeForcex -= PI * rc * area * dB2dx / mu;
-				mp_node[n].NodeForcex -= PI * rc * area * (Bx * Bx + By * By) * dvdB2 * dB2dx;
-				//y方向
-				dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
-				dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].A + dQdy[i][1] * mp_node[triele.n[1]].A + dQdy[i][2] * mp_node[triele.n[2]].A);
-				dB2dy = 0.5 * QA * dQAdy / area / area;
-				mp_node[n].NodeForcey -= PI / 4 / mu * ((QA * QA + RA * RA) * (-1) / area / area * rc * dSdy);
-				//mp_node[n].NodeForcey -= (-1) * PI * rc / mu * Bx * RA * dSdy / area / area;
-				//mp_node[n].NodeForcey -= PI * rc / mu * (By / area * dQAdy - QA * By * dSdy / area / area);
-				//mp_node[n].NodeForcey -= PI * rc * area * dB2dy / mu ;
-				//mp_node[n].NodeForcey -= PI * rc * area * (Bx * Bx + By * By) * dvdB2 * dB2dy;
-			}
-		}
+		//double dSdx, dSdy;
+		//double dQAdy, dRAdx;
+		//double dBxdx, dBydx, dBxdy, dBydy;
+		//for (int i = 0; i < 3; ++i) {
+		//	int n = mp_triele[i_tri].n[i];
+		//	if (deformednode[n] == true) {
+		//		//x方向
+		//		dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
+		//		dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
+		//		mp_node[n].NodeForcex -= tmp * (2 * RAt / ac * dRAdx);
+		//		mp_node[n].NodeForcex -= tmp * ((QAt * QAt + RAt * RAt) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+		//		mp_node[n].NodeForcex -= tmp1 * (2 * RAt / ac2 * dRAdx);
+		//		mp_node[n].NodeForcex -= tmp1 * ((QAt * QAt + RAt * RAt) * (-2 / ac3 * (area / 3 + rc * dSdx)));
+		//		//y方向
+		//		dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
+		//		dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
+		//		double dB2dy = -((RAt * RAt + QAt * QAt) * dSdy / 2 / area / area / area - QAt * dQAdy / 2 / area / area) / rc / rc;
+		//		//mp_node[n].NodeForcey -= tmp * ((QAt * QAt + RAt * RAt) /** (-1) *// ac2 * rc * dSdy);
+		//		mp_node[n].NodeForcey -= PI * rc * (QAt * QAt + RAt * RAt) / 4 / rc / rc / area / area * dSdy / mu;
+		//		mp_node[n].NodeForcey -= PI * rc * area * dB2dy / mu;
+		//		mp_node[n].NodeForcey -= PI * rc * area * (QAt * QAt + RAt * RAt) / 4 / rc / rc / area / area * dvdB2 * dB2dy;
+		//		//mp_node[n].NodeForcey -= tmp * (2 * QAt / ac * dQAdy);
+		//		//mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
+		//		//mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
+		//	}
+		//}
 	}
 
 	//计算衔铁电磁力之和

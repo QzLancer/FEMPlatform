@@ -196,6 +196,97 @@ void FEMSolver::writeTxtFile(std::string _name)
 	}
 }
 
+void FEMSolver::writeVtkFileNoAir(std::string _name, vector<int> air_domain)
+{
+	writeGeometryVtkFile(_name);
+	std::string name = std::string("D:/femplatform/result/");
+	name += _name;
+	name += "_noAir";
+	name += /*to_string(m_num_nodes) +*/ std::string(".vtk");
+	FILE* fp = nullptr;
+	int err;
+	char ch[256];
+	err = fopen_s(&fp, name.c_str(), "w");
+	if (!fp) {
+		std::cout << "Error: opening file!" << endl;
+		exit(0);
+	}
+	/*
+		 1: points
+		 3: line
+		 5: Triangular element
+		 9: Quadrilateral element
+		10: Tetrahedral element
+		12: Hexahedral element
+		13: Triangular prism element
+		14: Pyramid element
+	*/
+
+	/** 计算非空气单元数目 **/
+	int num_cell;
+	bool airflag = false;
+	vector<int> eleid;
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		airflag = false;
+		for (auto a : air_domain) {
+			if (mp_triele[i_tri].domain == a) {
+				airflag = true;
+				break;
+			}
+		}
+		if (airflag == false) {
+			eleid.push_back(i_tri);
+		}
+	}
+	num_cell = eleid.size();
+
+	/** 数据版本声明 **/
+	fprintf(fp, "# vtk DataFile Version 2.0\n");
+	/** 标题 **/
+	fprintf(fp, "vtk title\n");
+	/** 文件格式声明 **/
+	fprintf(fp, "ASCII\n");
+	/** 几何拓扑结构 **/
+	fprintf(fp, "DATASET UNSTRUCTURED_GRID\n");
+
+	//节点
+	fprintf(fp, "\nPOINTS %d float\n", m_num_nodes);
+	for (int i = 0; i < m_num_nodes; ++i) {
+		fprintf(fp, "%lf %lf %lf\n", mp_node[i].x, mp_node[i].y, mp_node[i].z);
+	}
+	//一阶三角形单元
+	fprintf(fp, "\nCELLS %d %d\n", num_cell, 4 * num_cell);
+	for (int i = 0; i < num_cell; ++i) {
+		fprintf(fp, "3 %d %d %d\n", mp_triele[eleid[i]].n[0], mp_triele[eleid[i]].n[1], mp_triele[eleid[i]].n[2]);
+	}
+	fprintf(fp, "\nCELL_TYPES %d\n", num_cell);
+	int type = 5;
+	for (int i = 0; i < num_cell; ++i) {
+		fprintf(fp, "%d\n", type);
+	}
+	//节点磁矢位
+	fprintf(fp, "\nPOINT_DATA %d\n", m_num_nodes);
+	fprintf(fp, "SCALARS A double 1\n");
+	fprintf(fp, "LOOKUP_TABLE %s\n", "Atable");
+	for (int i = 0; i < m_num_nodes; ++i) {
+		fprintf(fp, "%f\n", mp_node[i].A);
+	}
+
+	//单元标量磁感应强度
+	fprintf(fp, "\nCELL_DATA %d\n", num_cell);
+	fprintf(fp, "SCALARS %s double %d\n", "Bnorm", 1);
+	fprintf(fp, "LOOKUP_TABLE %s\n", "Btable");
+	for (int i_tri = 0; i_tri < num_cell; ++i_tri) {
+		fprintf(fp, "%lf\n", mp_triele[eleid[i_tri]].B);
+	}
+
+	fprintf(fp, "\nVECTORS %s double\n", "Bvector");
+	for (int i_tri = 0; i_tri < num_cell; ++i_tri) {
+		fprintf(fp, "%lf %lf %lf\n", mp_triele[eleid[i_tri]].Bx, mp_triele[eleid[i_tri]].By, 0.0);
+	}
+	fclose(fp);
+}
+
 void FEMSolver::writeGeometryVtkFile(std::string _name)
 {
 	std::string name = std::string("D:/femplatform/result/");

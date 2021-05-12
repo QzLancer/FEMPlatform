@@ -29,28 +29,24 @@ void FEM2DNRSolver::solveDynamic()
 {
 	string name = "RelayDynamic";
 	cout << "void FEM2DNRSolver::solveDynamic()" << endl;
-	const int n = 10;
-	double dis[n] = { 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015};
+	const int n = 11;
+	double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015};
 	double force[n+1];
-	cout << "solve step 0...\n";
-	solveStatic();
-	solveMagneticForce();
-	//solveMagneticForce1();
-	force[0] = Fy;
-	writeVtkFile(name + "_0.vtk" );
-	cout << "step 0 solve finish.\n\n";
+	vector<int> air_domain{4, 5, 6, 7};
 	for (int i = 0; i < n; ++i) {
 		cout << "solve step " << i + 1 << "...\n";
-		meshmanager->remesh(name, i + 1, 0, dis[i]);
+		meshmanager->remesh(name, i, 0, dis[i]);
 		meshmanager->readMeshFile();
 		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
 		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
 		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
 		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
 		solveStatic();
-		solveMagneticForce();
-		force[i+1] = Fy;
-		writeVtkFile(name + "_" + to_string(i+1));
+		//solveMagneticForce();
+		solveMagneticForce1();
+		force[i] = Fy;
+		writeVtkFile(name + "_" + to_string(i));
+		writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
 		cout << "step " << i + 1 << " solve finish.\n\n";
 	}
 
