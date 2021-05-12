@@ -72,9 +72,9 @@ void FEM2DSolver::solveMagneticForce()
 				dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
 				dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
 				mp_node[n].NodeForcex -= tmp * (2 * RA / ac * dRAdx);
-				//mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
-				//mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
-				//mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
+				mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+				mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
+				mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
 				//y方向
 				dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
 				dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
@@ -125,16 +125,16 @@ void FEM2DSolver::solveMagneticForce()
 	//			dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
 	//			dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
 	//			mp_node[n].NodeForcex -= tmp * (2 * RA / ac * dRAdx);
-	//			//mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
-	//			//mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
-	//			//mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
+	//			mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+	//			mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
+	//			mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
 	//			//y方向
 	//			dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
 	//			dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
 	//			mp_node[n].NodeForcey -= tmp * ((QA * QA + RA * RA) * (-1) / ac2 * rc * dSdy);
 	//			mp_node[n].NodeForcey -= tmp * (2 * QA / ac * dQAdy);
-	//			//mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
-	//			//mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
+	//			mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
+	//			mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
 	//		}
 	//	}
 	//}
@@ -367,6 +367,7 @@ void FEM2DSolver::makeTrangle()
 				mp_triele[index].C[i][j] = ((mp_triele[index].R[i] * mp_triele[index].R[j] + mp_triele[index].Q[i] * mp_triele[index].Q[j])) / (4.0 * mp_triele[index].area);
 			}
 		}
+		//printf("i_tri: %d, n0: %d, n1: %d, n2: %d, Y11: %f, Y12: %f, Y13: %f, Y22: %f, Y23: %f, Y33: %f\n", index, mp_triele[index].n[0], mp_triele[index].n[1], mp_triele[index].n[2], mp_triele[index].C[0][0], mp_triele[index].C[0][1], mp_triele[index].C[0][2], mp_triele[index].C[1][1], mp_triele[index].C[1][2], mp_triele[index].C[2][2]);
 	}
 }
 
@@ -460,12 +461,12 @@ void FEM2DSolver::updateB()
 		double bx = 0, by = 0;
 		for (int i = 0; i < 3; ++i) {
 			int n = mp_triele[i_tri].n[i];
-			bx += mp_triele[i_tri].R[i] * mp_node[n].A;
-			by += mp_triele[i_tri].Q[i] * mp_node[n].A;
+			bx += mp_triele[i_tri].R[i] * mp_node[n].At;
+			by += mp_triele[i_tri].Q[i] * mp_node[n].At;
 		}
-		bx = bx / 2 / mp_triele[i_tri].area;
+		bx = bx / 2 / mp_triele[i_tri].area / mp_triele[i_tri].xdot;
 		mp_triele[i_tri].Bx = bx;
-		by = -by / 2 / mp_triele[i_tri].area;
+		by = -by / 2 / mp_triele[i_tri].area / mp_triele[i_tri].xdot;
 		mp_triele[i_tri].By = by;
 		mp_triele[i_tri].B = sqrt(bx * bx + by * by);
 	}

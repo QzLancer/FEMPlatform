@@ -56,4 +56,5 @@ struct CTriElement {
     double Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
     double ElementForcex{ 0 }, ElementForcey{ 0 }, ElementForcez{ 0 }, ElementForce{ 0 };
     double RHSContri{ 0 };
+    double mut, mu;
 };

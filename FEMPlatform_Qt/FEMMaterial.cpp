@@ -111,7 +111,7 @@ double FEMMaterial::getdvdB(double B)
 		}
 	}
 	double slope, H, b;
-	if (BHpoints == 0 || B < 1e-9) return 0;
+	if (linearflag == true || B < 1e-9) return 0;
 	getkHb(B, &slope, &H, &b);
 	return -b / (B * B);
 	//double db = 0.001;
@@ -144,7 +144,7 @@ double FEMMaterial::getdvdB2(double B)
 void FEMMaterial::getkHb(double B, double* k, double* H, double* b)
 {
 	if (B >= Bdata[BHpoints - 1]) {
-		int  i = BHpoints - 1;
+		int  i = BHpoints - 2;
 		(*k) = (Hdata[i] - Hdata[i - 1]) / (Bdata[i] - Bdata[i - 1]);
 		(*b) = Hdata[i - 1] - (*k) * Bdata[i - 1];
 	}
