@@ -455,6 +455,10 @@ void FEM2DSolver::processLoad()
 	}
 }
 
+void FEM2DSolver::setCoilCurrent(double I)
+{
+}
+
 void FEM2DSolver::updateB()
 {
 	for( int i_tri = 0; i_tri < m_num_triele; ++i_tri ) {

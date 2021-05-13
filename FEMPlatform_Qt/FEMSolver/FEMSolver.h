@@ -50,7 +50,7 @@ public:
 	virtual void setDeformedDomain(const std::vector<int> _deformedlist);
 	virtual void setMovingPart(const std::map<int, FEMMovingPart> _movingmap);
 	void setMeshManager(FEMMeshManager* _meshmanager);
-
+	void updateLoadmap(int domain, double current);
 
 	//std::vector<double> getA() const;
 	FEMModel::DIMENSION dimension;

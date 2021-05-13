@@ -354,6 +354,12 @@ void FEMSolver::setMeshManager(FEMMeshManager* _meshmanager)
 	meshmanager = _meshmanager;
 }
 
+void FEMSolver::updateLoadmap(int domain, double current)
+{
+	double Jor = current * materialmap[domain]->getFEMCoil().Nc / materialmap[domain]->getFEMCoil().width / materialmap[domain]->getFEMCoil().height;
+	loadmap[domain] = Jor;
+}
+
 //std::vector<double> FEMSolver::getA() const
 //{
 //    return A;
