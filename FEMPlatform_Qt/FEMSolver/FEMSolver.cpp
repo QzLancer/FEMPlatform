@@ -344,7 +344,7 @@ void FEMSolver::setDeformedDomain(const std::vector<int> _deformedlist)
 	deformedlist = _deformedlist;
 }
 
-void FEMSolver::setMovingPart(const std::map<int, FEMMovingPart> _movingmap)
+void FEMSolver::setMovingPart(const std::map<int, FEMMovingPart*> _movingmap)
 {
 	movingmap = _movingmap;
 }

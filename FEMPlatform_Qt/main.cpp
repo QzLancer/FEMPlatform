@@ -13,7 +13,7 @@ std::string analysistype = "dynamic";
 std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 30;
+int maxitersteps = 20;
 double maxerror = 1e-6;
 
 int main(int argc, char *argv[])

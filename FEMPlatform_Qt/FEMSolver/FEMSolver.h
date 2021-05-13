@@ -48,7 +48,7 @@ public:
 	void writeVtkFileNoAir(std::string _name, vector<int> air_domain);
 	void writeGeometryVtkFile(std::string _name);
 	virtual void setDeformedDomain(const std::vector<int> _deformedlist);
-	virtual void setMovingPart(const std::map<int, FEMMovingPart> _movingmap);
+	virtual void setMovingPart(const std::map<int, FEMMovingPart*> _movingmap);
 	void setMeshManager(FEMMeshManager* _meshmanager);
 	void updateLoadmap(int domain, double current);
 
@@ -76,7 +76,7 @@ protected:
 	std::map<int, double> loadmap;
 	std::map<int, FEMBoundary*> boundarymap;
 	std::vector<int> deformedlist;	//形变区域
-	std::map<int, FEMMovingPart>movingmap;	//运动区域
+	std::map<int, FEMMovingPart*>movingmap;	//运动区域
 
 	int maxitersteps;
 	double maxerror;

@@ -61,7 +61,7 @@ void FEMContactorLinearModel::buildGeometry2Deformed()
 
 void FEMContactorLinearModel::buildGeometry2MovingPart()
 {
-    FEMMovingPart moving1;
-    moving1.direction[2] = 1;
+    FEMMovingPart* moving1 = new FEMMovingPart;
+    moving1->direction[2] = 1;
     movingmap[3] = moving1;
 }

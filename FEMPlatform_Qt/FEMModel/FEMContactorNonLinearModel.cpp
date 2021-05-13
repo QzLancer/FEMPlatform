@@ -63,7 +63,7 @@ void FEMContactorNonLinearModel::buildGeometry2Deformed()
 
 void FEMContactorNonLinearModel::buildGeometry2MovingPart()
 {
-    FEMMovingPart moving1;
-    moving1.direction[1] = 1;
+    FEMMovingPart* moving1 = new FEMMovingPart;
+    moving1->direction[1] = 1;
     movingmap[3] = moving1;
 }

@@ -27,62 +27,36 @@ void FEM2DNRSolver::solveStatic()
 
 void FEM2DNRSolver::solveDynamic()
 {
-	//string name = "RelayDynamic";
-	//cout << "void FEM2DNRSolver::solveDynamic()" << endl;
-	//const int n = 11;
-	//double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015};
-	//double force[n+1];
-	//vector<int> air_domain{4, 5, 6, 7};
-	//for (int i = 0; i < n; ++i) {
-	//	cout << "solve step " << i + 1 << "...\n";
-	//	meshmanager->remesh(name, i, 0, dis[i]);
-	//	meshmanager->readMeshFile();
-	//	setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-	//	setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-	//	setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-	//	setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-	//	solveStatic();
-	//	solveMagneticForce();
-	//	//solveMagneticForce1();
-	//	force[i] = Fy;
-	//	writeVtkFile(name + "_" + to_string(i));
-	//	writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
-	//	cout << "step " << i + 1 << " solve finish.\n\n";
-	//}
-
-	//for (int i = 0; i < n; ++i) {
-	//	cout << "i: " << i << ", Fy: " << force[i] << endl;
-	//}
-
 	string name = "RelayDynamic";
 	cout << "void FEM2DNRSolver::solveDynamic()" << endl;
-	const int n = 61;
-	double current[n] = { 0.000000, 0.063761, 0.120746, 0.171693, 0.217263, 0.261696, 0.303493, 0.342198, 0.377899, 0.406928, 0.422129, 0.423179, 0.423627, 0.423978, 0.424350, 0.423740, 0.422724, 0.421662, 0.419513, 0.417037, 0.413281, 0.408917, 0.403390, 0.396738, 0.387977, 0.377811, 0.363954, 0.347051, 0.325871, 0.298537, 0.263240, 0.241605, 0.249544, 0.257400, 0.265186, 0.272990, 0.308941, 0.342038, 0.372865, 0.401361, 0.426694, 0.449055, 0.468733, 0.486034, 0.501248, 0.514488, 0.526014, 0.536108, 0.544880, 0.552472, 0.559035, 0.564702, 0.569591, 0.573808, 0.577443, 0.580576, 0.583276, 0.585602, 0.587606, 0.589332, 0.590819, };
-	double dis1[n] = { 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000052, 0.000299, 0.000328, 0.000362, 0.000401, 0.000445, 0.000494, 0.000549, 0.000611, 0.000679, 0.000755, 0.000838, 0.000931, 0.001033, 0.001146, 0.001270, 0.001409, 0.001564, 0.001729, 0.001907, 0.002101, 0.002322, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490, 0.002490 };
-	double dis[n];
-	for (int i = 1; i < n; ++i) {
-		dis[i] = dis1[i] - dis1[i - 1];
-	}
+	const int n = 11;
+	double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015 };
 	double force[n];
+	double W[n];
+	double L[n];
+	double FLUX[n];
 	vector<int> air_domain{ 4, 5, 6, 7 };
 	for (int i = 0; i < n; ++i) {
-		cout << "solve step " << i << "...\n";
+		cout << "solve step " << i + 1 << "...\n";
 		meshmanager->remesh(name, i, 0, dis[i]);
 		meshmanager->readMeshFile();
 		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
 		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
 		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
 		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-		updateLoadmap(3, current[i]);
 		solveStatic();
+		W[i] = solveEnergy();
+		L[i] = solveInductance(8381893.016);
+		FLUX[i] = solveFlux(3);
 		solveMagneticForce();
+		//solveMagneticForce1();
 		force[i] = Fy;
-		writeVtkFile(name + "_" + to_string(i));
-		writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
+		//writeVtkFile(name + "_" + to_string(i));
+		//writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
 		cout << "step " << i + 1 << " solve finish.\n\n";
 	}
 	for (int i = 0; i < n; ++i) {
-		cout << "i: " << i << ", Fy: " << force[i] << endl;
+		cout << "step " << i + 1 << ", W: " << W[i] << ", L: " << L[i] << ", force: " << force[i] << ", FLUX: " << FLUX[i] << endl;
 	}
 }
 

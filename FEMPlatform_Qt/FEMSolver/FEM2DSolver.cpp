@@ -32,6 +32,12 @@ void FEM2DSolver::solveMagneticForce()
 		}
 	}
 
+	//将全部节点的电磁力初始化为0
+	for (int n = 0; n < m_num_nodes; ++n) {
+		mp_node[n].NodeForcex = 0;
+		mp_node[n].NodeForcey = 0;
+	}
+
 	//遍历全部形变区域单元，如果单元内节点也处在运动单元上,
 	//计算相应的单元电磁力和节点电磁力
 	//师兄代码里的A是At吗？？？
@@ -308,6 +314,47 @@ void FEM2DSolver::solveMagneticForce1()
 	}
 	cout << "dvdB2_sum: " << dvdB2_sum << endl;
 	printf("Fx:%10.8e,Fy:%10.8e\n", Fx, Fy);
+}
+
+double FEM2DSolver::solveSpringForce(int domain, double pos)
+{
+	FEMMovingPart* movingpart = movingmap[domain];
+	return movingpart->getSpringForce(pos);
+}
+
+double FEM2DSolver::solveEnergy()
+{
+	double W = 0;
+	CTriElement triele;
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		triele = mp_triele[i_tri];
+		W += PI * triele.xdot * triele.area * triele.B * triele.B / triele.material->getMu(triele.B);
+	}
+	return W;
+}
+
+double FEM2DSolver::solveInductance(double I)
+{
+	double W = solveEnergy();
+	return 2 * W / I / I;
+}
+
+double FEM2DSolver::solveFlux(int domain)
+{
+	double flux = 0;
+	CTriElement triele;
+	int n0, n1, n2;
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		triele = mp_triele[i_tri];
+		if (triele.domain != domain)
+			continue;
+		n0 = triele.n[0];
+		n1 = triele.n[1];
+		n2 = triele.n[2];
+		//cout << triele.material->getFEMCoil().tau;
+		flux += 2 * PI * triele.material->getFEMCoil().tau * triele.area * (mp_node[n0].At + mp_node[n1].At + mp_node[n2].At) / 3;
+	}
+	return flux;
 }
 
 void FEM2DSolver::makeTrangle()

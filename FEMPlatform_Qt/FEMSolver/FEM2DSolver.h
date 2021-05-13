@@ -8,6 +8,10 @@ public:
     virtual void solveDynamic() = 0;
     virtual void solveMagneticForce() override;
     virtual void solveMagneticForce1() override;
+    virtual double solveSpringForce(int domain, double pos);
+    virtual double solveEnergy();
+    virtual double solveInductance(double I);
+    virtual double solveFlux(int domain);
 
 protected:
     void makeTrangle();

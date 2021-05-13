@@ -48,7 +48,7 @@ public:
 	std::string getModelName() const;
 	double getUnitRatio() const;
 	std::vector<int> getDeformedList() const;
-	std::map<int, FEMMovingPart> getMovingMap() const;
+	std::map<int, FEMMovingPart*> getMovingMap() const;
 
 protected:
 	double unitratio{1};	//默认单位是m，如果输入的几何参数是mm，则需要将ratio置为0.001；
@@ -61,5 +61,5 @@ protected:
 	std::map<int, double> loadmap;
 	std::map<int, FEMBoundary*> boundarymap;
 	std::vector<int> deformedlist;	//形变区域
-	std::map<int, FEMMovingPart>movingmap;	//运动区域
+	std::map<int, FEMMovingPart*>movingmap;	//运动区域
 };

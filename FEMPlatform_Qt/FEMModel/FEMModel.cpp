@@ -52,7 +52,7 @@ std::vector<int> FEMModel::getDeformedList() const
     return deformedlist;
 }
 
-std::map<int, FEMMovingPart> FEMModel::getMovingMap() const
+std::map<int, FEMMovingPart*> FEMModel::getMovingMap() const
 {
     return movingmap;
 }

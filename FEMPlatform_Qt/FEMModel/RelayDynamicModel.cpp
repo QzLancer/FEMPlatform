@@ -88,8 +88,14 @@ void RelayDynamicModel::buildGeometry2Deformed()
 
 void RelayDynamicModel::buildGeometry2MovingPart()
 {
-	FEMMovingPart moving1;
-	moving1.direction[1] = 1;
-	moving1.limit[1].max = 0.002;
+	FEMMovingPart* moving1 = new FEMMovingPart;
+	moving1->direction[1] = 1;
+	moving1->limit[1].max = 0.00249;
+	moving1->setMass(0.024);
+	double* pos = new double[4]{ 0, 0.0016999, 0.0017, 0.0027 };
+	double* force = new double[4]{ -6.0, -6.63, -13.63, -27.0 };
+	moving1->setSpringForce(4, pos, force);
+
 	movingmap[1] = moving1;
+
 }

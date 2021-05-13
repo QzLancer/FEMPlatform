@@ -95,8 +95,8 @@ void FEMRelay1250Model::buildGeometry2Deformed()
 
 void FEMRelay1250Model::buildGeometry2MovingPart()
 {
-    FEMMovingPart moving1;
-    moving1.direction[1] = 1;
-    moving1.limit[1].min = -0.0062;
+    FEMMovingPart* moving1 = new FEMMovingPart;
+    moving1->direction[1] = 1;
+    moving1->limit[1].min = -0.0062;
     movingmap[1] = moving1;
 }
