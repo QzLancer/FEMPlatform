@@ -12,6 +12,7 @@ class FEM2DNRSolver :
 public:
     virtual void solveStatic() override;
     virtual void solveDynamic() override;
+    virtual void solveWeakCouple(int step);
     void solve2DAxim();
     void solve2DAxim1();
     void solve2DPlane();

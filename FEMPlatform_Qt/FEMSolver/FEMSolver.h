@@ -89,5 +89,14 @@ protected:
 	//std::vector<double> At{ 0 };
 	//std::vector<double> Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
 	FEMMeshManager* meshmanager;
+	double* current;
+	double* dis;
+	double* velocity;
+	double* acc;
+	double* magneticforce;
+	double* springforce;
+	double* flux;
+	double mass;
+	double h, U, R;
 };
 

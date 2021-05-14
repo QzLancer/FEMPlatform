@@ -27,37 +27,153 @@ void FEM2DNRSolver::solveStatic()
 
 void FEM2DNRSolver::solveDynamic()
 {
+	//电磁吸力、加速度、速度、位移测试
 	string name = "RelayDynamic";
-	cout << "void FEM2DNRSolver::solveDynamic()" << endl;
-	const int n = 11;
-	double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015 };
-	double force[n];
-	double W[n];
-	double L[n];
-	double FLUX[n];
-	vector<int> air_domain{ 4, 5, 6, 7 };
-	for (int i = 0; i < n; ++i) {
-		cout << "solve step " << i + 1 << "...\n";
-		meshmanager->remesh(name, i, 0, dis[i]);
+
+	const int n = 101;
+	current = new double[n];
+	dis = new double[n];
+	velocity = new double[n];
+	acc = new double[n];
+	magneticforce = new double[n];
+	springforce = new double[n];
+	flux = new double[n];
+	mass = 0.024;
+	h = 5e-4;
+	U = 24;
+	R = 40;
+
+	dis[0] = 0;
+	velocity[0] = 0;
+	acc[0] = 0;
+	springforce[0] = solveSpringForce(1, 0);
+	magneticforce[0] = 0;
+	current[0] = 0;
+	flux[0] = 0;
+
+	bool stopflag = false;
+	for (int i = 1; i < n; ++i) {
+		cout << "solve step " << i << "...\n";
+
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i - 1];
+		dis[i] = dis[i - 1] + h * velocity[i - 1];
+
+		if (dis[i] >= 0.00249) {
+			dis[i] = 0.00249;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+
+
+		////梯形法计算
+		//springforce[i] = solveSpringForce(1, dis[i]);
+		//acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		//if (acc[i] < 0) acc[i] = 0;
+		//velocity[i] = velocity[i - 1] + 0.5 * h * (acc[i] + acc[i - 1]);
+		//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
+
+		//后向欧拉法计算
+		springforce[i] = solveSpringForce(1, dis[i]);
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i];
+		dis[i] = dis[i - 1] + h * velocity[i];
+
+		if (dis[i] >= 0.00249) {
+			dis[i] = 0.00249;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+		//当前位置时的磁场-电路耦合
+		meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
 		meshmanager->readMeshFile();
 		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
 		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
 		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
 		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-		solveStatic();
-		W[i] = solveEnergy();
-		L[i] = solveInductance(8381893.016);
-		FLUX[i] = solveFlux(3);
+		//updateLoadmap(3, current[i]);
+		//solveStatic();
+		solveWeakCouple(i);
 		solveMagneticForce();
-		//solveMagneticForce1();
-		force[i] = Fy;
-		//writeVtkFile(name + "_" + to_string(i));
-		//writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
-		cout << "step " << i + 1 << " solve finish.\n\n";
+		magneticforce[i] = Fy;
+		springforce[i] = solveSpringForce(1, dis[i]);
+
+		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
 	}
+
 	for (int i = 0; i < n; ++i) {
-		cout << "step " << i + 1 << ", W: " << W[i] << ", L: " << L[i] << ", force: " << force[i] << ", FLUX: " << FLUX[i] << endl;
+		printf("time: %f, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n", i * h, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
 	}
+
+	//写入结果文件
+	char fn[256];
+	sprintf(fn, "%s.m", "RelayDynamic");
+	FILE* fp;
+	fp = fopen(fn, "w");
+	fprintf(fp, "%%output by FEEM\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce\n");
+
+	fprintf(fp, "results = [\n");
+	for (int i = 0; i < n; ++i) {
+		fprintf(fp, "%10.8e,", i * h);
+		fprintf(fp, "%10.8e,", dis[i]);
+		fprintf(fp, "%10.8e,", velocity[i]);
+		fprintf(fp, "%10.8e,", acc[i]);
+		fprintf(fp, "%10.8e,", magneticforce[i]);
+		fprintf(fp, "; \n");
+	}
+	fprintf(fp, "];\n");
+
+	fclose(fp);
+
+	delete[] flux;
+	delete[] springforce;
+	delete[] magneticforce;
+	delete[] acc;
+	delete[] velocity;
+	delete[] dis;
+	delete[] current;
+}
+
+void FEM2DNRSolver::solveWeakCouple(int step)
+{
+	double i_tmp, flux_tmp, L_tmp, dfluxdt, f, dfdi;
+	if (step == 1) {
+		i_tmp = 0.01;
+	}
+	else {
+		i_tmp = current[step - 1];
+	}
+
+	int maxstep = 5;
+
+	for (int i = 0; i < maxstep; ++i) {
+		updateLoadmap(3, i_tmp);
+		solveStatic();
+		flux_tmp = solveFlux(3);
+		L_tmp = flux_tmp / i_tmp;
+		dfluxdt = (flux_tmp - flux[step - 1]) / h;
+		f = i_tmp * R + dfluxdt - U;
+		dfdi = R + L_tmp / h;
+		i_tmp = i_tmp - f / dfdi;
+		cout << "flux_tmp: " << flux_tmp << ", i_tmp: " << i_tmp << endl;	
+	}
+	current[step] = i_tmp;
+	flux[step] = flux_tmp;
 }
 
 void FEM2DNRSolver::solve2DAxim()

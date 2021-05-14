@@ -11,7 +11,14 @@ FEMSolver::FEMSolver():
     mp_vtxele(nullptr),
     mp_edgele(nullptr),
     mp_triele(nullptr),
-    maxitersteps(100)
+    maxitersteps(100),
+	current(nullptr),
+	dis(nullptr),
+	velocity(nullptr),
+	acc(nullptr),
+	magneticforce(nullptr),
+	springforce(nullptr),
+	mass(0.024)
 {
 
 }
