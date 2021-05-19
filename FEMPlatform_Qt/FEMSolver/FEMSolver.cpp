@@ -169,6 +169,17 @@ void FEMSolver::writeVtkFile(std::string _name)
 		fprintf(fp, "%f\n", mp_node[i].A);
 	}
 
+	fprintf(fp, "SCALARS F double 1\n");
+	fprintf(fp, "LOOKUP_TABLE %s\n", "Ftable");
+	for (int i = 0; i < m_num_nodes; ++i) {
+		fprintf(fp, "%f\n", mp_node[i].NodeForce);
+	}
+
+	fprintf(fp, "\nVECTORS %s double\n", "Fvector");
+	for (int i = 0; i < m_num_nodes; ++i) {
+		fprintf(fp, "%lf %lf %lf\n", mp_node[i].NodeForcex, mp_node[i].NodeForcey, 0.0);
+	}
+
 	//单元标量磁感应强度
 	fprintf(fp, "\nCELL_DATA %d\n", m_num_triele);
 	fprintf(fp, "SCALARS %s double %d\n", "Bnorm", 1);
@@ -177,9 +188,17 @@ void FEMSolver::writeVtkFile(std::string _name)
 		fprintf(fp, "%lf\n", mp_triele[i_tri].B);
 	}
 
+	//单元矢量磁感应强度
 	fprintf(fp, "\nVECTORS %s double\n", "Bvector");
 	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
 		fprintf(fp, "%lf %lf %lf\n", mp_triele[i_tri].Bx, mp_triele[i_tri].By, 0.0);
+	}
+
+	//单元磁导率
+	fprintf(fp, "SCALARS %s double %d\n", "Mu", 1);
+	fprintf(fp, "LOOKUP_TABLE %s\n", "Mutable");
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		fprintf(fp, "%.10f\n", mp_triele[i_tri].material->getMu(mp_triele[i_tri].B));
 	}
 	fclose(fp);
 }

@@ -316,6 +316,35 @@ void FEM2DSolver::solveMagneticForce1()
 	printf("Fx:%10.8e,Fy:%10.8e\n", Fx, Fy);
 }
 
+void FEM2DSolver::solveWeakCouple(int step)
+{
+	double i_tmp, flux_tmp, L_tmp, dfluxdt, f, dfdi;
+	if (step == 1) {
+		i_tmp = 0.01;
+	}
+	else {
+		i_tmp = current[step - 1];
+	}
+
+	int maxstep = 10;
+
+	for (int i = 0; i < maxstep; ++i) {
+		updateLoadmap(/*3*/7, i_tmp);
+		solveStatic();
+		flux_tmp = solveFlux(/*3*/7);
+		L_tmp = flux_tmp / i_tmp;
+		dfluxdt = (flux_tmp - flux[step - 1]) / h;
+		f = i_tmp * R + dfluxdt - U;
+		dfdi = R + L_tmp / h;
+		i_tmp = i_tmp - f / dfdi;
+		cout << "flux_tmp: " << flux_tmp << ", i_tmp: " << i_tmp << ", error: " << abs(f / dfdi / i_tmp) << endl;
+		if (abs(f / dfdi / i_tmp) < 1e-6)
+			break;
+	}
+	current[step] = i_tmp;
+	flux[step] = flux_tmp;
+}
+
 double FEM2DSolver::solveSpringForce(int domain, double pos)
 {
 	FEMMovingPart* movingpart = movingmap[domain];
@@ -498,6 +527,7 @@ void FEM2DSolver::processLoad()
 		int domain = mp_triele[i_tri].domain;
 		if (loadmap.find(domain) != loadmap.end()) {
 			mp_triele[i_tri].J = loadmap[domain];
+			//cout << "mp_triele[i_tri].J: " << mp_triele[i_tri].J << endl;
 		}
 	}
 }
@@ -528,12 +558,12 @@ void FEM2DSolver::updateB(int i_tri)
 	double bx = 0, by = 0;
 	for (int i = 0; i < 3; ++i) {
 		int n = mp_triele[i_tri].n[i];
-		bx += mp_triele[i_tri].R[i] * mp_node[n].A;
-		by += mp_triele[i_tri].Q[i] * mp_node[n].A;
+		bx += mp_triele[i_tri].R[i] * mp_node[n].At;
+		by += mp_triele[i_tri].Q[i] * mp_node[n].At;
 	}
-	bx = bx / 2 / mp_triele[i_tri].area;
+	bx = bx / 2 / mp_triele[i_tri].area / mp_triele[i_tri].xdot;
 	mp_triele[i_tri].Bx = bx;
-	by = -by / 2 / mp_triele[i_tri].area;
+	by = -by / 2 / mp_triele[i_tri].area / mp_triele[i_tri].xdot;
 	mp_triele[i_tri].By = by;
 	mp_triele[i_tri].B = sqrt(bx * bx + by * by);
 }

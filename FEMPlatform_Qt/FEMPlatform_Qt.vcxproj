@@ -96,6 +96,7 @@
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -120,7 +121,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\femplatform\SuperLU_MT\SRC;GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -138,10 +139,11 @@
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>gmsh.lib;openblas.lib;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\gmsh_1;..\..\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\femplatform\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -177,6 +179,7 @@
     <ClCompile Include="FEMModel\FEMModel.cpp" />
     <ClCompile Include="FEMModel\FEMRelay1250LinearModel.cpp" />
     <ClCompile Include="FEMModel\FEMRelay1250Model.cpp" />
+    <ClCompile Include="FEMModel\FEMTrans3PhaseModel.cpp" />
     <ClCompile Include="FEMMovingPart.cpp" />
     <ClCompile Include="FEMSolver\FEM2DNDDRSolver.cpp" />
     <ClCompile Include="FEMSolver\FEM2DNRSolver.cpp" />
@@ -456,6 +459,7 @@
     <ClCompile Include="MeshManager\FEM3DMeshManager.cpp" />
     <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
     <ClCompile Include="FEMModel\RelayDynamicModel.cpp" />
+    <ClCompile Include="FEMModel\RelayModelwithoutBand.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FEMDataType\FEMElement.h" />
@@ -465,6 +469,7 @@
     <ClInclude Include="FEMModel\FEMModel.h" />
     <ClInclude Include="FEMModel\FEMRelay1250LinearModel.h" />
     <ClInclude Include="FEMModel\FEMRelay1250Model.h" />
+    <ClInclude Include="FEMModel\FEMTrans3PhaseModel.h" />
     <ClInclude Include="FEMSolver\FEM2DNDDRSolver.h" />
     <ClInclude Include="FEMSolver\FEM2DNRSolver.h" />
     <ClInclude Include="FEMSolver\FEM2DSolver.h" />
@@ -476,6 +481,7 @@
     <ClInclude Include="MeshManager\FEM3DMeshManager.h" />
     <ClInclude Include="MeshManager\FEMMeshManager.h" />
     <ClInclude Include="FEMModel\RelayDynamicModel.h" />
+    <ClInclude Include="FEMModel\RelayModelwithoutBand.h" />
     <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cuh" />
     <ClInclude Include="FEMBoundary.h" />
     <ClInclude Include="FEMCoil.h" />

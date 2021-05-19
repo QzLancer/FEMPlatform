@@ -16,6 +16,9 @@ void FEM2DNDDRSolver::solveStatic()
 	processMaterial();
 	processLoad();
 	//处理NDDR的节点信息
+	for (int i = 0; i < m_num_nodes; ++i) {
+		mp_node[i].NumberofNeighbourElement = 0;
+	}
 	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
 		for (int j = 0; j < 3; ++j) {
 			int n = mp_triele[i_tri].n[j];
@@ -25,106 +28,19 @@ void FEM2DNDDRSolver::solveStatic()
 			mp_node[n].NumberofNeighbourElement++;
 		}
 	}
-	//测试
-	//for (int i = 0; i < m_num_nodes; ++i) {
-	//	cout << "node: " << i << ", Number of Neighbour Element: " << nddrnode[i].NumberofNeighbourElement << endl;
-	//	for (int j = 0; j < nddrnode[i].NumberofNeighbourElement; ++j) {
-	//		cout << "NeighbourElementId: " << nddrnode[i].NeighbourElementId[j] << endl;
-	//		cout << "NeighbourElementNumber: " << nddrnode[i].NeighbourElementNumber[j] << endl;
-	//	}
-	//	cout << endl;
-	//}
-
-	//NDDR迭代过程
-	//周围所有节点都当成第一类边界条件处理
-	//先把子域当成线性处理，能够收敛，但是求解效率很低
-//	maxitersteps = 20000;
-//	vector<double> At_old(m_num_nodes, 0);
-//	for (int iter = 0; iter < maxitersteps; ++iter) {
-//		cout << "Iteration step " << iter + 1 << " start." << endl << endl;
-//#pragma omp parallel for num_threads(8)
-//		for (int n = 0; n < m_num_nodes; ++n) { 
-//			if (mp_node[n].bdr == 1) {
-//				continue;
-//			}
-//			double S = 0, F = 0;
-//			for (int k = 0; k < nddrnode[n].NumberofNeighbourElement; ++k) {
-//				int i_tri = nddrnode[n].NeighbourElementId[k];
-//				CTriElement triele = mp_triele[i_tri];
-//				int nodenumber = nddrnode[n].NeighbourElementNumber[k];
-//				double mut = triele.material->getMu(B[i_tri]) * triele.xdot;
-//				for (int i = 0; i < 3; ++i) {
-//					double Se = triele.C[nodenumber][i] / mut;
-//					//cout << "Se: " << Se << endl;
-//					if (nodenumber == i) {
-//						//if (Se == 0) {
-//						//	cout << "Se < 0, node: " << n << ", i:" << i << ", i_tri: " << i_tri << endl;
-//						//}
-//						S += Se;
-//						F += triele.J * triele.area / 3;
-//						//永磁计算
-//						double h_c = triele.material->getH_c();
-//						double theta_m = triele.material->getTheta_m();
-//						F += h_c / 2 * (triele.R[i] * cos(theta_m) - triele.Q[i] * sin(theta_m));
-//					}
-//					else {
-//						//直角或钝角三角形的情况
-//						if (Se >= 0) {
-//							//cout << "i_tri: " << i_tri << ", mut: " << mut << ", domain: " << triele.domain << endl;
-//							////cout << "Se: " << endl;
-//							////for (int ii = 0; ii < 3; ++ii) {
-//							////	for (int jj = 0; jj < 3; ++jj) {
-//							////		cout << triele.C[ii][jj] << " ";
-//							////	}
-//							////	cout << endl;
-//							////}
-//							////cout << "Coor: " << endl;
-//							////for (int ii = 0; ii < 3; ++ii) {
-//							////	int n1 = triele.n[ii];
-//							////	printf("x[%d]: %.6f, y[%d]: %.6f, At_old[%d]: %.6f\n", ii, mp_node[n1].x, ii, mp_node[n1].y, ii, At_old[n1]);
-//							////}
-//							//cout << "Se * At_old[triele.n[i]]: " << Se * At_old[triele.n[i]] << endl;
-//							//cout << endl;
-//							//Se = 0;
-//						}
-//						F -= Se * At_old[triele.n[i]];
-//					}
-//				}
-//			}
-//			At[n] = F / S;
-//			A[n] = At[n] / mp_node[n].x;
-//		}
-//		updateB();
-//
-//		//判断收敛性
-//		double error = 0, a = 0, b = 0;
-//		for (int i = 0; i < m_num_nodes; ++i) {
-//			a += (At[i] - At_old[i]) * (At[i] - At_old[i]);
-//			b += At[i] * At[i];
-//		}
-//		error = sqrt(a) / sqrt(b);
-//		cout << "Relative error: " << error << endl;
-// 		if (error > maxerror) {
-//			At_old = At;
-//		}
-//		else {
-//			cout << "Nonlinear NDDR iteration finish.\n";
-//			return;
-//		}
-//	}
 
 	//子域内部采用牛顿迭代
 	clock_t start, end;
 	start = clock();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
 		//solve2DAxim();
-		//solve2DAxim1();
-		solve2DAxim2();
+		solve2DAxim1();
+		//solve2DAxim2();
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
 		//solve2DPlane();
-		solve2DPlane1();
-		//solve2DPlane2();
+		//solve2DPlane1();
+		solve2DPlane2();
 	}
 	end = clock();
 	cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
@@ -132,6 +48,188 @@ void FEM2DNDDRSolver::solveStatic()
 
 void FEM2DNDDRSolver::solveDynamic()
 {
+	//COMSOL动态特性
+	string name = "RelayDynamic";
+
+	const int n = 101;
+	current = new double[n];
+	dis = new double[n];
+	velocity = new double[n];
+	acc = new double[n];
+	magneticforce = new double[n];
+	springforce = new double[n];
+	flux = new double[n];
+	mass = 0.024;
+	h = 5e-4;
+	U = 24;
+	R = 40;
+
+	dis[0] = 0;
+	velocity[0] = 0;
+	acc[0] = 0;
+	springforce[0] = solveSpringForce(4, 0);
+	magneticforce[0] = 0;
+	current[0] = 0;
+	flux[0] = 0;
+
+	bool stopflag = false;
+	for (int i = 1; i < n; ++i) {
+		cout << "solve step " << i << "...\n";
+
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i - 1];
+		dis[i] = dis[i - 1] + h * velocity[i - 1];
+
+		if (dis[i] >= 0.0024) {
+			dis[i] = 0.0024;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+
+
+		//梯形法计算
+		//springforce[i] = solveSpringForce(1, dis[i]);
+		//acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		//if (acc[i] < 0) acc[i] = 0;
+		//velocity[i] = velocity[i - 1] + 0.5 * h * (acc[i] + acc[i - 1]);
+		//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
+
+		//后向欧拉法计算
+		springforce[i] = solveSpringForce(4, dis[i]);
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i];
+		dis[i] = dis[i - 1] + h * velocity[i];
+
+		if (dis[i] >= 0.0024) {
+			dis[i] = 0.0024;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+		//当前位置时的磁场-电路耦合
+		//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
+		if (dis[i] - dis[i - 1] != 0) {
+			string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NR/modelwithband_";
+			meshfile += to_string(i) + ".mphtxt";
+			meshmanager->readMeshFile(meshfile);
+			setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+			setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+			setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+			setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		}
+		//updateLoadmap(3, current[i]);
+		//solveStatic();
+		solveWeakCouple(i);
+		solveMagneticForce();
+		magneticforce[i] = Fy;
+		springforce[i] = solveSpringForce(4, dis[i]);
+
+		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
+	}
+
+	for (int i = 0; i < n; ++i) {
+		printf("time: %f, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f, current: %f, flux: %f\n", i * h, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i], current[i], flux[i]);
+	}
+
+	//写入结果文件
+	char fn[256];
+	sprintf(fn, "%s.m", "RelayDynamic");
+	FILE* fp;
+	fp = fopen(fn, "w");
+	fprintf(fp, "%%output by FEEM\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
+
+	fprintf(fp, "results = [\n");
+	for (int i = 0; i < n; ++i) {
+		fprintf(fp, "%10.8e,", i * h);
+		fprintf(fp, "%10.8e,", dis[i]);
+		fprintf(fp, "%10.8e,", velocity[i]);
+		fprintf(fp, "%10.8e,", acc[i]);
+		fprintf(fp, "%10.8e,", magneticforce[i]);
+		fprintf(fp, "%10.8e,", current[i]);
+		fprintf(fp, "%10.8e,", flux[i]);
+		fprintf(fp, "; \n");
+	}
+	fprintf(fp, "];\n");
+
+	fprintf(fp, "subplot(2,3,1);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,2),'*-');\n");
+	//fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "displacement");
+
+	fprintf(fp, "subplot(2,3,2);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "velocities");
+
+	fprintf(fp, "subplot(2,3,3);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,4),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "accelerations");
+
+	fprintf(fp, "subplot(2,3,4);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,5),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "magforces");
+
+	fprintf(fp, "subplot(2,3,5);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,6),'*-');\n");
+	//fprintf(fp, "plot(results(:,1),results(:,9),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "ICoil");
+
+	fprintf(fp, "subplot(2,3,6);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,7),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n", "PhiCoil");
+
+	fclose(fp);
+
+	delete[] flux;
+	delete[] springforce;
+	delete[] magneticforce;
+	delete[] acc;
+	delete[] velocity;
+	delete[] dis;
+	delete[] current;
+
+	//string name = "RelayDynamic";
+	//cout << "void FEM2DNRSolver::solveDynamic()" << endl;
+	//const int n = 11;
+	//double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015 };
+	//double force[n + 1];
+	//vector<int> air_domain{ 4, 5, 6, 7 };
+	//for (int i = 0; i < n; ++i) {
+	//	cout << "solve step " << i + 1 << "...\n";
+	//	//meshmanager->remesh(name, i, 0, dis[i]);
+	//	string meshfilename = "D:/femplatform/model/geo/modelcomsol_static/modelwithband_";
+	//	meshfilename += to_string(i) + ".mphtxt";
+	//	cout << "meshfilename: " << meshfilename << endl;
+	//	meshmanager->readMeshFile(meshfilename);
+	//	setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+	//	setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+	//	setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+	//	setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+	//	solveStatic();
+	//	solveMagneticForce();
+	//	//solveMagneticForce1();
+	//	force[i] = Fy;
+	//	writeVtkFile(name + "_" + to_string(i));
+	//	writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
+	//	cout << "step " << i + 1 << " solve finish.\n\n";
+	//}
+
+	//for (int i = 0; i < n; ++i) {
+	//	cout << "i: " << i << ", Fy: " << force[i] << endl;
+	//}
 }
 
 void FEM2DNDDRSolver::solve2DAxim()
@@ -284,7 +382,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 				continue;
 			}
 			//节点内部迭代过程
-			int maxNRitersteps = 6;
+			int maxNRitersteps = 100 ;
 			double Ati = 0;
 			for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 				double S = 0, F = 0;
@@ -362,7 +460,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 				if (Ati == 0) {
 					continue;
 				}
-				if (NRerror > maxerror) {
+				if (NRerror > 1e-6) {
 					mp_node[n].At = Ati;
 					mp_node[n].A = mp_node[n].At / mp_node[n].x;
 					for (int i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
@@ -385,7 +483,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 			b += mp_node[i].At * mp_node[i].At;
 		}
 		error = sqrt(a) / sqrt(b);
-		cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
 
 		if ((iter + 1) % 100 == 0) {
 			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
@@ -417,7 +515,7 @@ void FEM2DNDDRSolver::solve2DAxim2()
 			double B2, B, V, Vt, VB2, B2A;
 			int ID;
 			int RelaxCount, count = 0;
-			int NRCount = 10;
+			int NRCount = 1000;
 			double RelaxFactor = 1;
 			double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{0, 0, 0};
 			if (mp_node[i].bdr != 1)
@@ -491,6 +589,7 @@ void FEM2DNDDRSolver::solve2DAxim2()
 						break;
 					}
 					if (NRerror > maxerror) {
+						count++;
 						continue;
 					}
 					else {
@@ -501,7 +600,7 @@ void FEM2DNDDRSolver::solve2DAxim2()
 						//}
 						break;
 					}
-					count++;
+
 				}
 				mp_node[i].At = At;
 			}
@@ -687,7 +786,7 @@ void FEM2DNDDRSolver::solve2DPlane1()
 			double B2, B, V, VB2, B2A;
 			int ID;
 			int RelaxCount, count = 0;
-			int NRCount = 2;
+			int NRCount = 100;
 			double RelaxFactor = 1;
 			if (mp_node[i].bdr != 1)
 			{
@@ -749,7 +848,7 @@ void FEM2DNDDRSolver::solve2DPlane1()
 						break;
 					}
 					if (NRerror > maxerror) {
-
+						count++;
 						continue;
 					}
 					else {
@@ -760,7 +859,6 @@ void FEM2DNDDRSolver::solve2DPlane1()
 						//}
 						break;
 					}
-					count++;
 				}
 
 				mp_node[i].A = A;
@@ -787,8 +885,22 @@ void FEM2DNDDRSolver::solve2DPlane1()
 		else {
 			cout << "Iteration step: " << iter + 1 << endl;
 			cout << "Nonlinear NDDR iteration finish.\n";
-			return;
+			break;
 		}
+	}
+
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		double bx = 0, by = 0;
+		for (int i = 0; i < 3; ++i) {
+			int n = mp_triele[i_tri].n[i];
+			bx += mp_triele[i_tri].R[i] * mp_node[n].A;
+			by += mp_triele[i_tri].Q[i] * mp_node[n].A;
+		}
+		bx = bx / 2 / mp_triele[i_tri].area;
+		mp_triele[i_tri].Bx = bx;
+		by = -by / 2 / mp_triele[i_tri].area;
+		mp_triele[i_tri].By = by;
+		mp_triele[i_tri].B = sqrt(bx * bx + by * by);
 	}
 }
 
@@ -874,18 +986,20 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A()
 						{
 							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (A - A2) * (A - A2) + mp_triele[ID].C[1][2] * (A2 - A3) * (A2 - A3) + mp_triele[ID].C[0][2] * (A - A3) * (A - A3));
 							B = sqrt(B2);	//计算B，用于处理非线性
+							V = 1 / mp_triele[ID].material->getMu(B);
+							VB2 = mp_triele[ID].material->getdvdB2(B);
 							if (B < 0.6)
 							{
-								V = 1 / Mu0;
-								VB2 = 0;
+								//V = 1 / Mu0;
+								//VB2 = 0;
 								J0 = V * mp_triele[ID].C[0][0];
 								k0 = Js - A * V * mp_triele[ID].C[0][0] - A2 * V * mp_triele[ID].C[0][1] - A3 * V * mp_triele[ID].C[0][2];
 
 							}
 							else
 							{
-								V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6)* (B - 0.6) / B;
-								VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6)* (B - 0.6)) / B / B / 2 / B;
+								//V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6)* (B - 0.6) / B;
+								//VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6)* (B - 0.6)) / B / B / 2 / B;
 								B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[0][1] * (A - A2) + 2 * mp_triele[ID].C[0][2] * (A - A3));//dfrac{dB^2}{dA}?
 								J0 = B2A * VB2 * (mp_triele[ID].C[0][0] * A + mp_triele[ID].C[0][1] * A2 + mp_triele[ID].C[0][2] * A3) + V * mp_triele[ID].C[0][0];
 								k0 = Js - V * (mp_triele[ID].C[0][0] * A + mp_triele[ID].C[0][1] * A2 + mp_triele[ID].C[0][2] * A3);
@@ -896,18 +1010,20 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A()
 						{
 							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (A1 - A) * (A1 - A) + mp_triele[ID].C[1][2] * (A - A3) * (A - A3) + mp_triele[ID].C[0][2] * (A1 - A3) * (A1 - A3));
 							B = sqrt(B2);
+							V = 1 / mp_triele[ID].material->getMu(B);
+							VB2 = mp_triele[ID].material->getdvdB2(B);
 							if (B < 0.6)
 							{
-								V = 1 / Mu0;
-								VB2 = 0;
+								//V = 1 / Mu0;
+								//VB2 = 0;
 								J0 = V * mp_triele[ID].C[1][1];
 								k0 = Js - A1 * V * mp_triele[ID].C[1][0] - A * V * mp_triele[ID].C[1][1] - A3 * V * mp_triele[ID].C[1][2];
 
 							}
 							else
 							{
-								V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6)* (B - 0.6) / B;
-								VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6)* (B - 0.6)) / B / B / 2 / B;
+								//V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6)* (B - 0.6) / B;
+								//VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6)* (B - 0.6)) / B / B / 2 / B;
 								B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[0][1] * (A - A1) + 2 * mp_triele[ID].C[1][2] * (A - A3));
 								J0 = B2A * VB2 * (mp_triele[ID].C[1][0] * A1 + mp_triele[ID].C[1][1] * A + mp_triele[ID].C[1][2] * A3) + V * mp_triele[ID].C[1][1];
 								k0 = Js - V * (mp_triele[ID].C[1][0] * A1 + mp_triele[ID].C[1][1] * A + mp_triele[ID].C[1][2] * A3);
@@ -918,18 +1034,20 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A()
 						{
 							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (A1 - A2) * (A1 - A2) + mp_triele[ID].C[1][2] * (A - A2) * (A - A2) + mp_triele[ID].C[0][2] * (A - A1) * (A - A1));
 							B = sqrt(B2);
+							V = 1 / mp_triele[ID].material->getMu(B);
+							VB2 = mp_triele[ID].material->getdvdB2(B);
 							if (B < 0.6)
 							{
-								V = 1 / Mu0;
-								VB2 = 0;
+								//V = 1 / Mu0;
+								//VB2 = 0;
 								J0 = V * mp_triele[ID].C[2][2];
 								k0 = Js - A1 * V * mp_triele[ID].C[2][0] - A2 * V * mp_triele[ID].C[2][1] - A * V * mp_triele[ID].C[2][2];
 
 							}
 							else
 							{
-								V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6)* (B - 0.6) / B;
-								VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6)* (B - 0.6)) / B / B / 2 / B;
+								//V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6)* (B - 0.6) / B;
+								//VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6)* (B - 0.6)) / B / B / 2 / B;
 								B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[1][2] * (A - A2) + 2 * mp_triele[ID].C[2][0] * (A - A1));
 								J0 = B2A * VB2 * (mp_triele[ID].C[2][0] * A1 + mp_triele[ID].C[2][1] * A2 + mp_triele[ID].C[2][2] * A) + V * mp_triele[ID].C[2][2];
 								k0 = Js - V * (mp_triele[ID].C[2][0] * A1 + mp_triele[ID].C[2][1] * A2 + mp_triele[ID].C[2][2] * A);
@@ -975,7 +1093,7 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A_old()
 	for (int i = 0; i < m_num_nodes; ++i) {
 		double A, dA, Jac, k, J0, k0, NRerror, Js;
 		double A1, A2, A3;
-		double B2, B, V, VB2, B2A;
+		double B2, B, V, VB2, B2A, Vtest, VB2test;
 		int I, J, K, ID;
 		int RelaxCount, count = 0;
 		int NRCount = 6;
@@ -1023,18 +1141,20 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A_old()
 						{
 							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (A - A2) * (A - A2) + mp_triele[ID].C[1][2] * (A2 - A3) * (A2 - A3) + mp_triele[ID].C[0][2] * (A - A3) * (A - A3));
 							B = sqrt(B2);	//计算B，用于处理非线性
+							V = 1 / mp_triele[ID].material->getMu(B);
+							VB2 = mp_triele[ID].material->getdvdB2(B);
 							if (B < 0.6)
 							{
-								V = 1 / Mu0;
-								VB2 = 0;
+								//V = 1 / Mu0;
+								//VB2 = 0;
 								J0 = V * mp_triele[ID].C[0][0];
 								k0 = Js - A * V * mp_triele[ID].C[0][0] - A2 * V * mp_triele[ID].C[0][1] - A3 * V * mp_triele[ID].C[0][2];
 
 							}
 							else
 							{
-								V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
-								VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+								//V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+								//VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
 								B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[0][1] * (A - A2) + 2 * mp_triele[ID].C[0][2] * (A - A3));//dfrac{dB^2}{dA}?
 								J0 = B2A * VB2 * (mp_triele[ID].C[0][0] * A + mp_triele[ID].C[0][1] * A2 + mp_triele[ID].C[0][2] * A3) + V * mp_triele[ID].C[0][0];
 								k0 = Js - V * (mp_triele[ID].C[0][0] * A + mp_triele[ID].C[0][1] * A2 + mp_triele[ID].C[0][2] * A3);
@@ -1051,18 +1171,20 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A_old()
 						{
 							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (A1 - A) * (A1 - A) + mp_triele[ID].C[1][2] * (A - A3) * (A - A3) + mp_triele[ID].C[0][2] * (A1 - A3) * (A1 - A3));
 							B = sqrt(B2);
+							V = 1 / mp_triele[ID].material->getMu(B);
+							VB2 = mp_triele[ID].material->getdvdB2(B);
 							if (B < 0.6)
 							{
-								V = 1 / Mu0;
-								VB2 = 0;
+								//V = 1 / Mu0;
+								//VB2 = 0;
 								J0 = V * mp_triele[ID].C[1][1];
 								k0 = Js - A1 * V * mp_triele[ID].C[1][0] - A * V * mp_triele[ID].C[1][1] - A3 * V * mp_triele[ID].C[1][2];
 
 							}
 							else
 							{
-								V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
-								VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+								//V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+								//VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
 								B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[0][1] * (A - A1) + 2 * mp_triele[ID].C[1][2] * (A - A3));
 								J0 = B2A * VB2 * (mp_triele[ID].C[1][0] * A1 + mp_triele[ID].C[1][1] * A + mp_triele[ID].C[1][2] * A3) + V * mp_triele[ID].C[1][1];
 								k0 = Js - V * (mp_triele[ID].C[1][0] * A1 + mp_triele[ID].C[1][1] * A + mp_triele[ID].C[1][2] * A3);
@@ -1079,18 +1201,20 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A_old()
 						{
 							B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (A1 - A2) * (A1 - A2) + mp_triele[ID].C[1][2] * (A - A2) * (A - A2) + mp_triele[ID].C[0][2] * (A - A1) * (A - A1));
 							B = sqrt(B2);
+							V = 1 / mp_triele[ID].material->getMu(B);
+							VB2 = mp_triele[ID].material->getdvdB2(B);
 							if (B < 0.6)
 							{
-								V = 1 / Mu0;
-								VB2 = 0;
+								//V = 1 / Mu0;
+								//VB2 = 0;
 								J0 = V * mp_triele[ID].C[2][2];
 								k0 = Js - A1 * V * mp_triele[ID].C[2][0] - A2 * V * mp_triele[ID].C[2][1] - A * V * mp_triele[ID].C[2][2];
 
 							}
 							else
 							{
-								V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
-								VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+								//V = 1 / Mu0 + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+								//VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
 								B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[1][2] * (A - A2) + 2 * mp_triele[ID].C[2][0] * (A - A1));
 								J0 = B2A * VB2 * (mp_triele[ID].C[2][0] * A1 + mp_triele[ID].C[2][1] * A2 + mp_triele[ID].C[2][2] * A) + V * mp_triele[ID].C[2][2];
 								k0 = Js - V * (mp_triele[ID].C[2][0] * A1 + mp_triele[ID].C[2][1] * A2 + mp_triele[ID].C[2][2] * A);

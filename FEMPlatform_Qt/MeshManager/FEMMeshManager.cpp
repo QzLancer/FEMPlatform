@@ -109,6 +109,7 @@ void FEMMeshManager::remesh(string filename, int current_step, double dx, double
 		f_air->mesh(true);
 	}
 	gmsh::write(meshfile);
+	readMeshFile(meshfile);
 	printf("Finish remesh 2d\n");
 
 }

@@ -69,6 +69,18 @@ double FEMMaterial::getMu(double B)
 		}
 	}
 
+	if (name == "Soft Iron2") {
+		if (B <= 0.6) {
+			double H = 663.146 * B;
+			return 1 / 663.146;
+		}
+		else if (B > 0.6) {
+			double H = 663.146 * B + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6);
+			return B / H;
+			////return 0.002;
+		}
+	}
+
 	double slope, H, b;
 	if (linearflag == true) {
 		return mu;
@@ -110,6 +122,20 @@ double FEMMaterial::getdvdB(double B)
 			//return 1 / getMu(B + 0.000001) / (B + 0.000001);
 		}
 	}
+
+	if (name == "Soft Iron2") {
+		if (B <= 0.6) {
+			return 0;
+		}
+		else if (B > 0.6) {
+			double dvdb = 18000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * B;
+			dvdb -= 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6);
+			dvdb /= B * B;
+			return dvdb;
+			//return 0;
+			//return 1 / getMu(B + 0.000001) / (B + 0.000001);
+		}
+	}
 	double slope, H, b;
 	if (linearflag == true || B < 1e-9) return 0;
 	getkHb(B, &slope, &H, &b);
@@ -133,6 +159,16 @@ double FEMMaterial::getdvdB2(double B)
 			return dvdB2;
 		}
 	}
+
+	if (name == "Soft Iron2") {
+		if (B <= 0.6) {
+			return 0;
+		}
+		else if (B > 0.6) {
+			double dvdB2 = (18000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * B - 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+			return dvdB2;
+		}
+	}
 	double slope, H, b;
 	if (linearflag == true || B < 1e-9) return 0;
 	getkHb(B, &slope, &H, &b);
@@ -144,7 +180,7 @@ double FEMMaterial::getdvdB2(double B)
 void FEMMaterial::getkHb(double B, double* k, double* H, double* b)
 {
 	if (B >= Bdata[BHpoints - 1]) {
-		int  i = BHpoints - 2;
+		int  i = BHpoints - 1;
 		(*k) = (Hdata[i] - Hdata[i - 1]) / (Bdata[i] - Bdata[i - 1]);
 		(*b) = Hdata[i - 1] - (*k) * Bdata[i - 1];
 	}

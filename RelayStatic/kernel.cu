@@ -13,20 +13,22 @@ const int maxitersteps = 20000;
 #define Mu0 1.256637e-6;
 #define PI 3.1415927;
 const double maxerror = 1e-9;
-
+__device__ double Bdata[] = { 0, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4 };
+__device__ double Hdata[] = { 0, 663.146, 1067.5, 1705.23, 2463.11, 3841.67, 5425.74, 7957.75, 12298.3, 20462.8, 32169.6, 61213.4, 111408, 175070, 261469, 318310 };
+__device__ int BHpoints = 16;
 using namespace std;
 
 struct CNode
 {
     double x{ 0 }, y{ 0 }, z{ 0 };
-    int bdr{ 0 }; //±ß½çÌõ¼þ
+    int bdr{ 0 }; //ï¿½ß½ï¿½ï¿½ï¿½ï¿½ï¿½
     double A{ 0 };
     double A_old{ 0 };
     double At{ 0 };
     double At_old{ 0 };
     int NumberofNeighbourElement{ 0 };
-    int NeighbourElementId[15];	//ºÍ½ÚµãÏà¹ØµÄµ¥Ôª±àºÅ
-    int NeighbourElementNumber[15];	//½ÚµãÔÚ¶ÔÓ¦µ¥ÔªÖÐµÄ±àºÅ
+    int NeighbourElementId[15];	//ï¿½Í½Úµï¿½ï¿½ï¿½ØµÄµï¿½Ôªï¿½ï¿½ï¿½
+    int NeighbourElementNumber[15];	//ï¿½Úµï¿½ï¿½Ú¶ï¿½Ó¦ï¿½ï¿½Ôªï¿½ÐµÄ±ï¿½ï¿½
     double NodeForcex{ 0 }, NodeForcey{ 0 }, NodeForcez{ 0 }, NodeForce{ 0 };
 };
 struct CVtxElement {
@@ -46,12 +48,12 @@ struct CTriElement {
     int n[3]{ 0 };// ni, nj, nk;//
     double Q[3]{ 0 };// Qi, Qj, Qk;
     double R[3]{ 0 };// Ri, Rj, Rk;
-    double C[3][3];// µ¥ÔªÏµÊý¾ØÕó
+    double C[3][3];// ï¿½ï¿½ÔªÏµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     double area{ 0 }; 
     double rc, zc;
     double xdot;
     int domain{ 0 };
-    double J{ 0 };  //¸ºÔØ£¬ÔÝÊ±Ö»¿¼ÂÇµçÁ÷£¬Ö±Á÷£¬ºóÐøÐèÒªµ¥¶À½¨Ò»¸öÀà
+    double J{ 0 };  //ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½Ê±Ö»ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½
     double Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
     double ElementForcex{ 0 }, ElementForcey{ 0 }, ElementForcez{ 0 }, ElementForce{ 0 };
     double RHSContri{ 0 };
@@ -86,6 +88,7 @@ __global__ void calculateGlobalError(int m_num_nodes, CTriElement* d_MyElem, CNo
 
 __device__ double getV(double B);
 __device__ double getdVdB2(double B);
+__device__ double getkHb(double B, double* k, double* H, double* b);
 
 void Free();
 int main()
@@ -102,12 +105,12 @@ int main()
     cudaMalloc(&a, m_num_nodes * sizeof(double));
     cudaMalloc(&b, m_num_nodes * sizeof(double));
     cudaMalloc(&d_error, sizeof(double));
-    for (int iter = 0; iter < 671; ++iter) {
+    for (int iter = 0; iter < 30000; ++iter) {
         UpdateSolutiontoA1 << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node);
-        //calculateGlobalError << <256, 256 >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
-        //cudaDeviceSynchronize();
-        //cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
-        //printf("iter: %d, error: %.20f\n",iter, error);
+        calculateGlobalError << <256, 256 >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
+        printf("iter: %d, error: %.20f\n",iter, error);
         UpdateAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
     }
     cudaDeviceSynchronize();
@@ -140,7 +143,7 @@ void FEM_Host_Data_Prepare() {
 
 void LoadMeshInfo() {
     string meshfile = "../model/model1848.mphtxt";
-    //·ÖÍøÎÄ¼þÎªmphtxtµÄÇé¿ö
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ä¼ï¿½Îªmphtxtï¿½ï¿½ï¿½ï¿½ï¿½
     
     cout << meshfile << endl;
     FILE* fp = nullptr;
@@ -172,7 +175,7 @@ void LoadMeshInfo() {
     fgets(ch, 256, fp);
 
     for (int i = pts_ind; i < m_num_nodes; i++) {
-        //¶ÁÈ¡x,y×ø±ê
+        //ï¿½ï¿½È¡x,yï¿½ï¿½ï¿½ï¿½
         if (fscanf_s(fp, "%lf %lf \n", &(mp_node[i].x), &(mp_node[i].y)) != 2) {
             std::cout << "error: reading mesh point!" << endl;
             exit(0);
@@ -285,14 +288,14 @@ void LoadMeshInfo() {
 }
 
 void processBoundaryCondition() {
-    //ÕâÀïµÄboundarymapÖ»ÓÃÁËµÚÒ»Àà±ß½çÌõ¼þ£¬Ö»¿¼ÂÇÏßµ¥ÔªÓò
-//1.ÌáÈ¡ÏßËùÔÚÈ«²¿Óò£¬2.ÌáÈ¡Óò¶ÔÓ¦µÄµ¥Ôª±àºÅ£¬3.ÌáÈ¡½Úµã
-//4.È¥ÖØ 5.¸ønodeÉèÖÃ±ß½çÌõ¼þ 6.½«±ß½çµãÅÅÐòµ½Ä©Î²
+    //ï¿½ï¿½ï¿½ï¿½ï¿½boundarymapÖ»ï¿½ï¿½ï¿½Ëµï¿½Ò»ï¿½ï¿½ß½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ßµï¿½Ôªï¿½ï¿½
+//1.ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½ï¿½2.ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ó¦ï¿½Äµï¿½Ôªï¿½ï¿½Å£ï¿½3.ï¿½ï¿½È¡ï¿½Úµï¿½
+//4.È¥ï¿½ï¿½ 5.ï¿½ï¿½nodeï¿½ï¿½ï¿½Ã±ß½ï¿½ï¿½ï¿½ï¿½ï¿½ 6.ï¿½ï¿½ï¿½ß½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä©Î²
     num_freenodes = m_num_nodes;
     std::vector<int> boundarynodes;
     std::vector<int> boundarylist{ 1, 2, 3, 5, 7, 31, 32, 37, 38, 48, 49, 52, 53, 59, 60, 61, 62, 63, 64 };
  
-    //Ô­ÓÐ°æ±¾µÄ±ß½ç¼ìË÷
+    //Ô­ï¿½Ð°æ±¾ï¿½Ä±ß½ï¿½ï¿½ï¿½ï¿½
     for (auto a : boundarylist) {
         int boundarynodedomain = a;
         for (int i = 0; i < m_num_edgele; ++i) {
@@ -303,7 +306,7 @@ void processBoundaryCondition() {
         }
     }
 
-    //½«x=0µÄÈ«²¿½Úµã±ê¼ÇÎª±ß½ç½Úµã
+    //ï¿½ï¿½x=0ï¿½ï¿½È«ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½Îªï¿½ß½ï¿½Úµï¿½
     for (int i = 0; i < m_num_nodes; ++i) {
         if (mp_node[i].x == 0) {
             boundarynodes.push_back(i);
@@ -313,7 +316,7 @@ void processBoundaryCondition() {
     std::sort(boundarynodes.begin(), boundarynodes.end());
     boundarynodes.erase(unique(boundarynodes.begin(), boundarynodes.end()), boundarynodes.end());
 
-    ////Êä³ö±ß½çµã£¬¿ÉÒÔÍ¨¹ýmatlab»æÍ¼ÅÐ¶ÏÊÇ·ñ¼ìË÷³öÈ«²¿µÄ±ß½ç
+    ////ï¿½ï¿½ï¿½ï¿½ß½ï¿½ã£¬ï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½matlabï¿½ï¿½Í¼ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È«ï¿½ï¿½ï¿½Ä±ß½ï¿½
     //for (auto a :boundarynodes) {
     //	cout << mp_node[a].x << " " << mp_node[a].y << endl;
     //}
@@ -325,7 +328,7 @@ void processBoundaryCondition() {
 }
 
 void processLoad() {
-    //ÉèÖÃµ¥Ôª¸ºÔØ
+    //ï¿½ï¿½ï¿½Ãµï¿½Ôªï¿½ï¿½ï¿½ï¿½
     for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
         int domain = mp_triele[i_tri].domain;
         if (domain == 5) {
@@ -388,7 +391,7 @@ void makeTrangle() {
             }
         }
 
-        //¼ÆËãÈý½ÇÐÎÖØÐÄ°ë¾¶
+        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä°ë¾¶
         if (flag == 2) {
             mp_triele[index].xdot = mp_triele[index].rc;
         }
@@ -399,7 +402,7 @@ void makeTrangle() {
             mp_triele[index].xdot = 1.5 / mp_triele[index].xdot;
         }
 
-        //¼ÆËãÒ»½×Èý½ÇÐÎÖá¶Ô³Æµ¥ÔªÏµÊý¾ØÕó
+        //ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô³Æµï¿½ÔªÏµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         for (int i = 0; i < 3; ++i) {
             for (int j = 0; j < 3; ++j) {
                 mp_triele[index].C[i][j] = ((mp_triele[index].R[i] * mp_triele[index].R[j] + mp_triele[index].Q[i] * mp_triele[index].Q[j])) / (4.0 * mp_triele[index].area);
@@ -437,7 +440,7 @@ void GPUInitialMallocCopy() {
     }
     cudaSetDevice(0);
 
-    //·ÖÅä½ÚµãºÍTriElementµÄÄÚ´æ
+    //ï¿½ï¿½ï¿½ï¿½Úµï¿½ï¿½TriElementï¿½ï¿½ï¿½Ú´ï¿½
     cudaMalloc(&d_mp_node, m_num_nodes * sizeof(CNode));
     cudaMemcpy(d_mp_node, mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyHostToDevice);
     cudaMalloc(&d_mp_triele, m_num_triele * sizeof(CTriElement));
@@ -455,7 +458,7 @@ void Free() {
 
 void writeVtkFile()
 {
-    //´¦ÀíÊý¾Ý
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     for (int i = 0; i < m_num_nodes; ++i) {
         if (mp_node[i].x != 0)
             mp_node[i].A = mp_node[i].At / mp_node[i].x;
@@ -479,21 +482,21 @@ void writeVtkFile()
         13: Triangular prism element
         14: Pyramid element
     */
-    /** Êý¾Ý°æ±¾ÉùÃ÷ **/
+    /** ï¿½ï¿½ï¿½Ý°æ±¾ï¿½ï¿½ï¿½ï¿½ **/
     fprintf(fp, "# vtk DataFile Version 2.0\n");
-    /** ±êÌâ **/
+    /** ï¿½ï¿½ï¿½ï¿½ **/
     fprintf(fp, "vtk title\n");
-    /** ÎÄ¼þ¸ñÊ½ÉùÃ÷ **/
+    /** ï¿½Ä¼ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ **/
     fprintf(fp, "ASCII\n");
-    /** ¼¸ºÎÍØÆË½á¹¹ **/
+    /** ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë½á¹¹ **/
     fprintf(fp, "DATASET UNSTRUCTURED_GRID\n");
 
-    //½Úµã
+    //ï¿½Úµï¿½
     fprintf(fp, "\nPOINTS %d float\n", m_num_nodes);
     for (int i = 0; i < m_num_nodes; ++i) {
         fprintf(fp, "%lf %lf %lf\n", mp_node[i].x, mp_node[i].y, mp_node[i].z);
     }
-    //Ò»½×Èý½ÇÐÎµ¥Ôª
+    //Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îµï¿½Ôª
     fprintf(fp, "\nCELLS %d %d\n", m_num_triele, 4 * m_num_triele);
     for (int i = 0; i < m_num_triele; ++i) {
         fprintf(fp, "3 %d %d %d\n", mp_triele[i].n[0], mp_triele[i].n[1], mp_triele[i].n[2]);
@@ -503,7 +506,7 @@ void writeVtkFile()
     for (int i = 0; i < m_num_triele; ++i) {
         fprintf(fp, "%d\n", type);
     }
-    //½Úµã´ÅÊ¸Î»
+    //ï¿½Úµï¿½ï¿½Ê¸Î»
     fprintf(fp, "\nPOINT_DATA %d\n", m_num_nodes);
     fprintf(fp, "SCALARS A double 1\n");
     fprintf(fp, "LOOKUP_TABLE %s\n", "Atable");
@@ -511,7 +514,7 @@ void writeVtkFile()
         fprintf(fp, "%f\n", mp_node[i].A);
     }
 
-    ////µ¥Ôª±êÁ¿´Å¸ÐÓ¦Ç¿¶È
+    ////ï¿½ï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½Å¸ï¿½Ó¦Ç¿ï¿½ï¿½
     //fprintf(fp, "\nCELL_DATA %d\n", m_num_triele);
     //fprintf(fp, "SCALARS %s double %d\n", "Bnorm", 1);
     //fprintf(fp, "LOOKUP_TABLE %s\n", "Btable");
@@ -537,7 +540,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
     int RelaxCount, count = 0;
     double RelaxFactor = 1;
     double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{ 0, 0, 0 };
-    int NRCount = 6;
+    int NRCount = 10;
     if (d_MyNode[i].bdr != 1)
     {
         At = 0; dAt = 0; NRerror = 1; count = 0;
@@ -565,8 +568,8 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                     RHSContri += d_MyElem[ID].C[nodenumber][m] * AtLocal[m];
                 }
 
-                //ÏßÐÔµ¥Ôª£¬¼ÆËãÓÒ²àÁÐÏòÁ¿Ê±£¬Ò²Òª¿¼ÂÇA£¿£¿£¿
-                if (d_MyElem[ID].linearflag == true)	//ÏßÐÔ¿ÕÆøµ¥Ôª
+                //ï¿½ï¿½ï¿½Ôµï¿½Ôªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ò²Òªï¿½ï¿½ï¿½ï¿½Aï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                if (d_MyElem[ID].linearflag == true)	//ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½ï¿½Ôª
                 {
                     Vt = 1.0 / (4 * 3.14159 * 1e-7) / d_MyElem[ID].xdot;
                     J0 = Vt * d_MyElem[ID].C[nodenumber][nodenumber];
@@ -576,31 +579,33 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                     //k0 = Js - V * RHSContri;
                 }
 
-                else	//·ÇÏßÐÔµ¥Ôª
+                else	//ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½Ôª
                 {
-                    B2 = -1 / d_MyElem[ID].area * (d_MyElem[ID].C[0][1] * (ALocal[0] - ALocal[1]) * (ALocal[0] - ALocal[1]) + d_MyElem[ID].C[1][2] * (ALocal[1] - ALocal[2]) * (ALocal[1] - ALocal[2]) + d_MyElem[ID].C[0][2] * (ALocal[0] - ALocal[2]) * (ALocal[0] - ALocal[2]));
-                    B = sqrt(B2);	//¼ÆËãB£¬ÓÃÓÚ´¦Àí·ÇÏßÐÔ
-                    //Vt = getV(B) / d_MyElem[ID].xdot;
-                    //VB2 = getdVdB2(B);
-                    if (B <= 0.6) {
-                        Vt = 500;
-                    }
-                    else {
-                        Vt =  500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
-                    }
-                    Vt = Vt / d_MyElem[ID].xdot;
-                    if (B <= 0.6) {
-                        VB2 =  0;
-                    }
-                    else {
-                        VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
-                    }
-                    B2A = -1 / d_MyElem[ID].area * (2 * d_MyElem[ID].C[nodenumber][0] * (A - ALocal[0]) + 2 * d_MyElem[ID].C[nodenumber][1] * (A - ALocal[1]) + 2 * d_MyElem[ID].C[nodenumber][2] * (A - ALocal[2]));
+                    B2 = -1 / d_MyElem[ID].area * (d_MyElem[ID].C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + d_MyElem[ID].C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + d_MyElem[ID].C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
+                    B = sqrt(B2) / d_MyElem[ID].xdot;	//ï¿½ï¿½ï¿½ï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+                    Vt = getV(B) / d_MyElem[ID].xdot;
+                    VB2 = getdVdB2(B);
+                    
+                    //if (B <= 0.6) {
+                    //    Vt = 500;
+                    //}
+                    //else {
+                    //    Vt =  500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+                    //}
+                    //Vt = Vt / d_MyElem[ID].xdot;
+                    //if (B <= 0.6) {
+                    //    VB2 =  0;
+                    //}
+                    //else {
+                    //    VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+                    //}
+
+                    B2A = -1 / d_MyElem[ID].area * (2 * d_MyElem[ID].C[nodenumber][0] * (At - AtLocal[0]) + 2 * d_MyElem[ID].C[nodenumber][1] * (At - AtLocal[1]) + 2 * d_MyElem[ID].C[nodenumber][2] * (At - AtLocal[2])) / d_MyElem[ID].xdot;
                     J0 = B2A * VB2 * RHSContri / d_MyElem[ID].xdot / d_MyElem[ID].xdot + Vt * d_MyElem[ID].C[nodenumber][nodenumber];
                     k0 = Js - Vt * RHSContri;
 
                     //B2 = -1 / d_MyElem[ID].area * (d_MyElem[ID].C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + d_MyElem[ID].C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + d_MyElem[ID].C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
-                    //B = sqrt(B2);	//¼ÆËãB£¬ÓÃÓÚ´¦Àí·ÇÏßÐÔ
+                    //B = sqrt(B2);	//ï¿½ï¿½ï¿½ï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                     //V = 1.0 / d_MyElem[ID].material->getMu(B);
                     //VB2 = d_MyElem[ID].material->getdvdB2(B);
                     //B2A = -1 / d_MyElem[ID].area * (2 * d_MyElem[ID].C[nodenumber][0] * (A - AtLocal[0]) + 2 * d_MyElem[ID].C[nodenumber][1] * (A - AtLocal[1]) + 2 * d_MyElem[ID].C[nodenumber][2] * (A - AtLocal[2]));
@@ -620,7 +625,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
             if (At == 0) {
                 break;
             }
-            if (NRerror > 1e-9) {
+            if (NRerror > 1e-4) {
                 count++;
                 continue;
             }
@@ -638,7 +643,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
         d_MyNode[i].At = At;
     }
 
-    ////ÅÐ¶ÏÈ«¾ÖÊÕÁ²ÐÔ
+    ////ï¿½Ð¶ï¿½È«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     //double error = 0, a = 0, b = 0;
     //for (int i = 0; i < m_num_nodes; ++i) {
     //    a += (d_MyNode[i].At - d_MyNode[i].At_old) * (d_MyNode[i].At - d_MyNode[i].At_old);
@@ -650,7 +655,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
     ////}
     //cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
     //if (error > maxerror) {
-    //    //ÕâÒ»²½Ó°ÏìÐ§ÂÊ
+    //    //ï¿½ï¿½Ò»ï¿½ï¿½Ó°ï¿½ï¿½Ð§ï¿½ï¿½
     //    for (int i = 0; i < m_num_nodes; ++i) {
     //        d_MyNode[i].At_old = d_MyNode[i].At;
     //    }
@@ -686,7 +691,7 @@ __global__ void calculateGlobalError(int m_num_nodes, CTriElement* d_MyElem, CNo
     //d_error = 0;
     __syncthreads();
 
-    //aºÍb¹éÔ¼ÇóºÍ
+    //aï¿½ï¿½bï¿½ï¿½Ô¼ï¿½ï¿½ï¿½
     int leng = m_num_nodes;
     for (int i = m_num_nodes / 2.0 + 0.5; i > 1; i = i / 2.0 + 0.5) {
         if (n < i)
@@ -710,19 +715,52 @@ __global__ void calculateGlobalError(int m_num_nodes, CTriElement* d_MyElem, CNo
 }
 
 __device__ double getV(double B) {
-    if (B <= 0.6) {
-        return 500;
-    }
-    else {
-        return 500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
-    }
+    //if (B <= 0.6) {
+    //    return 500;
+    //}
+    //else {
+    //    return 500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+    //}
+
+    double slope, H, b;
+    if (B < 1e-3)  return Hdata[1] / Bdata[1];
+    getkHb(B, &slope, &H, &b);
+    if (B / H < 3.1415927 * 4e-7)  return 1 / (3.1415927 * 4e-7);
+    return H / B;
 }
 
 __device__ double getdVdB2(double B) {
-    if (B <= 0.6) {
-        return 0;
+    //if (B <= 0.6) {
+    //    return 0;
+    //}
+    //else {
+    //    return (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+    //}
+
+    double slope, H, b;
+    if (B < 1e-9) return 0;
+    getkHb(B, &slope, &H, &b);
+    return -b / (B * B * B * 2);
+}
+
+__device__ double getkHb(double B, double* k, double* H, double* b) {
+    if (B >= Bdata[BHpoints - 1]) {
+        int  i = BHpoints - 2;
+        (*k) = (Hdata[i] - Hdata[i - 1]) / (Bdata[i] - Bdata[i - 1]);
+        (*b) = Hdata[i - 1] - (*k) * Bdata[i - 1];
+    }
+    else if (B < Bdata[0]) {
+        (*k) = (Hdata[1] - Hdata[0]) / (Bdata[1] - Bdata[0]);
+        (*b) = Hdata[0] - (*k) * Bdata[0];
     }
     else {
-        return (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+        for (int i = 0; i < BHpoints - 1; i++) {
+            if (B >= Bdata[i] && B <= Bdata[i + 1]) {
+                (*k) = (Hdata[i + 1] - Hdata[i]) / (Bdata[i + 1] - Bdata[i]);
+                (*b) = Hdata[i] - (*k) * Bdata[i];
+                break;
+            }
+        }
     }
+    (*H) = (*k) * B + (*b);
 }

@@ -8,6 +8,7 @@ public:
     virtual void solveDynamic() = 0;
     virtual void solveMagneticForce() override;
     virtual void solveMagneticForce1() override;
+    virtual void solveWeakCouple(int step);
     virtual double solveSpringForce(int domain, double pos);
     virtual double solveEnergy();
     virtual double solveInductance(double I);

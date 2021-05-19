@@ -5,15 +5,17 @@
 #include "FEMModel/FEMRelay1250Model.h"
 #include "FEMModel/FEMRelay1250LinearModel.h"
 #include "FEMModel/RelayDynamicModel.h"
+#include "FEMModel/FEMTrans3PhaseModel.h"
+#include "FEMModel/RelayModelwithoutBand.h"
 
 #include <iostream>
 #include <time.h>
 
 std::string analysistype = "dynamic";
-std::string solvestrategy = "NR";
+std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 20;
+int maxitersteps = 30000;
 double maxerror = 1e-6;
 
 int main(int argc, char *argv[])
@@ -21,7 +23,7 @@ int main(int argc, char *argv[])
     //QCoreApplication a(argc, argv);
 
     FEMCore core;
-    FEMModel* model = new RelayDynamicModel;
+    FEMModel* model = new RelayModelwithoutBand;
     model->init();
 
     core.setModel(model);
