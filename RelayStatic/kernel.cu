@@ -5,18 +5,36 @@
 #include <vector>
 #include <Algorithm>
 #include <string>
-
-const int CudaThrdNum = 64;
-const int CudaBlckNum = 32;
-const double CurrentDensity = 8e6;
-const int maxitersteps = 20000;
 #define Mu0 1.256637e-6;
 #define PI 3.1415927;
+
+const int CudaThrdNum = 128;
+const int CudaBlckNum = 256;
+const double CurrentDensity = 8381893.016;
+const int maxitersteps = 20000;
+
 const double maxerror = 1e-9;
 __device__ double Bdata[] = { 0, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4 };
 __device__ double Hdata[] = { 0, 663.146, 1067.5, 1705.23, 2463.11, 3841.67, 5425.74, 7957.75, 12298.3, 20462.8, 32169.6, 61213.4, 111408, 175070, 261469, 318310 };
 __device__ int BHpoints = 16;
 using namespace std;
+
+//运动信息
+double current[101];
+double dis[101];
+double velocity[101];
+double acc[101];
+double magneticforce[101];
+double springforce[101];
+double flux[101];
+double mass = 0.024;
+double h = 5e-4;
+double U = 24;
+double R = 40;
+double* d_FluxArray;
+double* d_Flux;
+double position[] = { 0, 0.0016999, 0.0017, 0.0027 };
+double force[] = { -6.0, -6.63, -13.63, -27.0 };
 
 struct CNode
 {
@@ -85,47 +103,25 @@ void writeVtkFile();
 __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode* d_MyNode);
 __global__ void UpdateAttoAtold(int m_num_nodes, CNode* d_MyNode);
 __global__ void calculateGlobalError(int m_num_nodes, CTriElement* d_MyElem, CNode* d_MyNode, double* a, double* b, double* d_error);
+__global__ void updateLoad(int m_num_triele, CTriElement* d_MyElem, double current);
+__global__ void solveFlux(int m_num_triele, CTriElement* d_MyElem, CNode* d_MyNode, double* d_FluxArray, double* d_Flux);
 
 __device__ double getV(double B);
 __device__ double getdVdB2(double B);
 __device__ double getkHb(double B, double* k, double* H, double* b);
 
 void Free();
+
+void solvestatic();
+void solvedynamic();
+void solveWeakCouple(int step);
+double solveSpringForce(double pos);
+double solveMagneticForce();
+
 int main()
 {
-    FEM_Host_Data_Prepare();
-    GPUInitialMallocCopy();
-
-    cudaEvent_t start, stop;//unit: ms
-
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start, 0);
-    double* a, * b, error, * d_error;
-    cudaMalloc(&a, m_num_nodes * sizeof(double));
-    cudaMalloc(&b, m_num_nodes * sizeof(double));
-    cudaMalloc(&d_error, sizeof(double));
-    for (int iter = 0; iter < 30000; ++iter) {
-        UpdateSolutiontoA1 << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node);
-        calculateGlobalError << <256, 256 >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
-        cudaDeviceSynchronize();
-        cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
-        printf("iter: %d, error: %.20f\n",iter, error);
-        UpdateAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-    }
-    cudaDeviceSynchronize();
-    //GET_TIME(T_end);
-    cudaEventRecord(stop, 0);
-    cudaEventSynchronize(stop);
-    float elapsedTime;
-    cudaEventElapsedTime(&elapsedTime, start, stop);
-    //printf("\nElapsed time for NDDR Iteration is %.4f s\n", (T_end - T_start));
-    printf("\nElapsed time for NDDR Iteration is %.4f s\n", elapsedTime / 1000);
-    cudaMemcpy(mp_node, d_mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyDeviceToHost);
-    cudaMemcpy(mp_triele, d_mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyDeviceToHost);
-    writeVtkFile();
-
-    Free();
+    //solvestatic();
+    solvedynamic();
     return 0;
 }
 
@@ -142,7 +138,8 @@ void FEM_Host_Data_Prepare() {
 }
 
 void LoadMeshInfo() {
-    string meshfile = "../model/model1848.mphtxt";
+    string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NDDR/modelwithband_0.mphtxt";
+    //string meshfile = "D:/femplatform/model/model1848.mphtxt";
     //�����ļ�Ϊmphtxt�����
     
     cout << meshfile << endl;
@@ -293,7 +290,7 @@ void processBoundaryCondition() {
 //4.ȥ�� 5.��node���ñ߽����� 6.���߽������ĩβ
     num_freenodes = m_num_nodes;
     std::vector<int> boundarynodes;
-    std::vector<int> boundarylist{ 1, 2, 3, 5, 7, 31, 32, 37, 38, 48, 49, 52, 53, 59, 60, 61, 62, 63, 64 };
+    std::vector<int> boundarylist{ 1, 2, 3, 5, 6, 8, 40, 43 };
  
     //ԭ�а汾�ı߽����
     for (auto a : boundarylist) {
@@ -331,7 +328,7 @@ void processLoad() {
     //���õ�Ԫ����
     for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
         int domain = mp_triele[i_tri].domain;
-        if (domain == 5) {
+        if (domain == 7) {
             mp_triele[i_tri].J = CurrentDensity;
         }
     }
@@ -413,7 +410,7 @@ void makeTrangle() {
 
 void processMaterial() {
     for (int i = 0; i < m_num_triele; ++i) {
-        if (mp_triele[i].domain == 3 || mp_triele[i].domain == 4) {
+        if (mp_triele[i].domain == 4 || mp_triele[i].domain == 5) {
             mp_triele[i].linearflag = false;
         }
         else {
@@ -529,6 +526,296 @@ void writeVtkFile()
     //fclose(fp);
 }
 
+void solvestatic() {
+    FEM_Host_Data_Prepare();
+    GPUInitialMallocCopy();
+
+    cudaEvent_t start, stop;//unit: ms
+
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start, 0);
+    double* a, * b, error, * d_error;
+    cudaMalloc(&a, m_num_nodes * sizeof(double));
+    cudaMalloc(&b, m_num_nodes * sizeof(double));
+    cudaMalloc(&d_error, sizeof(double));
+    for (int iter = 0; iter < 30000; ++iter) {
+        UpdateSolutiontoA1 << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node);
+        calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
+        cudaDeviceSynchronize();
+        cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
+        printf("iter: %d, error: %.20f\n", iter, error);
+        UpdateAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+    }
+    cudaDeviceSynchronize();
+    //GET_TIME(T_end);
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    float elapsedTime;
+    cudaEventElapsedTime(&elapsedTime, start, stop);
+    //printf("\nElapsed time for NDDR Iteration is %.4f s\n", (T_end - T_start));
+    printf("\nElapsed time for NDDR Iteration is %.4f s\n", elapsedTime / 1000);
+    cudaMemcpy(mp_node, d_mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyDeviceToHost);
+    cudaMemcpy(mp_triele, d_mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyDeviceToHost);
+    writeVtkFile();
+
+    Free();
+}
+
+void solvedynamic() {
+    FEM_Host_Data_Prepare();
+    GPUInitialMallocCopy();
+
+    cudaMalloc(&d_FluxArray, m_num_triele * sizeof(double));
+    cudaMalloc(&d_Flux, sizeof(double));
+
+    dis[0] = 0;
+    velocity[0] = 0;
+    acc[0] = 0;
+    springforce[0] = solveSpringForce(0);
+    magneticforce[0] = 0;
+    current[0] = 0;
+    flux[0] = 0;
+
+    bool stopflag = false;
+    for (int i = 1; i < 101; ++i) {
+        cout << "solve step " << i << "...\n";
+        acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+        if (acc[i] < 0) acc[i] = 0;
+        velocity[i] = velocity[i - 1] + h * acc[i - 1];
+        dis[i] = dis[i - 1] + h * velocity[i - 1];
+
+        if (dis[i] >= 0.0024) {
+            dis[i] = 0.0024;
+            if (stopflag == false) {
+                stopflag = true;
+            }
+            else {
+                velocity[i] = 0;
+                acc[i] = 0;
+            }
+        }
+
+        //后向欧拉法计算
+        springforce[i] = solveSpringForce(dis[i]);
+        acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+        if (acc[i] < 0) acc[i] = 0;
+        velocity[i] = velocity[i - 1] + h * acc[i];
+        dis[i] = dis[i - 1] + h * velocity[i];
+
+        if (dis[i] >= 0.0024) {
+            dis[i] = 0.0024;
+            if (stopflag == false) {
+                stopflag = true;
+            }
+            else {
+                velocity[i] = 0;
+                acc[i] = 0;
+            }
+        }
+
+
+        solveWeakCouple(i);
+        magneticforce[i] = solveMagneticForce();
+        springforce[i] = solveSpringForce(dis[i]);
+        printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
+    }
+
+    cudaFree(d_Flux);
+    cudaFree(d_FluxArray);
+}
+
+void solveWeakCouple(int step)
+{
+    double i_tmp, flux_tmp, L_tmp, dfluxdt, f, dfdi;
+    if (step == 1) {
+        i_tmp = 0.01;
+    }
+    else {
+        i_tmp = current[step - 1];
+    }
+
+    int maxstep = 100;
+
+    double* a, * b, error, * d_error;
+    cudaMalloc(&a, m_num_nodes * sizeof(double));
+    cudaMalloc(&b, m_num_nodes * sizeof(double));
+    cudaMalloc(&d_error, sizeof(double));
+    for (int i = 0; i < maxstep; ++i) {
+        error = 1;
+        updateLoad << <CudaBlckNum, CudaThrdNum >> > (m_num_triele, d_mp_triele, i_tmp);
+        cudaDeviceSynchronize();
+        for (int iter = 0; iter < 30000; ++iter) {
+            UpdateSolutiontoA1 << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node);
+            //cudaDeviceSynchronize();
+            if (iter % 100 == 0) {
+                calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
+                cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
+                printf("iter: %d, error: %.20f\n", iter, error);
+            }
+            //printf("iter: %d, error: %.20f\n", iter, error);
+            UpdateAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+            if (error < 1e-5) break;
+        }
+        cudaDeviceSynchronize();
+        //solveFlux << <CudaBlckNum, CudaThrdNum >> > (m_num_triele, d_mp_triele, d_mp_node, d_FluxArray, d_Flux);
+        //cudaDeviceSynchronize();
+        //cudaMemcpy(&flux_tmp, &d_FluxArray[0], sizeof(double), cudaMemcpyDeviceToHost);
+        //flux_tmp = *d_Flux;
+
+        cudaMemcpy(mp_node, d_mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyDeviceToHost);
+        //for (int n = 0; n < m_num_nodes; ++n) {
+        //    cout << "n: " << n << "At: " << mp_node[n].At << endl;
+        //}
+        /*solve flux*/
+        flux_tmp = 0;
+        CTriElement triele;
+        int n0, n1, n2;
+        for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+            triele = mp_triele[i_tri];
+            if (triele.domain != 7)
+                continue;
+            n0 = triele.n[0];
+            n1 = triele.n[1];
+            n2 = triele.n[2];
+            //cout << triele.material->getFEMCoil().tau;
+            flux_tmp += (2 * 3.1415927 * 13969821.69 * triele.area * (mp_node[n0].At + mp_node[n1].At + mp_node[n2].At) / 3);
+        }
+        /*solve flux finish*/
+        L_tmp = flux_tmp / i_tmp;
+        dfluxdt = (flux_tmp - flux[step - 1]) / h;
+        f = i_tmp * R + dfluxdt - U;
+        dfdi = R + L_tmp / h;
+        i_tmp = i_tmp - f / dfdi;
+        cout << "flux_tmp: " << flux_tmp << ", i_tmp: " << i_tmp << ", error: " << abs(f / dfdi / i_tmp) << endl;
+        if (abs(f / dfdi / i_tmp) < 1e-6)
+            break;
+    }
+    current[step] = i_tmp;
+    flux[step] = flux_tmp;
+    cudaFree(a);
+    cudaFree(b);
+    cudaFree(d_error);
+}
+
+double solveSpringForce(double pos)
+{
+    if (pos > position[4 - 1]) {
+        int  i = 4 - 1;
+        double k = (force[i] - force[i - 1]) / (position[i] - position[i - 1]);
+        return force[i] + k * (pos - position[i]);
+    }
+    else if (pos < position[0]) {
+        return force[0];
+    }
+    else
+    {
+        for (int i = 0; i < 4 - 1; i++) {
+            if (pos >= position[i] && pos <= position[i + 1]) {
+                double k = (force[i + 1] - force[i]) / (position[i + 1] - position[i]);
+                return force[i] + k * ((pos - position[i]));
+            }
+        }
+    }
+}
+
+double solveMagneticForce()
+{
+    vector<bool> deformednode(m_num_nodes, false);
+    vector<bool> movenode(m_num_nodes, false);
+    vector<int> deformelement;
+    vector<int> moveelement;
+
+    //遍历全部单元，标记节点
+    for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+        if (mp_triele[i_tri].domain == 3) {
+            deformelement.push_back(i_tri);
+            //把三个节点标记为形变区域节点
+            for (int i = 0; i < 3; ++i) {
+                deformednode[mp_triele[i_tri].n[i]] = true;
+            }
+        }
+    }
+
+    for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+        if (mp_triele[i_tri].domain == 4) {
+            moveelement.push_back(i_tri);
+            //把三个节点标记为运动区域节点
+            for (int i = 0; i < 3; ++i) {
+                movenode[mp_triele[i_tri].n[i]] = true;
+            }
+        }
+    }
+
+    //将全部节点的电磁力初始化为0
+    for (int n = 0; n < m_num_nodes; ++n) {
+        mp_node[n].NodeForcex = 0;
+        mp_node[n].NodeForcey = 0;
+    }
+
+    //遍历全部形变区域单元，如果单元内节点也处在运动单元上,
+    //计算相应的单元电磁力和节点电磁力
+    //师兄代码里的A是At吗？？？
+    for (auto i_tri : deformelement) {
+        CTriElement triele = mp_triele[i_tri];
+        double rc = triele.rc;
+        double area = triele.area;
+        double mu = 4 * 3.1415927 * 1e-7;
+        double QA = triele.Q[0] * mp_node[triele.n[0]].At + triele.Q[1] * mp_node[triele.n[1]].At + triele.Q[2] * mp_node[triele.n[2]].At;
+        double RA = triele.R[0] * mp_node[triele.n[0]].At + triele.R[1] * mp_node[triele.n[1]].At + triele.R[2] * mp_node[triele.n[2]].At;
+        double tmp = 3.1415927 / 4 / mu;	//为什么要除以4???
+        double dvdB2 = 0;
+        if (dvdB2 != 0) {
+            cout << "i_tri: " << i_tri << endl;
+        }
+        double tmp1 = 3.1415927 / 4 * (QA * QA + RA * RA) / area / rc * dvdB2 / 4;
+        double dQdy[3][3];
+        double dRdx[3][3];
+        double ac = area * rc;
+        double ac2 = ac * ac;
+        double ac3 = ac2 * ac;
+
+        dQdy[0][0] = 0; dQdy[0][1] = -1; dQdy[0][2] = 1;
+        dQdy[1][0] = 1; dQdy[1][1] = 0; dQdy[1][2] = -1;
+        dQdy[2][0] = -1; dQdy[2][1] = 1; dQdy[2][2] = 0;
+
+        dRdx[0][0] = 0; dRdx[0][1] = 1; dRdx[0][2] = -1;
+        dRdx[1][0] = -1; dRdx[1][1] = 0; dRdx[1][2] = 1;
+        dRdx[2][0] = 1; dRdx[2][1] = -1; dRdx[2][2] = 0;
+
+        double dSdx, dSdy;
+        double dQAdy, dRAdx;
+        double dBxdx, dBydx, dBxdy, dBydy;
+        for (int i = 0; i < 3; ++i) {
+            int n = mp_triele[i_tri].n[i];
+            if (movenode[n] == true) {
+                //x方向
+                dSdx = 0.5 * (dRdx[i][2] * triele.Q[1] - dRdx[i][1] * triele.Q[2]);
+                dRAdx = (dRdx[i][0] * mp_node[triele.n[0]].At + dRdx[i][1] * mp_node[triele.n[1]].At + dRdx[i][2] * mp_node[triele.n[2]].At);
+                mp_node[n].NodeForcex -= tmp * (2 * RA / ac * dRAdx);
+                mp_node[n].NodeForcex -= tmp * ((QA * QA + RA * RA) * (-1 / ac2 * (area / 3 + rc * dSdx)));
+                mp_node[n].NodeForcex -= tmp1 * (2 * RA / ac2 * dRAdx);
+                mp_node[n].NodeForcex -= tmp1 * ((QA * QA + RA * RA) * (-2 / ac3 * (area / 3 + rc * dSdx)));
+                //y方向
+                dSdy = 0.5 * (dQdy[i][1] * triele.R[2] - dQdy[i][2] * triele.R[1]);
+                dQAdy = (dQdy[i][0] * mp_node[triele.n[0]].At + dQdy[i][1] * mp_node[triele.n[1]].At + dQdy[i][2] * mp_node[triele.n[2]].At);
+                mp_node[n].NodeForcey -= tmp * ((QA * QA + RA * RA) * (-1) / ac2 * rc * dSdy);	//为什么会有负号？
+                mp_node[n].NodeForcey -= tmp * (2 * QA / ac * dQAdy);
+                mp_node[n].NodeForcey -= tmp1 * ((QA * QA + RA * RA) * (-2) / ac3 * rc * dSdy);
+                mp_node[n].NodeForcey -= tmp1 * (2 * QA / ac2 * dQAdy);
+            }
+        }
+    }
+
+    double Fy = 0;
+    for (int n = 0; n < m_num_nodes; ++n) {
+        if (movenode[n] == true) {
+            Fy += mp_node[n].NodeForcey;
+        }
+    }
+    return Fy;
+}
+
 __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode* d_MyNode) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;
     if (i >= m_num_nodes)
@@ -540,7 +827,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
     int RelaxCount, count = 0;
     double RelaxFactor = 1;
     double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{ 0, 0, 0 };
-    int NRCount = 10;
+    int NRCount = 100;
     if (d_MyNode[i].bdr != 1)
     {
         At = 0; dAt = 0; NRerror = 1; count = 0;
@@ -568,8 +855,8 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                     RHSContri += d_MyElem[ID].C[nodenumber][m] * AtLocal[m];
                 }
 
-                //���Ե�Ԫ�������Ҳ�������ʱ��ҲҪ����A������
-                if (d_MyElem[ID].linearflag == true)	//���Կ�����Ԫ
+
+                if (d_MyElem[ID].linearflag == true)	
                 {
                     Vt = 1.0 / (4 * 3.14159 * 1e-7) / d_MyElem[ID].xdot;
                     J0 = Vt * d_MyElem[ID].C[nodenumber][nodenumber];
@@ -579,10 +866,10 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                     //k0 = Js - V * RHSContri;
                 }
 
-                else	//�����Ե�Ԫ
+                else	
                 {
                     B2 = -1 / d_MyElem[ID].area * (d_MyElem[ID].C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + d_MyElem[ID].C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + d_MyElem[ID].C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
-                    B = sqrt(B2) / d_MyElem[ID].xdot;	//����B�����ڴ���������
+                    B = sqrt(B2) / d_MyElem[ID].xdot;
                     Vt = getV(B) / d_MyElem[ID].xdot;
                     VB2 = getdVdB2(B);
                     
@@ -625,8 +912,8 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
             if (At == 0) {
                 break;
             }
-            if (NRerror > 1e-4) {
-                count++;
+            if (NRerror > 1e-6) {
+                //count++;
                 continue;
             }
             else {
@@ -685,9 +972,12 @@ __global__ void calculateGlobalError(int m_num_nodes, CTriElement* d_MyElem, CNo
     if (n >= m_num_nodes) {
         return;
     }
+    a[n] = 0;
+    b[n] = 0;
+    __syncthreads();
 
     a[n] = (d_MyNode[n].At - d_MyNode[n].At_old) * (d_MyNode[n].At - d_MyNode[n].At_old);
-    b[n] = d_MyNode[n].At - d_MyNode[n].At_old;
+    b[n] = d_MyNode[n].At * d_MyNode[n].At;
     //d_error = 0;
     __syncthreads();
 
@@ -710,7 +1000,62 @@ __global__ void calculateGlobalError(int m_num_nodes, CTriElement* d_MyElem, CNo
     if (n == 0) {
         a[0] = a[0] + a[1];
         b[0] = b[0] + b[1];
-        *d_error = sqrtf(a[0]) / sqrtf(b[0]);
+        *d_error = sqrt(a[0]) / sqrt(b[0]);
+        //printf("a: %.30f, b: %.30f\n", a[0], b[0]);
+    }
+}
+
+__global__ void updateLoad(int m_num_triele, CTriElement* d_MyElem, double current)
+{
+    int n = blockDim.x * blockIdx.x + threadIdx.x;
+    if (n >= m_num_triele) {
+        return;
+    }
+
+    double Jor = current * 2400 / 0.0147 / 0.011687;
+    if (d_MyElem[n].domain == 7) {
+        d_MyElem[n].J = Jor;
+    }
+}
+
+__global__ void solveFlux(int m_num_triele, CTriElement* d_MyElem, CNode* d_MyNode, double* d_FluxArray, double* d_Flux)
+{
+    int i_tri = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i_tri >= m_num_triele) {
+        return;
+    }
+
+    if (d_MyElem[i_tri].domain == 7) {
+        int n0 = d_MyElem[i_tri].n[0];
+        int n1 = d_MyElem[i_tri].n[1];
+        int n2 = d_MyElem[i_tri].n[2];
+        d_FluxArray[i_tri] = (d_MyNode[n0].At + d_MyNode[n1].At + d_MyNode[n2].At) / 3;
+        d_FluxArray[i_tri] *= (2 * 3.1415927 * 13969821.69 * d_MyElem[i_tri].area);
+
+    }
+    else {
+        d_FluxArray[i_tri] = 0;
+    }
+    __syncthreads();
+
+    int leng = m_num_triele;
+    for (int i = m_num_triele / 2.0 + 0.5; i > 1; i = i / 2.0 + 0.5) {
+        if (i_tri < i)
+        {
+
+            if (i_tri + i < leng)
+            {
+                d_FluxArray[i_tri] += d_FluxArray[i_tri + i];
+            }
+        }
+        __syncthreads();
+        leng = leng / 2.0 + 0.5;
+    }
+    __syncthreads();
+    if (i_tri == 0) {
+        d_FluxArray[0] = d_FluxArray[0] + d_FluxArray[1];
+        *d_Flux = d_FluxArray[0];
+        printf("d_FluxArray: %f\n", d_FluxArray[0]);
     }
 }
 
@@ -745,7 +1090,7 @@ __device__ double getdVdB2(double B) {
 
 __device__ double getkHb(double B, double* k, double* H, double* b) {
     if (B >= Bdata[BHpoints - 1]) {
-        int  i = BHpoints - 2;
+        int  i = BHpoints - 1;
         (*k) = (Hdata[i] - Hdata[i - 1]) / (Bdata[i] - Bdata[i - 1]);
         (*b) = Hdata[i - 1] - (*k) * Bdata[i - 1];
     }
