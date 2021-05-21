@@ -9,7 +9,7 @@
 #define PI 3.1415927;
 
 const int CudaThrdNum = 128;
-const int CudaBlckNum = 256;
+const int CudaBlckNum = 128;
 const double CurrentDensity = 8381893.016;
 const int maxitersteps = 20000;
 
@@ -20,13 +20,13 @@ __device__ int BHpoints = 16;
 using namespace std;
 
 //运动信息
-double current[101];
+double current[101]/* = { 0.000000, 0.017863, 0.035336, 0.052028, 0.068390, 0.084379, 0.099983, 0.116192, 0.128333, 0.143884, 0.158808, 0.170294, 0.185229, 0.197768, 0.209873, 0.221648, 0.233348, 0.245268, 0.257065, 0.268852, 0.280279, 0.291660, 0.302664, 0.313246, 0.323835, 0.334095, 0.344348, 0.354363, 0.364181, 0.373710, 0.381755, 0.390556, 0.398050, 0.406149, 0.412667, 0.419986, 0.423393, 0.426914, 0.427973, 0.427123, 0.419883, 0.420140, 0.380406, 0.394262, 0.322280, 0.264271, 0.275031, 0.292164, 0.309064, 0.326167, 0.342338, 0.357881, 0.372799, 0.387087, 0.400791, 0.413996, 0.426584, 0.438703, 0.449832, 0.460407, 0.470367, 0.479662, 0.488457, 0.496547, 0.504091, 0.510959, 0.517875, 0.523941, 0.529457, 0.534735, 0.539611, 0.544017, 0.548248, 0.552263, 0.556181, 0.559601, 0.562426, 0.565602, 0.568039, 0.570573, 0.573147, 0.575426, 0.577307, 0.578795, 0.580537, 0.582063, 0.583529, 0.585076, 0.585960, 0.587053, 0.588023, 0.589394, 0.590167, 0.590551, 0.591922, 0.592885, 0.593365, 0.593414, 0.594172, 0.594799, 0.594968 }*/;
 double dis[101];
 double velocity[101];
 double acc[101];
 double magneticforce[101];
 double springforce[101];
-double flux[101];
+double flux[101]/* = { 0.000000, 0.011649, 0.022951, 0.033938, 0.044603, 0.054956, 0.065021, 0.074693, 0.084189, 0.093420, 0.102245, 0.110904, 0.119200, 0.127245, 0.135048, 0.142616, 0.149951, 0.157046, 0.163906, 0.170529, 0.176928, 0.183095, 0.189041, 0.194784, 0.200307, 0.205633, 0.210754, 0.215677, 0.220404, 0.224941, 0.229328, 0.233541, 0.237686, 0.241607, 0.245419, 0.249023, 0.252580, 0.256066, 0.259562, 0.263109, 0.266877, 0.270605, 0.274998, 0.279217, 0.284745, 0.291486, 0.297971, 0.304115, 0.309954, 0.315417, 0.320563, 0.325403, 0.329946, 0.334205, 0.338211, 0.341956, 0.345449, 0.348677, 0.351687, 0.354486, 0.357079, 0.359496, 0.361727, 0.363805, 0.365736, 0.367543, 0.369194, 0.370715, 0.372143, 0.373465, 0.374692, 0.375837, 0.376902, 0.377884, 0.378781, 0.379608, 0.380387, 0.381094, 0.381762, 0.382382, 0.382939, 0.383431, 0.383885, 0.384330, 0.384742, 0.385126, 0.385476, 0.385775, 0.386080, 0.386378, 0.386648, 0.386882, 0.387105, 0.387347, 0.387533, 0.387675, 0.387833, 0.387995, 0.388140, 0.388273, 0.388423}*/;
 double mass = 0.024;
 double h = 5e-4;
 double U = 24;
@@ -35,6 +35,8 @@ double* d_FluxArray;
 double* d_Flux;
 double position[] = { 0, 0.0016999, 0.0017, 0.0027 };
 double force[] = { -6.0, -6.63, -13.63, -27.0 };
+int staticsteps;
+int dynamicsteps;
 
 struct CNode
 {
@@ -92,7 +94,7 @@ CNode* d_mp_node;
 CTriElement* d_mp_triele;
 
 void FEM_Host_Data_Prepare();
-void LoadMeshInfo();
+void LoadMeshInfo(string meshfile);
 void processBoundaryCondition();
 void processLoad();
 void processNDDRNode();
@@ -127,7 +129,7 @@ int main()
 
 
 void FEM_Host_Data_Prepare() {
-    LoadMeshInfo();
+    LoadMeshInfo("D:/femplatform/model/geo/modelcomsol_dynamic_NDDRGPU/modelwithband_0.mphtxt");
     processBoundaryCondition();
     processLoad();
     processNDDRNode();
@@ -137,8 +139,8 @@ void FEM_Host_Data_Prepare() {
 
 }
 
-void LoadMeshInfo() {
-    string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NDDR/modelwithband_0.mphtxt";
+void LoadMeshInfo(string meshfile) {
+    //string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NDDRGPU/modelwithband_0.mphtxt";
     //string meshfile = "D:/femplatform/model/model1848.mphtxt";
     //�����ļ�Ϊmphtxt�����
     
@@ -576,9 +578,19 @@ void solvedynamic() {
     magneticforce[0] = 0;
     current[0] = 0;
     flux[0] = 0;
+    int dynamicstepsarray[101];
+    double time[101];
+    dynamicstepsarray[0] = 0;
+    time[0] = 0;
+
 
     bool stopflag = false;
+    clock_t start, end;
+    start = clock();
     for (int i = 1; i < 101; ++i) {
+        dynamicsteps = 0;
+        clock_t start, end;
+        start = clock();
         cout << "solve step " << i << "...\n";
         acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
         if (acc[i] < 0) acc[i] = 0;
@@ -614,13 +626,82 @@ void solvedynamic() {
             }
         }
 
+        if (i >= 30 && i <= 46) {
+            string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NDDRGPU/modelwithband_";
+            meshfile += to_string(i) + ".mphtxt";
+            Free();
+            LoadMeshInfo(meshfile);
+            processBoundaryCondition();
+            processLoad();
+            processNDDRNode();
+            makeTrangle();
+            processMaterial();
+            cudaMalloc(&d_mp_node, m_num_nodes * sizeof(CNode));
+            cudaMemcpy(d_mp_node, mp_node, m_num_nodes * sizeof(CNode), cudaMemcpyHostToDevice);
+            cudaMalloc(&d_mp_triele, m_num_triele * sizeof(CTriElement));
+            cudaMemcpy(d_mp_triele, mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyHostToDevice);
 
+        }
         solveWeakCouple(i);
         magneticforce[i] = solveMagneticForce();
         springforce[i] = solveSpringForce(dis[i]);
+        dynamicstepsarray[i] = dynamicsteps;
+        end = clock();
+        time[i] = double(end - start) / CLOCKS_PER_SEC;
+        printf("dynamicsteps: %d, time: %f\n", dynamicstepsarray[i], time[i]);
         printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
     }
 
+    //写入结果文件
+    char fn[256];
+    sprintf(fn, "%s.m", "RelayDynamic");
+    FILE* fp;
+    fp = fopen(fn, "w");
+    fprintf(fp, "%%output by FEEM\n");
+    fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux, steps, time\n");
+
+    fprintf(fp, "results = [\n");
+    for (int i = 0; i < 101; ++i) {
+        fprintf(fp, "%10.8e,", i * h);
+        fprintf(fp, "%10.8e,", dis[i]);
+        fprintf(fp, "%10.8e,", velocity[i]);
+        fprintf(fp, "%10.8e,", acc[i]);
+        fprintf(fp, "%10.8e,", magneticforce[i]);
+        fprintf(fp, "%10.8e,", current[i]);
+        fprintf(fp, "%10.8e,", flux[i]);
+        fprintf(fp, "%d,", dynamicstepsarray[i]);
+        fprintf(fp, "%10.8e,", time[i]);
+        fprintf(fp, "; \n");
+    }
+    fprintf(fp, "];\n");
+
+    fprintf(fp, "subplot(2,3,1);hold on;\n");
+    fprintf(fp, "plot(results(:,1),results(:,2),'*-');\n");
+    //fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+    fprintf(fp, "title(\"%s\");\n\n", "displacement");
+
+    fprintf(fp, "subplot(2,3,2);hold on;\n");
+    fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+    fprintf(fp, "title(\"%s\");\n\n", "velocities");
+
+    fprintf(fp, "subplot(2,3,3);hold on;\n");
+    fprintf(fp, "plot(results(:,1),results(:,4),'*-');\n");
+    fprintf(fp, "title(\"%s\");\n\n", "accelerations");
+
+    fprintf(fp, "subplot(2,3,4);hold on;\n");
+    fprintf(fp, "plot(results(:,1),results(:,5),'*-');\n");
+    fprintf(fp, "title(\"%s\");\n\n", "magforces");
+
+    fprintf(fp, "subplot(2,3,5);hold on;\n");
+    fprintf(fp, "plot(results(:,1),results(:,6),'*-');\n");
+    //fprintf(fp, "plot(results(:,1),results(:,9),'*-');\n");
+    fprintf(fp, "title(\"%s\");\n\n", "ICoil");
+
+    fprintf(fp, "subplot(2,3,6);hold on;\n");
+    fprintf(fp, "plot(results(:,1),results(:,7),'*-');\n");
+    fprintf(fp, "title(\"%s\");\n", "PhiCoil");
+
+    fclose(fp);
     cudaFree(d_Flux);
     cudaFree(d_FluxArray);
 }
@@ -635,7 +716,7 @@ void solveWeakCouple(int step)
         i_tmp = current[step - 1];
     }
 
-    int maxstep = 100;
+    int maxstep = 20;
 
     double* a, * b, error, * d_error;
     cudaMalloc(&a, m_num_nodes * sizeof(double));
@@ -643,21 +724,36 @@ void solveWeakCouple(int step)
     cudaMalloc(&d_error, sizeof(double));
     for (int i = 0; i < maxstep; ++i) {
         error = 1;
-        updateLoad << <CudaBlckNum, CudaThrdNum >> > (m_num_triele, d_mp_triele, i_tmp);
+        //updateLoad << <CudaBlckNum, CudaThrdNum >> > (m_num_triele, d_mp_triele, i_tmp);
+        for (int n = 0; n < m_num_triele; ++n) {
+            double Jor = i_tmp * 2400 / 0.0147 / 0.011687;
+            if (mp_triele[n].domain == 7) {
+                mp_triele[n].J = Jor;
+            }
+        }
+        cudaMemcpy(d_mp_triele, mp_triele, m_num_triele * sizeof(CTriElement), cudaMemcpyHostToDevice);
+
         cudaDeviceSynchronize();
         for (int iter = 0; iter < 30000; ++iter) {
             UpdateSolutiontoA1 << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node);
+            //calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
+            //cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
             //cudaDeviceSynchronize();
             if (iter % 100 == 0) {
                 calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_triele, d_mp_node, a, b, d_error);
                 cudaMemcpy(&error, d_error, sizeof(double), cudaMemcpyDeviceToHost);
                 printf("iter: %d, error: %.20f\n", iter, error);
             }
+
             //printf("iter: %d, error: %.20f\n", iter, error);
             UpdateAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-            if (error < 1e-5) break;
+            if (error < 1e-5) {
+                staticsteps = iter;
+                break;
+            }
         }
         cudaDeviceSynchronize();
+        dynamicsteps += staticsteps;
         //solveFlux << <CudaBlckNum, CudaThrdNum >> > (m_num_triele, d_mp_triele, d_mp_node, d_FluxArray, d_Flux);
         //cudaDeviceSynchronize();
         //cudaMemcpy(&flux_tmp, &d_FluxArray[0], sizeof(double), cudaMemcpyDeviceToHost);
@@ -827,7 +923,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
     int RelaxCount, count = 0;
     double RelaxFactor = 1;
     double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{ 0, 0, 0 };
-    int NRCount = 100;
+    int NRCount = 10;
     if (d_MyNode[i].bdr != 1)
     {
         At = 0; dAt = 0; NRerror = 1; count = 0;
@@ -870,22 +966,22 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                 {
                     B2 = -1 / d_MyElem[ID].area * (d_MyElem[ID].C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + d_MyElem[ID].C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + d_MyElem[ID].C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
                     B = sqrt(B2) / d_MyElem[ID].xdot;
-                    Vt = getV(B) / d_MyElem[ID].xdot;
-                    VB2 = getdVdB2(B);
+                    //Vt = getV(B) / d_MyElem[ID].xdot;
+                    //VB2 = getdVdB2(B);
                     
-                    //if (B <= 0.6) {
-                    //    Vt = 500;
-                    //}
-                    //else {
-                    //    Vt =  500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
-                    //}
-                    //Vt = Vt / d_MyElem[ID].xdot;
-                    //if (B <= 0.6) {
-                    //    VB2 =  0;
-                    //}
-                    //else {
-                    //    VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
-                    //}
+                    if (B <= 0.6) {
+                        Vt = 500;
+                    }
+                    else {
+                        Vt =  500 + 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6) / B;
+                    }
+                    Vt = Vt / d_MyElem[ID].xdot;
+                    if (B <= 0.6) {
+                        VB2 =  0;
+                    }
+                    else {
+                        VB2 = (B * 9000.0 * (B - 0.6) * (B - 0.6) - 3000.0 * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+                    }
 
                     B2A = -1 / d_MyElem[ID].area * (2 * d_MyElem[ID].C[nodenumber][0] * (At - AtLocal[0]) + 2 * d_MyElem[ID].C[nodenumber][1] * (At - AtLocal[1]) + 2 * d_MyElem[ID].C[nodenumber][2] * (At - AtLocal[2])) / d_MyElem[ID].xdot;
                     J0 = B2A * VB2 * RHSContri / d_MyElem[ID].xdot / d_MyElem[ID].xdot + Vt * d_MyElem[ID].C[nodenumber][nodenumber];
@@ -913,7 +1009,7 @@ __global__ void UpdateSolutiontoA1(int m_num_nodes, CTriElement* d_MyElem, CNode
                 break;
             }
             if (NRerror > 1e-6) {
-                //count++;
+                count++;
                 continue;
             }
             else {
@@ -1072,6 +1168,16 @@ __device__ double getV(double B) {
     getkHb(B, &slope, &H, &b);
     if (B / H < 3.1415927 * 4e-7)  return 1 / (3.1415927 * 4e-7);
     return H / B;
+
+    //if (B <= 0.6) {
+    //    double H = 663.146 * B;
+    //    return 663.146;
+    //}
+    //else if (B > 0.6) {
+    //    double H = 663.146 * B + 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6);
+    //    return H / B;
+    //    ////return 0.002;
+    //}
 }
 
 __device__ double getdVdB2(double B) {
@@ -1086,6 +1192,14 @@ __device__ double getdVdB2(double B) {
     if (B < 1e-9) return 0;
     getkHb(B, &slope, &H, &b);
     return -b / (B * B * B * 2);
+
+    //if (B <= 0.6) {
+    //    return 0;
+    //}
+    //else if (B > 0.6) {
+    //    double dvdB2 = (18000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * B - 3000 * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6) * (B - 0.6)) / B / B / 2 / B;
+    //    return dvdB2;
+    //}
 }
 
 __device__ double getkHb(double B, double* k, double* H, double* b) {

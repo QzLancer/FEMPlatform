@@ -11,8 +11,8 @@
 #include <iostream>
 #include <time.h>
 
-std::string analysistype = "dynamic";
-std::string solvestrategy = "NDDR";
+std::string analysistype = "static";
+std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 30000;
@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     //QCoreApplication a(argc, argv);
 
     FEMCore core;
-    FEMModel* model = new RelayModelwithoutBand;
+    FEMModel* model = new FEMContactorNonLinearModel;
     model->init();
 
     core.setModel(model);

@@ -31,49 +31,26 @@ void FEM2DNDDRCUDASolver::solveStatic()
 	cudaEventCreate(&stop);
 	cudaEventRecord(start, 0);
 
-	if (dimension == FEMModel::DIMENSION::D2AXISM) {
-		for (int iter = 0; iter < maxitersteps; ++iter) {
-			nodeAnalysisAxism << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
-			calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
-			cudaDeviceSynchronize();
+	cout << "CudaBlckNum: " << CudaBlckNum << "CudaThrdNum: " << CudaThrdNum << endl;
+	for (int iter = 0; iter < maxitersteps; ++iter) {
+		nodeAnalysisAxism << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
+		calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
+		cudaDeviceSynchronize();
 
-			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-			if ((iter + 1 ) % 100 == 0) {
-				cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-			}
-			if (error > maxerror) {
-				copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-			}
-			else {
-				cout << "Iteration step: " << iter + 1 << endl;
-				cout << "Nonlinear NDDR iteration finish.\n";
-				break;
-			}
-			//copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-
+		cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//if ((iter + 1 ) % 100 == 0) {
+		//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//}
+		if (error > maxerror) {
+			copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
 		}
-	}
-	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
-		for (int iter = 0; iter < maxitersteps; ++iter) {
-			nodeAnalysisPlane << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele);
-			//calculateGlobalError << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node, d_mp_triele, a, b);
-			//cudaDeviceSynchronize();
-
-			//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-			//if ((iter + 1) % 100 == 0) {
-			//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-			//}
-			//if (error > maxerror) {
-			//	copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
-			//}
-			//else {
-			//	cout << "Iteration step: " << iter + 1 << endl;
-			//	cout << "Nonlinear NDDR iteration finish.\n";
-			//	break;
-			//}
-
-			//copyAtoAold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+		else {
+			cout << "Iteration step: " << iter + 1 << endl;
+			cout << "Nonlinear NDDR iteration finish.\n";
+			break;
 		}
+		//copyAttoAtold << <CudaBlckNum, CudaThrdNum >> > (m_num_nodes, d_mp_node);
+
 	}
 	cudaDeviceSynchronize();
 	cudaEventRecord(stop, 0);
@@ -104,7 +81,160 @@ void FEM2DNDDRCUDASolver::solveStatic()
 
 void FEM2DNDDRCUDASolver::solveDynamic()
 {
+	//COMSOL动态特性
+	string name = "RelayDynamic";
 
+	const int n = 101;
+	current = new double[n];
+	dis = new double[n];
+	velocity = new double[n];
+	acc = new double[n];
+	magneticforce = new double[n];
+	springforce = new double[n];
+	flux = new double[n];
+	mass = 0.024;
+	h = 5e-4;
+	U = 24;
+	R = 40;
+
+	dis[0] = 0;
+	velocity[0] = 0;
+	acc[0] = 0;
+	springforce[0] = solveSpringForce(4, 0);
+	magneticforce[0] = 0;
+	current[0] = 0;
+	flux[0] = 0;
+	
+
+	bool stopflag = false;
+
+	for (int i = 1; i < n; ++i) {
+		cout << "solve step " << i << "...\n";
+
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i - 1];
+		dis[i] = dis[i - 1] + h * velocity[i - 1];
+
+		if (dis[i] >= 0.0024) {
+			dis[i] = 0.0024;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+
+
+		//梯形法计算
+		//springforce[i] = solveSpringForce(1, dis[i]);
+		//acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		//if (acc[i] < 0) acc[i] = 0;
+		//velocity[i] = velocity[i - 1] + 0.5 * h * (acc[i] + acc[i - 1]);
+		//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
+
+		//后向欧拉法计算
+		springforce[i] = solveSpringForce(4, dis[i]);
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i];
+		dis[i] = dis[i - 1] + h * velocity[i];
+
+		if (dis[i] >= 0.0024) {
+			dis[i] = 0.0024;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+		//当前位置时的磁场-电路耦合
+		//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
+		if (dis[i] - dis[i - 1] != 0) {
+			string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NDDR/modelwithband_";
+			meshfile += to_string(i) + ".mphtxt";
+			meshmanager->readMeshFile(meshfile);
+			setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+			setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+			setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+			setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		}
+		//updateLoadmap(3, current[i]);
+		//solveStatic();
+		solveWeakCouple(i);
+		solveMagneticForce();
+		magneticforce[i] = Fy;
+		springforce[i] = solveSpringForce(4, dis[i]);
+
+		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
+	}
+
+	for (int i = 0; i < n; ++i) {
+		printf("time: %f, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f, current: %f, flux: %f\n", i * h, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i], current[i], flux[i]);
+	}
+
+	//写入结果文件
+	char fn[256];
+	sprintf(fn, "%s.m", "RelayDynamic");
+	FILE* fp;
+	fp = fopen(fn, "w");
+	fprintf(fp, "%%output by FEEM\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
+
+	fprintf(fp, "results = [\n");
+	for (int i = 0; i < n; ++i) {
+		fprintf(fp, "%10.8e,", i * h);
+		fprintf(fp, "%10.8e,", dis[i]);
+		fprintf(fp, "%10.8e,", velocity[i]);
+		fprintf(fp, "%10.8e,", acc[i]);
+		fprintf(fp, "%10.8e,", magneticforce[i]);
+		fprintf(fp, "%10.8e,", current[i]);
+		fprintf(fp, "%10.8e,", flux[i]);
+		fprintf(fp, "; \n");
+	}
+	fprintf(fp, "];\n");
+
+	fprintf(fp, "subplot(2,3,1);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,2),'*-');\n");
+	//fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "displacement");
+
+	fprintf(fp, "subplot(2,3,2);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "velocities");
+
+	fprintf(fp, "subplot(2,3,3);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,4),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "accelerations");
+
+	fprintf(fp, "subplot(2,3,4);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,5),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "magforces");
+
+	fprintf(fp, "subplot(2,3,5);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,6),'*-');\n");
+	//fprintf(fp, "plot(results(:,1),results(:,9),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "ICoil");
+
+	fprintf(fp, "subplot(2,3,6);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,7),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n", "PhiCoil");
+
+	fclose(fp);
+
+	delete[] flux;
+	delete[] springforce;
+	delete[] magneticforce;
+	delete[] acc;
+	delete[] velocity;
+	delete[] dis;
+	delete[] current;
 }
 
 FEM2DNDDRCUDASolver::~FEM2DNDDRCUDASolver()
@@ -125,6 +255,53 @@ FEM2DNDDRCUDASolver::~FEM2DNDDRCUDASolver()
 	//	cudaFree(mp_node);
 	//	mp_node = nullptr;
 	//}
+}
+
+void FEM2DNDDRCUDASolver::solveWeakCouple(int step)
+{
+	double i_tmp, flux_tmp, L_tmp, dfluxdt, f, dfdi;
+	if (step == 1) {
+		i_tmp = 0.01;
+	}
+	else {
+		i_tmp = current[step - 1];
+	}
+
+	int maxstep = 10;
+
+	for (int i = 0; i < maxstep; ++i) {
+		updateLoadmap(/*3*/7, i_tmp);
+		solveStatic();
+		flux_tmp = solveFlux(/*3*/7);
+		L_tmp = flux_tmp / i_tmp;
+		dfluxdt = (flux_tmp - flux[step - 1]) / h;
+		f = i_tmp * R + dfluxdt - U;
+		dfdi = R + L_tmp / h;
+		i_tmp = i_tmp - f / dfdi;
+		cout << "flux_tmp: " << flux_tmp << ", i_tmp: " << i_tmp << ", error: " << abs(f / dfdi / i_tmp) << endl;
+		if (abs(f / dfdi / i_tmp) < 1e-6)
+			break;
+	}
+	current[step] = i_tmp;
+	flux[step] = flux_tmp;
+}
+
+double FEM2DNDDRCUDASolver::solveFlux(int domain)
+{
+	double flux = 0;
+	CTriElement triele;
+	int n0, n1, n2;
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		triele = mp_triele[i_tri];
+		if (triele.domain != domain)
+			continue;
+		n0 = triele.n[0];
+		n1 = triele.n[1];
+		n2 = triele.n[2];
+		//cout << triele.material->getFEMCoil().tau;
+		flux += 2 * PI * materialmap[domain]->getFEMCoil().tau * triele.area * (mp_node[n0].At + mp_node[n1].At + mp_node[n2].At) / 3;
+	}
+	return flux;
 }
 
 //void FEM2DNDDRCUDASolver::setNodes(const int _numofnodes, CNode* const _nodes)
@@ -282,7 +459,7 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 	if (d_mp_node[n].bdr == 1)
 		return;
 	//节点内部迭代过程
-	int maxNRitersteps = 6;
+	int maxNRitersteps = 100;
 	double Ati = 0;
 	for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 		double S = 0, F = 0;
@@ -292,13 +469,12 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 			int i_tri = d_mp_node[n].NeighbourElementId[k];
 			CTriElement triele = d_mp_triele[i_tri];
 			int nodenumber = d_mp_node[n].NeighbourElementNumber[k];
-			//double mu = triele.material->getMuinDevice(d_mp_triele[i_tri].B);
-			double mut = triele.material->getMuinDevice(d_mp_triele[i_tri].B) * triele.xdot;
 			//printf("TriElement: %d, Mu: %f\n", i_tri, mu);
 			//__syncthreads();
 			//处理线性单元
 			if (triele.material->getLinearFlaginDevice() == true) {
 				for (int i = 0; i < 3; ++i) {
+					double mut = 4 * PI * 1e-7 * triele.xdot;
 					double Se = triele.C[nodenumber][i] / mut;
 					if (nodenumber == i) {
 						S += Se;
@@ -314,10 +490,23 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 			}
 			//处理非线性单元
 			else {
-				double dvdb, dvdbt, Bt, sigmai[3]{0, 0, 0};
-				dvdb = triele.material->getdvdBinDevice(d_mp_triele[i_tri].B);
+				double mu, mut, dvdb, dvdbt, B, B2, Bt, sigmai[3]{ 0, 0, 0 }, AtLocal[3]{ 0 ,0, 0 };
+				for (int m = 0; m < 3; ++m) {
+					if (m == nodenumber) {
+						AtLocal[m] = Ati;
+					}
+					else {
+						AtLocal[m] = d_mp_node[triele.n[m]].At_old;
+					}
+				} 
+				//B2 = -1 / triele.area * (triele.C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + triele.C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + triele.C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
+				//B = sqrt(B2) / triele.xdot;	//计算B，用于处理非线性
+				//triele.B = B;
+				mu = triele.material->getMuinDevice(triele.B);
+				mut = mu * triele.xdot;
+				dvdb = triele.material->getdvdBinDevice(triele.B);
 				dvdbt = dvdb / triele.xdot / triele.xdot;
-				Bt = d_mp_triele[i_tri].B * triele.xdot;
+				Bt = triele.B * triele.xdot;
 				for (int i = 0; i < 3; ++i) {
 					for (int m = 0; m < 3; ++m) {
 						if (m == nodenumber) {
@@ -327,16 +516,6 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 							sigmai[i] += triele.C[i][m] * d_mp_node[triele.n[m]].At_old;
 						}
 					}
-					//for (int j = 0; j < 3; ++j) {
-					//	for (int m = 0; m < 3; ++m) {
-					//		if (m == nodenumber) {
-					//			sigmaj += triele.C[j][m] * Ati;
-					//		}
-					//		else {
-					//			sigmaj += triele.C[j][m] * d_mp_node[triele.n[m]].At_old;
-					//		}
-					//	}
-					//}
 				}
 				for (int i = 0; i < 3; ++i) {
 					if (Bt != 0) {
@@ -364,23 +543,30 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 		if (Ati == 0) {
 			continue;
 		}
-		if (NRerror > 1e-5) {
+		if (NRerror > 1e-6) {
 			d_mp_node[n].At = Ati;
 			d_mp_node[n].A = d_mp_node[n].At / d_mp_node[n].x;
 			for (int i = 0; i < d_mp_node[n].NumberofNeighbourElement; ++i) {
 				//updateB
-				double bx = 0, by = 0;
 				int i_tri = d_mp_node[n].NeighbourElementId[i];
-				for (int j = 0; j < 3; ++j) {
-					int n = d_mp_triele[i_tri].n[j];
-					bx += d_mp_triele[i_tri].R[j] * d_mp_node[n].A;
-					by += d_mp_triele[i_tri].Q[j] * d_mp_node[n].A;
+				int nodenumber = d_mp_node[n].NeighbourElementNumber[i];
+				double bx = 0, by = 0;
+				for (int m = 0; m < 3; ++m) {
+					int n = d_mp_triele[i_tri].n[m];
+					if (m == nodenumber) {
+						bx += d_mp_triele[i_tri].R[m] * Ati;
+						by += d_mp_triele[i_tri].Q[m] * Ati;
+					}
+					else {
+						bx += d_mp_triele[i_tri].R[m] * d_mp_node[n].At_old;
+						by += d_mp_triele[i_tri].Q[m] * d_mp_node[n].At_old;
+					}
 				}
-				bx = bx / 2 / d_mp_triele[i_tri].area;
+				bx = bx / 2 / d_mp_triele[i_tri].area / d_mp_triele[i_tri].xdot;
 				d_mp_triele[i_tri].Bx = bx;
-				by = -by / 2 / d_mp_triele[i_tri].area;
+				by = -by / 2 / d_mp_triele[i_tri].area / d_mp_triele[i_tri].xdot;
 				d_mp_triele[i_tri].By = by;
-				d_mp_triele[i_tri].B = sqrtf(bx * bx + by * by);
+				d_mp_triele[i_tri].B = sqrt(bx * bx + by * by);
 			}
 		}
 		else {

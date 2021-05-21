@@ -10,7 +10,8 @@ public:
     virtual void solveStatic() override;
 	virtual void solveDynamic() override;
 	virtual ~FEM2DNDDRCUDASolver() override;
-
+	virtual void solveWeakCouple(int step) override;
+	virtual double solveFlux(int domain) override;
 	//virtual void setNodes(const int _numofnodes, CNode* const _nodes) override;
 	//virtual void setVtxElements(const int _numofvtx, CVtxElement* const _vtxele) override;
 	//virtual void setEdgElements(const int _numofedg, CEdgElement* const _edgele) override;
@@ -22,7 +23,7 @@ public:
 protected:
 
 private:
-	int CudaThrdNum = 300;
+	int CudaThrdNum = 128;
 	int CudaBlckNum = 256;
 
 	CNode* d_mp_node;

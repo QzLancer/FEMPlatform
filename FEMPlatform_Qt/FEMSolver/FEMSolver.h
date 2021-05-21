@@ -98,5 +98,7 @@ protected:
 	double* flux;
 	double mass;
 	double h, U, R;
+	int staticsteps;
+	int dynamicsteps;
 };
 

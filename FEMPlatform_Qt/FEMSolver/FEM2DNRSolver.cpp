@@ -221,6 +221,8 @@ void FEM2DNRSolver::solveDynamic()
 	h = 5e-4;
 	U = 24;
 	R = 40;
+	int dynamicstepsarray[n];
+	double time[n];
 
 	dis[0] = 0;
 	velocity[0] = 0;
@@ -229,9 +231,15 @@ void FEM2DNRSolver::solveDynamic()
 	magneticforce[0] = 0;
 	current[0] = 0;
 	flux[0] = 0;
+	dynamicstepsarray[0] = 0;
+	time[0] = 0;
 
 	bool stopflag = false;
+	vector<int> air_domain{ 1, 2, 3, 6 };
 	for (int i = 1; i < n; ++i) {
+		dynamicsteps = 0;
+		clock_t start, end;
+		start = clock();
 		cout << "solve step " << i << "...\n";
 
 		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
@@ -294,7 +302,13 @@ void FEM2DNRSolver::solveDynamic()
 		solveMagneticForce();
 		magneticforce[i] = Fy;
 		springforce[i] = solveSpringForce(4, dis[i]);
+		writeVtkFile(name + "_" + to_string(i));
+		writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
 
+		dynamicstepsarray[i] = dynamicsteps;
+		end = clock();
+		time[i] = double(end - start) / CLOCKS_PER_SEC;
+		printf("dynamicsteps: %d, time: %f\n", dynamicstepsarray[i], time[i]);
 		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
 	}
 
@@ -308,7 +322,7 @@ void FEM2DNRSolver::solveDynamic()
 	FILE* fp;
 	fp = fopen(fn, "w");
 	fprintf(fp, "%%output by FEEM\n");
-	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux, steps, time\n");
 
 	fprintf(fp, "results = [\n");
 	for (int i = 0; i < n; ++i) {
@@ -319,6 +333,8 @@ void FEM2DNRSolver::solveDynamic()
 		fprintf(fp, "%10.8e,", magneticforce[i]);
 		fprintf(fp, "%10.8e,", current[i]);
 		fprintf(fp, "%10.8e,", flux[i]);
+		fprintf(fp, "%d,", dynamicstepsarray[i]);
+		fprintf(fp, "%10.8e,", time[i]);
 		fprintf(fp, "; \n");
 	}
 	fprintf(fp, "];\n");
@@ -500,11 +516,12 @@ void FEM2DNRSolver::solve2DAxim()
 			}
 		}
 		else {
+			staticsteps = step + 1;
 			cout << "Nonlinear iteration finish.\n";
 			return;
 		}
 	}
-
+	staticsteps = maxitersteps;
 	cout << "Warning: Number of iterations out of limit.\n";
 }
 

@@ -63,6 +63,8 @@ void FEM2DNDDRSolver::solveDynamic()
 	h = 5e-4;
 	U = 24;
 	R = 40;
+	int dynamicstepsarray[n];
+	double time[n];
 
 	dis[0] = 0;
 	velocity[0] = 0;
@@ -71,9 +73,18 @@ void FEM2DNDDRSolver::solveDynamic()
 	magneticforce[0] = 0;
 	current[0] = 0;
 	flux[0] = 0;
+	dynamicstepsarray[0] = 0;
+	time[0] = 0;
 
 	bool stopflag = false;
+
+
+	clock_t start, end;
+	start = clock();
 	for (int i = 1; i < n; ++i) {
+		clock_t start, end;
+		start = clock();
+		dynamicsteps = 0;
 		cout << "solve step " << i << "...\n";
 
 		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
@@ -121,8 +132,8 @@ void FEM2DNDDRSolver::solveDynamic()
 
 		//当前位置时的磁场-电路耦合
 		//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
-		if (dis[i] - dis[i - 1] != 0) {
-			string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NR/modelwithband_";
+		if (/*dis[i] - dis[i - 1] != 0*/i >= 30 && i <= 46) {
+			string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NDDR/modelwithband_";
 			meshfile += to_string(i) + ".mphtxt";
 			meshmanager->readMeshFile(meshfile);
 			setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
@@ -137,7 +148,13 @@ void FEM2DNDDRSolver::solveDynamic()
 		magneticforce[i] = Fy;
 		springforce[i] = solveSpringForce(4, dis[i]);
 
+		dynamicstepsarray[i] = dynamicsteps;
+		end = clock();
+		time[i] = double(end - start) / CLOCKS_PER_SEC;
+		printf("dynamicsteps: %d, time: %f\n", dynamicstepsarray[i], time[i]);
 		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
+
+
 	}
 
 	for (int i = 0; i < n; ++i) {
@@ -150,7 +167,7 @@ void FEM2DNDDRSolver::solveDynamic()
 	FILE* fp;
 	fp = fopen(fn, "w");
 	fprintf(fp, "%%output by FEEM\n");
-	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux, steps, time\n");
 
 	fprintf(fp, "results = [\n");
 	for (int i = 0; i < n; ++i) {
@@ -161,6 +178,8 @@ void FEM2DNDDRSolver::solveDynamic()
 		fprintf(fp, "%10.8e,", magneticforce[i]);
 		fprintf(fp, "%10.8e,", current[i]);
 		fprintf(fp, "%10.8e,", flux[i]);
+		fprintf(fp, "%d,", dynamicstepsarray[i]);
+		fprintf(fp, "%10.8e,", time[i]);
 		fprintf(fp, "; \n");
 	}
 	fprintf(fp, "];\n");
@@ -494,6 +513,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 			}
 		}
 		else {
+			staticsteps = iter;
 			cout << "Iteration step: " << iter + 1 << endl;
 			cout << "Nonlinear NDDR iteration finish.\n";
 			return;
