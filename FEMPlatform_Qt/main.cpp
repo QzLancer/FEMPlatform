@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     */
 
     FEMCore core;
-    FEMModel* model = new FEMContactorLinearModel;
+    FEMModel* model = new FEMContactorNonLinearModel;
     model->init();
 
     core.setModel(model);

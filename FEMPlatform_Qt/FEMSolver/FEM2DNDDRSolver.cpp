@@ -669,7 +669,6 @@ void FEM2DNDDRSolver::solve2DAximOpt()
 				continue;
 			}
 
-
 			double S = 0, F = 0, NA = 0;
 			double M = 0;
 			double Se[3] = { 0, 0, 0 };
@@ -677,8 +676,9 @@ void FEM2DNDDRSolver::solve2DAximOpt()
 				int i_tri = mp_node[n].NeighbourElementId[k];	//通过单元在子域内的编号检索单元的全局编号
 				CTriElement triele = mp_triele[i_tri];
 				int nodenumber = mp_node[n].NeighbourElementNumber[k];	//该子域中心节点对应的单元局部编号
-				double mut = triele.material->getMu(triele.B) * triele.xdot;
-
+				double mu = triele.material->getMu(triele.B);
+				double mut = mu * triele.xdot;
+				//--------------------------------------单元分析
 				if (triele.material->getLinearFlag() == true) {
 					for (int i = 0; i < 3; ++i) {
 						Se[i] = triele.C[nodenumber][i] / mut;
@@ -687,46 +687,78 @@ void FEM2DNDDRSolver::solve2DAximOpt()
 						}
 					} 
 					M += Se[nodenumber];
-					F += (Se[0] * mp_node[triele.n[0]].At + Se[1] * mp_node[triele.n[1]].At + Se[2] * mp_node[triele.n[2]].At - triele.J * triele.area / 3);
+					F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
 				}
 				else
 				{
-					cout << "error: nonlinear element!!" << endl;
-					exit;
+					//-------------------------------------计算单元的Jacobi矩阵
+					double dvdb, dvdbt, Bt, sigmai[3]{ 0, 0, 0 }, J[3]{ 0, 0, 0 };
+					dvdb = triele.material->getdvdB(triele.B);
+					dvdbt = dvdb / triele.xdot / triele.xdot;
+					Bt = triele.B * triele.xdot;
+					for (int i = 0; i < 3; ++i) {
+						Se[i] = triele.C[nodenumber][i] / mut;
+						for (int m = 0; m < 3; ++m) {
+							sigmai[i] += triele.C[i][m] * mp_node[triele.n[m]].At;
+						}
+						J[i] = triele.C[nodenumber][i] / mut;
+						if (Bt != 0) {
+							J[i] += dvdbt * sigmai[nodenumber] * sigmai[i] / Bt / triele.area;
+						}
+						if (i != nodenumber) {
+							NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
+						}
+					}
+					//-------------------------------------------------------
+					M += J[nodenumber];
+					F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
 				}
+				//----------------------------------------------
 			}
 			mp_node[n].delta_At = (NA - F) / M;
 		}
 
-		//-----------------------------------线性迭代收敛性判定
-		double error = 0, a = 0, b = 0;
+		//-----------------------------------线性迭代收敛性判定，这里的判定方式，是不是可以作一些修改呢？
+		double errorJacobi = 0, a = 0, b = 0;
 		for (int n = 0; n < m_num_nodes; ++n) {
 			a += (mp_node[n].delta_At - mp_node[n].delta_At_old) * (mp_node[n].delta_At - mp_node[n].delta_At_old);
 			b += mp_node[n].delta_At * mp_node[n].delta_At;
 		}
-		error = sqrt(a) / sqrt(b);
+		errorJacobi = sqrt(a) / sqrt(b);
 		if ((iter + 1) % 100 == 0) {
-			cout << "Jacobi Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+			cout << "Jacobi Iteration step: " << iter + 1 << ", Relative error: " << errorJacobi << endl;
 		}
 		//------------------------------------------------
 
 		//--------如果线性迭代误差不满足要求，将At替换成At + delta_At
-		if (error > maxerror) {
+		if (errorJacobi > maxerror) {
 			for (int n = 0; n < m_num_nodes; ++n) {
 				mp_node[n].delta_At_old = mp_node[n].delta_At;
 			}
 		}
 		else {
-			cnt = 0;
+			double errorNR = 0, aNR = 0, bNR = 0;
 			for (int n = 0; n < m_num_nodes; ++n) {
 				mp_node[n].At += mp_node[n].delta_At;
-				cout << mp_node[n].delta_At << endl;
 				mp_node[n].delta_At_old = 0;
 				if (mp_node[n].x != 0) {
 					mp_node[n].A = mp_node[n].At / mp_node[n].x;
 				}
+				aNR += mp_node[n].delta_At * mp_node[n].delta_At;
+				bNR += mp_node[n].At * mp_node[n].At;
 			}
 			updateB();
+			errorNR = sqrt(aNR) / sqrt(bNR);
+			cout << "errorNR: " << errorNR << endl << endl;
+			if (errorNR < maxerror) {
+				return;
+			}
+			else
+			{
+				for (int n = 0; n < m_num_nodes; ++n) {
+					mp_node[n].At_old = mp_node[n].At;
+				}
+			}
 		}
 		//------------------------------------------------------
 	}
