@@ -33,9 +33,8 @@ void FEM2DNDDRSolver::solveStatic()
 	clock_t start, end;
 	start = clock();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
-		//solve2DAxim();
-		solve2DAxim1();
-		//solve2DAxim2();
+		solve2DAxim1();	//最初版本的NDDR算法
+		//solve2DAximOpt();	//优化后的NDDR算法
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
 		//solve2DPlane();
@@ -513,6 +512,9 @@ void FEM2DNDDRSolver::solve2DAxim1()
 			}
 		}
 		else {
+			for (int i = 0; i < m_num_nodes; ++i) {
+				cout << mp_node[i].At << endl;
+			}
 			staticsteps = iter;
 			cout << "Iteration step: " << iter + 1 << endl;
 			cout << "Nonlinear NDDR iteration finish.\n";
@@ -658,6 +660,105 @@ void FEM2DNDDRSolver::solve2DAxim2()
 //			mp_node[i].At_old = mp_node[i].At;
 //		}
 		updateB();
+	}
+}
+
+void FEM2DNDDRSolver::solve2DAximOpt()
+{
+	//vector<double> At_old(m_num_nodes, 0);
+	for (int iter = 0; iter < maxitersteps; ++iter) {
+		//cout << "Iteration step " << iter + 1 << " start." << endl;
+#pragma omp parallel for num_threads(8)
+		for (int n = 0; n < m_num_nodes; ++n) {
+			if (mp_node[n].bdr == 1) {
+				continue;
+			}
+
+
+			double S = 0, F = 0, NA = 0;
+			double M = 0;
+			double Se[3] = { 0, 0, 0 };
+			for (int k = 0; k < mp_node[n].NumberofNeighbourElement; ++k) {
+				int i_tri = mp_node[n].NeighbourElementId[k];	//通过单元在子域内的编号检索单元的全局编号
+				CTriElement triele = mp_triele[i_tri];
+				int nodenumber = mp_node[n].NeighbourElementNumber[k];	//该子域中心节点对应的单元局部编号
+				double mut = triele.material->getMu(triele.B) * triele.xdot;
+
+				if (triele.material->getLinearFlag() == true) {
+					for (int i = 0; i < 3; ++i) {
+						Se[i] = triele.C[nodenumber][i] / mut;
+						if (i != nodenumber) {
+							NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
+						}
+					} 
+					M += Se[nodenumber];
+					F += (Se[0] * mp_node[triele.n[0]].At + Se[1] * mp_node[triele.n[1]].At + Se[2] * mp_node[triele.n[2]].At - triele.J * triele.area / 3);
+				}
+				else
+				{
+					cout << "error: nonlinear element!!" << endl;
+					exit;
+				}
+			}
+			mp_node[n].delta_At = (NA - F) / M;
+
+		}
+
+		//-----------------------------------线性迭代收敛性判定
+		double error = 0, a = 0, b = 0;
+		for (int i = 0; i < m_num_nodes; ++i) {
+			a += (mp_node[i].delta_At - mp_node[i].delta_At_old) * (mp_node[i].delta_At - mp_node[i].delta_At_old);
+			b += mp_node[i].delta_At * mp_node[i].delta_At;
+		}
+		error = sqrt(a) / sqrt(b);
+		if ((iter + 1) % 100 == 0) {
+			cout << "Jacobi Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		}
+		//------------------------------------------------
+
+		//如果线性迭代误差不满足要求，将At替换成At + delta_At
+		if (error > maxerror) {
+			for (int i = 0; i < m_num_nodes; ++i) {
+				mp_node[i].delta_At_old = mp_node[i].delta_At;
+			}
+		}
+		else {
+			for (int i = 0; i < m_num_nodes; ++i) {
+				cout << mp_node[i].delta_At << endl;
+				mp_node[i].At += mp_node[i].delta_At;
+				mp_node[i].delta_At_old = 0;
+			}
+		}
+		//---------------------------------------------
+
+		////判断全局收敛性
+		//double error = 0, a = 0, b = 0;
+		//for (int i = 0; i < m_num_nodes; ++i) {
+		//	a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
+		//	b += mp_node[i].At * mp_node[i].At;
+		//}
+		//error = sqrt(a) / sqrt(b);
+		////cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+
+		//if ((iter + 1) % 100 == 0) {
+		//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//}
+		//if (error > maxerror) {
+		//	for (int i = 0; i < m_num_nodes; ++i) {
+		//		mp_node[i].At_old = mp_node[i].At;
+		//	}
+		//}
+		//else {
+		//	staticsteps = iter;
+		//	cout << "Iteration step: " << iter + 1 << endl;
+		//	cout << "Nonlinear NDDR iteration finish.\n";
+		//	return;
+		//}
+		//#pragma omp parallel for num_threads(8)
+		//		for (int i = 0; i < m_num_nodes; ++i) {
+		//			mp_node[i].At_old = mp_node[i].At;
+		//		}
+
 	}
 }
 
