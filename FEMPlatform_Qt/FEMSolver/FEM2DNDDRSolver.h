@@ -11,6 +11,7 @@ public:
 	void solve2DAxim();
 	void solve2DAxim1();
 	void solve2DAxim2();
+	void solve2DAximOpt();
 	void solve2DPlane();
 	void solve2DPlane1();
 	void solve2DPlane2();

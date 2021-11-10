@@ -11,6 +11,8 @@ struct CNode
     double A_old{ 0 };
     double At{ 0 };
     double At_old{ 0 };
+    double delta_At{ 0 };
+    double delta_At_old{ 0 };
     int NumberofNeighbourElement{ 0 };
     int NeighbourElementId[15];	//和节点相关的单元编号
     int NeighbourElementNumber[15];	//节点在对应单元中的编号

@@ -12,18 +12,25 @@
 #include <time.h>
 
 std::string analysistype = "static";
-std::string solvestrategy = "NR";
+std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 30000;
-double maxerror = 1e-6;
+int maxitersteps = 100000;
+double maxerror = 1e-5;
 
 int main(int argc, char *argv[])
 {
     //QCoreApplication a(argc, argv);
 
+    /*
+    Model:
+        FEMContactorLinearModel
+        FEMContactorNonLinearModel
+        RelayModelwithoutBand
+    */
+
     FEMCore core;
-    FEMModel* model = new FEMContactorNonLinearModel;
+    FEMModel* model = new FEMContactorLinearModel;
     model->init();
 
     core.setModel(model);
