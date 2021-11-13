@@ -1,4 +1,4 @@
-#include <QCoreApplication>
+//#include <QCoreApplication>
 #include "FEMCore.h"
 #include "FEMModel/FEMContactorLinearModel.h"
 #include "FEMModel/FEMContactorNonLinearModel.h"
