@@ -34,7 +34,8 @@ void FEM2DNDDRSolver::solveStatic()
 	start = clock();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
 		//solve2DAxim1();	//最初版本的NDDR算法
-		solve2DAximOpt();	//优化后的NDDR算法
+		//solve2DAximOpt();	//第一次优化后的NDDR算法，这个算法存在的问题：Jacobi迭代取得的解并不精确，导致NR迭代的次数相比于直接法要多不少
+		solve2DAximOpt1();	//第二次优化NDDR算法，将收敛性分析整合到子域中。
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
 		//solve2DPlane();
@@ -663,7 +664,7 @@ void FEM2DNDDRSolver::solve2DAxim2()
 void FEM2DNDDRSolver::solve2DAximOpt()
 {
 	for (int iter = 0; iter < maxitersteps; ++iter) {
-//#pragma omp parallel for num_threads(8)
+		//#pragma omp parallel for num_threads(8)
 		for (int n = 0; n < m_num_nodes; ++n) {
 			if (mp_node[n].bdr == 1) {
 				continue;
@@ -685,7 +686,7 @@ void FEM2DNDDRSolver::solve2DAximOpt()
 						if (i != nodenumber) {
 							NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
 						}
-					} 
+					}
 					M += Se[nodenumber];
 					F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
 				}
@@ -761,6 +762,114 @@ void FEM2DNDDRSolver::solve2DAximOpt()
 			}
 		}
 		//------------------------------------------------------
+	}
+}
+
+void FEM2DNDDRSolver::solve2DAximOpt1()
+{
+	for (int iter = 0; iter < maxitersteps; ++iter) {
+//#pragma omp parallel for num_threads(8)
+		for (int n = 0; n < m_num_nodes; ++n) {
+			if (mp_node[n].bdr == 1) {
+				continue;
+			}
+
+			//节点内部迭代过程
+			int maxNRitersteps = 100;
+			for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
+				double S = 0, F = 0, NA = 0;
+				double M = 0;
+				double Se[3] = { 0, 0, 0 };
+				for (int k = 0; k < mp_node[n].NumberofNeighbourElement; ++k) {
+					int i_tri = mp_node[n].NeighbourElementId[k];	//通过单元在子域内的编号检索单元的全局编号
+					CTriElement triele = mp_triele[i_tri];
+					int nodenumber = mp_node[n].NeighbourElementNumber[k];	//该子域中心节点对应的单元局部编号
+					double mu = triele.material->getMu(triele.B);
+					double mut = mu * triele.xdot;
+					//--------------------------------------单元分析
+					if (triele.material->getLinearFlag() == true) {
+						for (int i = 0; i < 3; ++i) {
+							Se[i] = triele.C[nodenumber][i] / mut;
+							if (i != nodenumber) {
+								//NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
+							}
+						}
+						M += Se[nodenumber];
+						F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
+					}
+					else
+					{
+						//-------------------------------------计算单元的Jacobi矩阵
+						double dvdb, dvdbt, Bt, sigmai[3]{ 0, 0, 0 }, J[3]{ 0, 0, 0 };
+						dvdb = triele.material->getdvdB(triele.B);
+						dvdbt = dvdb / triele.xdot / triele.xdot;
+						Bt = triele.B * triele.xdot;
+						for (int i = 0; i < 3; ++i) {
+							Se[i] = triele.C[nodenumber][i] / mut;
+							for (int m = 0; m < 3; ++m) {
+								sigmai[i] += triele.C[i][m] * mp_node[triele.n[m]].At_old;
+							}
+							J[i] = triele.C[nodenumber][i] / mut;
+							if (Bt != 0) {
+								J[i] += dvdbt * sigmai[nodenumber] * sigmai[i] / Bt / triele.area;
+							}
+							if (i != nodenumber) {
+								//NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
+							}
+						}
+						//-------------------------------------------------------
+						M += J[nodenumber];
+						F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
+					}
+					//----------------------------------------------
+				}
+				mp_node[n].delta_At = (NA - F) / M;
+				double Ati = mp_node[n].At + mp_node[n].delta_At;
+				double a = mp_node[n].delta_At * mp_node[n].delta_At;
+				double b = Ati * Ati;
+				double NRerror = sqrt(a) / sqrt(b);
+				if (Ati == 0) {
+					continue;
+				}
+				if (NRerror > 1e-6) {
+					cout << "NRiter: " << NRiter << ", deltaAt: " << mp_node[n].delta_At << ", Ati: " << Ati << endl;
+					//mp_node[n].delta_At_old = mp_node[n].delta_At;
+					mp_node[n].At = Ati;
+					mp_node[n].A = Ati / mp_node[n].x;
+					for (int i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
+						updateB(mp_node[n].NeighbourElementId[i]);
+					}
+				}
+				else {
+					break;
+				}
+			}
+		}
+
+		//-------------------------------------------全局收敛性判定
+		double error = 0, a = 0, b = 0;
+		for (int i = 0; i < m_num_nodes; ++i) {
+			a += mp_node[i].delta_At * mp_node[i].delta_At;
+			b += mp_node[i].At * mp_node[i].At;
+		}
+		error = sqrt(a) / sqrt(b);
+		cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+
+		//if ((iter + 1) % 100 == 0) {
+		//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//}
+		if (error > maxerror) {
+			for (int i = 0; i < m_num_nodes; ++i) {
+				mp_node[i].At_old = mp_node[i].At;
+			}
+		}
+		else {
+			staticsteps = iter;
+			cout << "Iteration step: " << iter + 1 << endl;
+			cout << "Nonlinear NDDR iteration finish.\n";
+			return;
+		}
+		//------------------------------------------------
 	}
 }
 

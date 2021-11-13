@@ -16,7 +16,7 @@ std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 100000;
-double maxerror = 1e-5;
+double maxerror = 1e-6;
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     */
 
     FEMCore core;
-    FEMModel* model = new FEMContactorNonLinearModel;
+    FEMModel* model = new FEMContactorLinearModel;
     model->init();
 
     core.setModel(model);
