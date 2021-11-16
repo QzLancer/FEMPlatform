@@ -10,13 +10,14 @@
 
 #include <iostream>
 #include <time.h>
+#include <direct.h>
 
 std::string analysistype = "static";
-std::string solvestrategy = "NDDR";
+std::string solvestrategy = "NDDRGPU";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 100000;
-double maxerror = 1e-6;
+double maxerror = 1e-5;
 
 int main(int argc, char *argv[])
 {
@@ -29,8 +30,12 @@ int main(int argc, char *argv[])
         RelayModelwithoutBand
     */
 
+    char* buffer = getcwd(NULL, 0);
+    printf("%s\n", buffer);
+    free(buffer);
+
     FEMCore core;
-    FEMModel* model = new FEMContactorLinearModel;
+    FEMModel* model = new FEMContactorNonLinearModel;
     model->init();
 
     core.setModel(model);

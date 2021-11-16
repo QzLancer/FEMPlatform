@@ -115,7 +115,7 @@ void FEMSolver::setMaxError(const double _error)
 void FEMSolver::writeVtkFile(std::string _name)
 {
 	writeGeometryVtkFile(_name);
-	std::string name = std::string("D:/femplatform/result/");
+	std::string name = std::string("../result/");
 	name += _name;
 	name += "_";
 	name += /*to_string(m_num_nodes) +*/ std::string(".vtk");
@@ -205,7 +205,7 @@ void FEMSolver::writeVtkFile(std::string _name)
 
 void FEMSolver::writeTxtFile(std::string _name)
 {
-	std::string name = std::string("D:/femplatform/result/");
+	std::string name = std::string("../result/");
 	name += _name;
 	name += "_";
 	name += to_string(m_num_nodes) + std::string(".txt");
@@ -225,7 +225,7 @@ void FEMSolver::writeTxtFile(std::string _name)
 void FEMSolver::writeVtkFileNoAir(std::string _name, vector<int> air_domain)
 {
 	writeGeometryVtkFile(_name);
-	std::string name = std::string("D:/femplatform/result/");
+	std::string name = std::string("../../result/");
 	name += _name;
 	name += "_noAir";
 	name += /*to_string(m_num_nodes) +*/ std::string(".vtk");
@@ -315,7 +315,7 @@ void FEMSolver::writeVtkFileNoAir(std::string _name, vector<int> air_domain)
 
 void FEMSolver::writeGeometryVtkFile(std::string _name)
 {
-	std::string name = std::string("D:/femplatform/result/");
+	std::string name = std::string("../result/");
 	name += _name;
 	name += "_";
 	//name += to_string(m_num_nodes);

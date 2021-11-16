@@ -34,6 +34,7 @@ void FEM2DNDDRSolver::solveStatic()
 	start = clock();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
 		//solve2DAxim1();	//最初版本的NDDR算法
+		//solve2DAxim2();	//采用差值NR的最初版本NDDR算法
 		//solve2DAximOpt();	//第一次优化后的NDDR算法，这个算法存在的问题：Jacobi迭代取得的解并不精确，导致NR迭代的次数相比于直接法要多不少
 		solve2DAximOpt1();	//第二次优化NDDR算法，将收敛性分析整合到子域中。
 	}
@@ -529,7 +530,7 @@ void FEM2DNDDRSolver::solve2DAxim1()
 void FEM2DNDDRSolver::solve2DAxim2()
 {
 	for (int iter = 0; iter < maxitersteps; ++iter) {
-#pragma omp parallel for num_threads(8)
+//#pragma omp parallel for num_threads(8)
 		for (int i = 0; i < m_num_nodes; ++i) {
 			double A, At, dAt, Jac, k, J0, k0, NRerror, Js;
 			double B2, B, V, Vt, VB2, B2A;
@@ -540,7 +541,7 @@ void FEM2DNDDRSolver::solve2DAxim2()
 			double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{0, 0, 0};
 			if (mp_node[i].bdr != 1)
 			{
-				At = 0; dAt = 0; NRerror = 1; count = 0;
+				At = 0; dAt = 0; NRerror = 10; count = 0;
 				while (count < NRCount)
 				{
 					Jac = 0; k = 0;
@@ -571,10 +572,6 @@ void FEM2DNDDRSolver::solve2DAxim2()
 							Vt = 1.0 / mp_triele[ID].material->getMu(0) / mp_triele[ID].xdot;
 							J0 = Vt * mp_triele[ID].C[nodenumber][nodenumber];
 							k0 = Js - Vt * RHSContri;
-
-							//V = 1.0 / mp_triele[ID].material->getMu(0);
-							//J0 = V * mp_triele[ID].C[nodenumber][nodenumber];
-							//k0 = Js - V * RHSContri;
 						}
 
 						else	//非线性单元
@@ -586,14 +583,6 @@ void FEM2DNDDRSolver::solve2DAxim2()
 							B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[nodenumber][0] * (A - ALocal[0]) + 2 * mp_triele[ID].C[nodenumber][1] * (A - ALocal[1]) + 2 * mp_triele[ID].C[nodenumber][2] * (A - ALocal[2]));
 							J0 = B2A * VB2 * RHSContri / mp_triele[ID].xdot / mp_triele[ID].xdot + Vt * mp_triele[ID].C[nodenumber][nodenumber];
 							k0 = Js - Vt * RHSContri;
-
-							//B2 = -1 / mp_triele[ID].area * (mp_triele[ID].C[0][1] * (AtLocal[0] - AtLocal[1]) * (AtLocal[0] - AtLocal[1]) + mp_triele[ID].C[1][2] * (AtLocal[1] - AtLocal[2]) * (AtLocal[1] - AtLocal[2]) + mp_triele[ID].C[0][2] * (AtLocal[0] - AtLocal[2]) * (AtLocal[0] - AtLocal[2]));
-							//B = sqrt(B2);	//计算B，用于处理非线性
-							//V = 1.0 / mp_triele[ID].material->getMu(B);
-							//VB2 = mp_triele[ID].material->getdvdB2(B);
-							//B2A = -1 / mp_triele[ID].area * (2 * mp_triele[ID].C[nodenumber][0] * (A - AtLocal[0]) + 2 * mp_triele[ID].C[nodenumber][1] * (A - AtLocal[1]) + 2 * mp_triele[ID].C[nodenumber][2] * (A - AtLocal[2]));
-							//J0 = B2A * VB2 * RHSContri + V * mp_triele[ID].C[nodenumber][nodenumber];
-							//k0 = Js - V * RHSContri;
 						}
 
 						Jac = Jac + J0;
@@ -609,10 +598,12 @@ void FEM2DNDDRSolver::solve2DAxim2()
 						break;
 					}
 					if (NRerror > maxerror) {
+						//cout << "node: " << i << ", NRerror: " << NRerror << endl;
 						count++;
 						continue;
 					}
 					else {
+						//cout << "node: " << i << ", NRerror: " << NRerror << endl;
 						//if (NRiter != 1) {
 						//	printf("NRerror: %.20f\n", NRerror);
 						//	cout << "NRerror: " << NRerror << endl;
@@ -768,14 +759,17 @@ void FEM2DNDDRSolver::solve2DAximOpt()
 void FEM2DNDDRSolver::solve2DAximOpt1()
 {
 	for (int iter = 0; iter < maxitersteps; ++iter) {
-//#pragma omp parallel for num_threads(8)
+#pragma omp parallel for num_threads(8)
 		for (int n = 0; n < m_num_nodes; ++n) {
 			if (mp_node[n].bdr == 1) {
 				continue;
 			}
 
 			//节点内部迭代过程
-			int maxNRitersteps = 100;
+			int maxNRitersteps = 1;
+			double Ati = 0, dAt = 0, NRerror = 1, count = 0;
+			//double Ati = 0;
+			double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{ 0, 0, 0 };
 			for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 				double S = 0, F = 0, NA = 0;
 				double M = 0;
@@ -786,16 +780,27 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 					int nodenumber = mp_node[n].NeighbourElementNumber[k];	//该子域中心节点对应的单元局部编号
 					double mu = triele.material->getMu(triele.B);
 					double mut = mu * triele.xdot;
+					//--------------------------------------整合子域内的A
+					for (int m = 0; m < 3; ++m) {
+						if (m == nodenumber) {
+							AtLocal[m] = Ati;
+						}
+						else {
+							AtLocal[m] = mp_node[mp_triele[i_tri].n[m]].At_old;
+						}
+					}
+					//-------------------------------------------------
+
 					//--------------------------------------单元分析
 					if (triele.material->getLinearFlag() == true) {
 						for (int i = 0; i < 3; ++i) {
 							Se[i] = triele.C[nodenumber][i] / mut;
 							if (i != nodenumber) {
-								//NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
+								NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
 							}
 						}
 						M += Se[nodenumber];
-						F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
+						F += (Se[0] * AtLocal[0] + Se[1] * AtLocal[1] + Se[2] * AtLocal[2] - triele.J * triele.area / 3);
 					}
 					else
 					{
@@ -807,40 +812,42 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 						for (int i = 0; i < 3; ++i) {
 							Se[i] = triele.C[nodenumber][i] / mut;
 							for (int m = 0; m < 3; ++m) {
-								sigmai[i] += triele.C[i][m] * mp_node[triele.n[m]].At_old;
+								sigmai[i] += triele.C[i][m] * AtLocal[m];
 							}
 							J[i] = triele.C[nodenumber][i] / mut;
 							if (Bt != 0) {
 								J[i] += dvdbt * sigmai[nodenumber] * sigmai[i] / Bt / triele.area;
 							}
 							if (i != nodenumber) {
-								//NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
+								NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
 							}
 						}
 						//-------------------------------------------------------
 						M += J[nodenumber];
-						F += (Se[0] * mp_node[triele.n[0]].At_old + Se[1] * mp_node[triele.n[1]].At_old + Se[2] * mp_node[triele.n[2]].At_old - triele.J * triele.area / 3);
+						F += (Se[0] * AtLocal[0] + Se[1] * AtLocal[1] + Se[2] * AtLocal[2] - triele.J * triele.area / 3);
 					}
 					//----------------------------------------------
 				}
-				mp_node[n].delta_At = (NA - F) / M;
-				double Ati = mp_node[n].At + mp_node[n].delta_At;
-				double a = mp_node[n].delta_At * mp_node[n].delta_At;
+				dAt = (NA - F) / M;
+				Ati = Ati + dAt;
+				double a = dAt * dAt;
 				double b = Ati * Ati;
 				double NRerror = sqrt(a) / sqrt(b);
 				if (Ati == 0) {
-					continue;
+					break;
 				}
 				if (NRerror > 1e-6) {
-					cout << "NRiter: " << NRiter << ", deltaAt: " << mp_node[n].delta_At << ", Ati: " << Ati << endl;
-					//mp_node[n].delta_At_old = mp_node[n].delta_At;
+					//cout << "n:" << n << ", NRiter: " << NRiter << ", deltaAt: " << mp_node[n].delta_At << ", Ati: " << Ati << endl;
+					//cout << "n:" << n << ", NRerror: " << NRerror << endl;
+					mp_node[n].delta_At = dAt;
 					mp_node[n].At = Ati;
 					mp_node[n].A = Ati / mp_node[n].x;
 					for (int i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
-						updateB(mp_node[n].NeighbourElementId[i]);
+						updateB(mp_node[n].NeighbourElementId[i]);	//这个updateB的位置是否可以做出一定的修改呢？
 					}
 				}
 				else {
+					//cout << "n:" << n << ", NRerror: " << NRerror << endl;
 					break;
 				}
 			}
@@ -849,7 +856,8 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 		//-------------------------------------------全局收敛性判定
 		double error = 0, a = 0, b = 0;
 		for (int i = 0; i < m_num_nodes; ++i) {
-			a += mp_node[i].delta_At * mp_node[i].delta_At;
+			/*a += mp_node[i].delta_At * mp_node[i].delta_At;*/
+			a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
 			b += mp_node[i].At * mp_node[i].At;
 		}
 		error = sqrt(a) / sqrt(b);
@@ -860,6 +868,7 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 		//}
 		if (error > maxerror) {
 			for (int i = 0; i < m_num_nodes; ++i) {
+				mp_node[i].delta_At_old = mp_node[i].At - mp_node[i].At_old;
 				mp_node[i].At_old = mp_node[i].At;
 			}
 		}
