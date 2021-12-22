@@ -36,7 +36,9 @@ void FEM2DNDDRSolver::solveStatic()
 		//solve2DAxim1();	//最初版本的NDDR算法
 		//solve2DAxim2();	//采用差值NR的最初版本NDDR算法
 		//solve2DAximOpt();	//第一次优化后的NDDR算法，这个算法存在的问题：Jacobi迭代取得的解并不精确，导致NR迭代的次数相比于直接法要多不少
-		solve2DAximOpt1();	//第二次优化NDDR算法，将收敛性分析整合到子域中。
+		//solve2DAximOpt1();	//第二次优化NDDR算法，将收敛性分析整合到子域中。
+		//solve2DAximPrecondition();	//预处理优化NDDR，依然无效，呕。
+		solve2DAximRobin();
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
 		//solve2DPlane();
@@ -47,7 +49,7 @@ void FEM2DNDDRSolver::solveStatic()
 	cout << "time = " << double(end - start) / CLOCKS_PER_SEC << "s" << endl;
 }
 
-void FEM2DNDDRSolver::solveDynamic()
+  void FEM2DNDDRSolver::solveDynamic()
 {
 	//COMSOL动态特性
 	string name = "RelayDynamic";
@@ -503,11 +505,11 @@ void FEM2DNDDRSolver::solve2DAxim1()
 			b += mp_node[i].At * mp_node[i].At;
 		}
 		error = sqrt(a) / sqrt(b);
-		//cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
 
-		if ((iter + 1) % 100 == 0) {
-			cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
-		}
+		//if ((iter + 1) % 100 == 0) {
+		//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+		//}
 		if (error > maxerror) {
 			for (int i = 0; i < m_num_nodes; ++i) {
 				mp_node[i].At_old = mp_node[i].At;
@@ -796,7 +798,7 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 						for (int i = 0; i < 3; ++i) {
 							Se[i] = triele.C[nodenumber][i] / mut;
 							if (i != nodenumber) {
-								NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
+								//NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
 							}
 						}
 						M += Se[nodenumber];
@@ -819,7 +821,7 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 								J[i] += dvdbt * sigmai[nodenumber] * sigmai[i] / Bt / triele.area;
 							}
 							if (i != nodenumber) {
-								NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
+								//NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
 							}
 						}
 						//-------------------------------------------------------
@@ -880,6 +882,284 @@ void FEM2DNDDRSolver::solve2DAximOpt1()
 		}
 		//------------------------------------------------
 	}
+}
+
+void FEM2DNDDRSolver::solve2DAximPrecondition()
+{
+	//-----------1.NR迭代，取得一个粗糙的初值-------------------------------------------
+	//考虑第一类边界条件的装配
+	std::vector<std::vector<int>> locs(2, std::vector<int>(9 * (size_t)(m_num_triele)));
+	std::vector<double> vals(9 * (size_t)(m_num_triele));
+	std::vector<double> F(num_freenodes);
+	int pos = 0;
+	int linearelesize = 0, nonlinearelesize = 0;
+
+	for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+		CTriElement triele = mp_triele[i_tri];
+		if (triele.material->getLinearFlag() == true) linearelesize++;
+		else nonlinearelesize++;
+		for (int i = 0; i < 3; ++i) {
+			int n1 = triele.n[i];
+			for (int j = 0; j < 3; ++j) {
+				int n2 = triele.n[j];
+				if (triele.material->getLinearFlag() == true) {
+					if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
+						double mu = triele.material->getMu();	//存在mu=0的情况
+						double mut = mu * triele.xdot;
+						double Se = triele.C[i][j] / mut;
+						locs[0][pos] = node_pos[n1];
+						locs[1][pos] = node_pos[n2];
+						vals[pos] = Se;
+						++pos;
+					}
+				}
+			}
+			if (mp_node[n1].bdr != 1) {
+				double Fe = triele.J * triele.area / 3;
+				F[node_pos[n1]] += Fe;
+				//永磁计算
+				double h_c = triele.material->getH_c();
+				double theta_m = triele.material->getTheta_m();
+				F[node_pos[n1]] += h_c / 2 * (triele.R[i] * cos(theta_m) - triele.Q[i] * sin(theta_m));
+			}
+		}
+	}
+
+	//非线性部分迭代
+	int pos1 = pos;
+	std::vector<double> F1 = F;
+	//std::vector<double> A_old(m_num_nodes, 0);
+	for (int step = 0; step < maxitersteps; ++step) {
+		cout << "Iteration step " << step + 1 << " start." << endl;
+		pos = pos1;
+		F = F1;
+		for (int i_tri = 0; i_tri < m_num_triele; ++i_tri) {
+			CTriElement triele = mp_triele[i_tri];
+			if (triele.material->getLinearFlag() == false) {
+				//计算单元Jacobi矩阵
+				vector<vector<double>> J(3, vector<double>(3, 0));	//单元Jacobi矩阵
+				vector<double> Fj(3, 0);	//新增的右侧项
+				double mu, mut, dvdb, dvdbt, Bt, sigmai, sigmaj;
+				mu = triele.material->getMu(mp_triele[i_tri].B);
+				mut = mu * triele.xdot;
+				dvdb = triele.material->getdvdB(mp_triele[i_tri].B);
+				dvdbt = dvdb / triele.xdot / triele.xdot;
+				Bt = mp_triele[i_tri].B * triele.xdot;
+				vector<int> n(3);
+				n[0] = triele.n[0], n[1] = triele.n[1], n[2] = triele.n[2];
+				for (int i = 0; i < 3; ++i) {
+					sigmai = (triele.C[i][0] * mp_node[n[0]].At + triele.C[i][1] * mp_node[n[1]].At + triele.C[i][2] * mp_node[n[2]].At);
+					for (int j = 0; j < 3; ++j) {
+						sigmaj = (triele.C[j][0] * mp_node[n[0]].At + triele.C[j][1] * mp_node[n[1]].At + triele.C[j][2] * mp_node[n[2]].At);
+						if (Bt != 0) {
+							J[i][j] = triele.C[i][j] / mut + dvdbt * sigmai * sigmaj / Bt / triele.area;
+						}
+						else {
+							J[i][j] = triele.C[i][j] / mut;
+						}
+						Fj[i] += (J[i][j] - triele.C[i][j] / mut) * mp_node[n[j]].At;
+					}
+				}
+				//装配
+				for (int i = 0; i < 3; ++i) {
+					int n1 = triele.n[i];
+					for (int j = 0; j < 3; ++j) {
+						int n2 = triele.n[j];
+						if (mp_node[n1].bdr != 1 && mp_node[n2].bdr != 1) {
+							locs[0][pos] = node_pos[n1];
+							locs[1][pos] = node_pos[n2];
+							vals[pos] = J[i][j];
+							++pos;
+						}
+					}
+					if (mp_node[n1].bdr != 1) {
+						F[node_pos[n1]] += Fj[i];
+					}
+				}
+			}
+		}
+		//求解
+		locs[0].resize(pos);
+		locs[1].resize(pos);
+		cout << "pos: " << pos << endl;
+		vector<double> res1 = matsolver->solveMatrix(locs, vals, F, pos, num_freenodes);
+		for (int i = 0; i < num_freenodes; ++i) {
+			int index = node_reorder[i];
+			mp_node[index].At = res1[i];
+			mp_node[index].At_old = res1[i];
+			if (mp_node[index].x != 0) {
+				mp_node[index].A = mp_node[index].At / mp_node[index].x;
+			}
+		}
+		//更新磁场结果
+		updateB();
+
+		if (nonlinearelesize == 0) {
+			cout << "Linear problem solved!\n";
+			return;
+		}
+		//判断收敛性
+		double error = 0, a = 0, b = 0;
+		for (int i = 0; i < m_num_nodes; ++i) {
+			a += (mp_node[i].A - mp_node[i].A_old) * (mp_node[i].A - mp_node[i].A_old);
+			b += mp_node[i].A * mp_node[i].A;
+		}
+		error = sqrt(a) / sqrt(b);
+		cout << "Relative error: " << error << endl;
+		if (error > 1e-2) {
+			for (int i = 0; i < m_num_nodes; ++i) {
+				mp_node[i].A_old = mp_node[i].A;
+			}
+		}
+		else {
+			staticsteps = step + 1;
+			cout << "Nonlinear iteration finish.\n";
+			//return;
+			break;
+		}
+	}
+	//staticsteps = maxitersteps;
+	//cout << "Warning: Number of iterations out of limit.\n";
+
+	//-----------2.NDDR迭代，精确计算-------------------------------------------
+	solve2DAxim1();
+//	for (int iter = 0; iter < maxitersteps; ++iter) {
+//#pragma omp parallel for num_threads(8)
+//		for (int n = 0; n < m_num_nodes; ++n) {
+//			if (mp_node[n].bdr == 1) {
+//				continue;
+//			}
+//
+//			//节点内部迭代过程
+//			int maxNRitersteps = 10;
+//			double Ati = 0, dAt = 0, NRerror = 1, count = 0;
+//			//double Ati = 0;
+//			double AtLocal[3]{ 0 ,0, 0 }, ALocal[3]{ 0, 0, 0 };
+//			for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
+//				double S = 0, F = 0, NA = 0;
+//				double M = 0;
+//				double Se[3] = { 0, 0, 0 };
+//				for (int k = 0; k < mp_node[n].NumberofNeighbourElement; ++k) {
+//					int i_tri = mp_node[n].NeighbourElementId[k];	//通过单元在子域内的编号检索单元的全局编号
+//					CTriElement triele = mp_triele[i_tri];
+//					int nodenumber = mp_node[n].NeighbourElementNumber[k];	//该子域中心节点对应的单元局部编号
+//					double mu = triele.material->getMu(triele.B);
+//					double mut = mu * triele.xdot;
+//					//--------------------------------------整合子域内的A
+//					for (int m = 0; m < 3; ++m) {
+//						if (m == nodenumber) {
+//							AtLocal[m] = Ati;
+//						}
+//						else {
+//							AtLocal[m] = mp_node[mp_triele[i_tri].n[m]].At_old;
+//						}
+//					}
+//					//-------------------------------------------------
+//
+//					//--------------------------------------单元分析
+//					if (triele.material->getLinearFlag() == true) {
+//						for (int i = 0; i < 3; ++i) {
+//							Se[i] = triele.C[nodenumber][i] / mut;
+//							if (i != nodenumber) {
+//								//NA -= Se[i] * mp_node[triele.n[i]].delta_At_old;
+//							}
+//						}
+//						M += Se[nodenumber];
+//						F += (Se[0] * AtLocal[0] + Se[1] * AtLocal[1] + Se[2] * AtLocal[2] - triele.J * triele.area / 3);
+//					}
+//					else
+//					{
+//						//-------------------------------------计算单元的Jacobi矩阵
+//						double dvdb, dvdbt, Bt, sigmai[3]{ 0, 0, 0 }, J[3]{ 0, 0, 0 };
+//						dvdb = triele.material->getdvdB(triele.B);
+//						dvdbt = dvdb / triele.xdot / triele.xdot;
+//						Bt = triele.B * triele.xdot;
+//						for (int i = 0; i < 3; ++i) {
+//							Se[i] = triele.C[nodenumber][i] / mut;
+//							for (int m = 0; m < 3; ++m) {
+//								sigmai[i] += triele.C[i][m] * AtLocal[m];
+//							}
+//							J[i] = triele.C[nodenumber][i] / mut;
+//							if (Bt != 0) {
+//								J[i] += dvdbt * sigmai[nodenumber] * sigmai[i] / Bt / triele.area;
+//							}
+//							if (i != nodenumber) {
+//								//NA -= J[i] * mp_node[triele.n[i]].delta_At_old;
+//							}
+//						}
+//						//-------------------------------------------------------
+//						M += J[nodenumber];
+//						F += (Se[0] * AtLocal[0] + Se[1] * AtLocal[1] + Se[2] * AtLocal[2] - triele.J * triele.area / 3);
+//					}
+//					//----------------------------------------------
+//				}
+//				dAt = (NA - F) / M;
+//				Ati = Ati + dAt;
+//				double a = dAt * dAt;
+//				double b = Ati * Ati;
+//				double NRerror = sqrt(a) / sqrt(b);
+//				if (Ati == 0) {
+//					break;
+//				}
+//				if (NRerror > 1e-6) {
+//					//cout << "n:" << n << ", NRiter: " << NRiter << ", deltaAt: " << mp_node[n].delta_At << ", Ati: " << Ati << endl;
+//					//cout << "n:" << n << ", NRerror: " << NRerror << endl;
+//					mp_node[n].delta_At = dAt;
+//					mp_node[n].At = Ati;
+//					mp_node[n].A = Ati / mp_node[n].x;
+//					for (int i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
+//						updateB(mp_node[n].NeighbourElementId[i]);	//这个updateB的位置是否可以做出一定的修改呢？
+//					}
+//				}
+//				else {
+//					//cout << "n:" << n << ", NRerror: " << NRerror << endl;
+//					break;
+//				}
+//			}
+//		}
+//
+//		//-------------------------------------------全局收敛性判定
+//		double error = 0, a = 0, b = 0;
+//		for (int i = 0; i < m_num_nodes; ++i) {
+//			/*a += mp_node[i].delta_At * mp_node[i].delta_At;*/
+//			a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
+//			b += mp_node[i].At * mp_node[i].At;
+//		}
+//		error = sqrt(a) / sqrt(b);
+//		cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+//
+//		//if ((iter + 1) % 100 == 0) {
+//		//	cout << "Iteration step: " << iter + 1 << ", Relative error: " << error << endl;
+//		//}
+//		if (error > maxerror) {
+//			for (int i = 0; i < m_num_nodes; ++i) {
+//				mp_node[i].delta_At_old = mp_node[i].At - mp_node[i].At_old;
+//				mp_node[i].At_old = mp_node[i].At;
+//			}
+//		}
+//		else {
+//			staticsteps = iter;
+//			cout << "Iteration step: " << iter + 1 << endl;
+//			cout << "Nonlinear NDDR iteration finish.\n";
+//			return;
+//		}
+//		//------------------------------------------------
+//	}
+}
+
+void FEM2DNDDRSolver::solve2DAximRobin()
+{
+	DataPrepare();
+	JsSumCalculate();
+	SumNeiborJsSumCalculate();
+
+	for (int iter = 0; iter < maxitersteps; ++iter) {
+		ElmRHSContriCalculate();
+		SumNodeRHSCalculate();
+		UpdateSolutiontoA1();
+		CopyA1toA0();
+	}
+
 }
 
 void FEM2DNDDRSolver::solve2DPlane()
@@ -1055,7 +1335,7 @@ void FEM2DNDDRSolver::solve2DPlane1()
 
 							RHSContri += mp_triele[ID].C[nodenumber][m] * ALocal[m];
 						}
-
+						
 						//线性单元，计算右侧列向量时，也要考虑A？？？
 						if (mp_triele[ID].material->getLinearFlag() == true)	//线性空气单元
 						{
@@ -1499,4 +1779,218 @@ void FEM2DNDDRSolver::Update_Magnetic_Node_A_old()
 			mp_node[i].A = A;
 		}
 	}
+}
+
+void FEM2DNDDRSolver::DataPrepare()
+{
+	int* dummy = new int[m_num_nodes]();
+
+	for (int i = 0; i < m_num_nodes; ++i) {
+		for (int j = 0; j < m_num_nodes; ++j) {
+			dummy[j] = 0;
+		}
+		for (int j = 0; j < mp_node[i].NumberofNeighbourElement; ++j) {
+			for (int k = 0; k < 3; ++k) {
+				dummy[mp_triele[mp_node[i].NeighbourElementId[j]].n[k]] = 1;
+			}
+		}
+		for (int j = 0; j < m_num_nodes; ++j) {
+			if (dummy[j] == 1 && j != i) {
+				mp_node[i].NeiborNode[mp_node[i].NumNeiborNodes] = j;
+				mp_node[i].NumNeiborNodes++;
+			}
+		}
+	}
+
+	delete[] dummy;
+
+	for (int e = 0; e < m_num_triele; ++e) {
+		for (int j = 0; j < 3; ++j) {
+			for (int k = 0; k < 3; ++k) {
+				mp_triele[e].ElmRowSum[j][k] = 0;
+			}
+		}
+
+		double temp;
+		for (int j = 0; j < 3; ++j) {
+			for (int k = 0; k < 3; ++k) {
+				if (mp_node[mp_triele[e].n[k]].bdr != 1) {
+					if (k == j)
+						temp = 1;
+					else
+						temp = 1 / Gamma;
+					mp_triele[e].ElmRowSum[j][0] += temp * mp_triele[e].C[k][0];
+					mp_triele[e].ElmRowSum[j][1] += temp * mp_triele[e].C[k][1];
+					mp_triele[e].ElmRowSum[j][2] += temp * mp_triele[e].C[k][2];
+				}
+			}
+		}
+	}
+}
+
+void FEM2DNDDRSolver::JsSumCalculate()
+{
+	for (int node = 0; node < m_num_nodes; ++node) {
+		mp_node[node].JsSum = 0;
+		for (int e = 0; e < mp_node[node].NumberofNeighbourElement; ++e) {
+			mp_node[node].JsSum += (mp_triele[mp_node[node].NeighbourElementId[e]].J) * mp_triele[mp_node[node].NeighbourElementId[e]].area / 3;
+		}
+	}
+}
+
+void FEM2DNDDRSolver::SumNeiborJsSumCalculate()
+{
+	for (int node = 0; node < m_num_nodes; ++node) {
+		for (int n = 0; n < mp_node[node].NumNeiborNodes; ++n) {
+			mp_node[node].SumNeiborJsSum += mp_node[mp_node[node].NeiborNode[n]].JsSum;
+		}
+	}
+}
+
+void FEM2DNDDRSolver::ElmRHSContriCalculate()
+{
+	for (int e = 0; e < m_num_triele; ++e) {
+		int row, col;
+		for (row = 0; row < 3; ++row) {
+			mp_triele[e].RHSContri[row] = 0;
+		}
+		for (row = 0; row < 3; ++row) {
+			for (col = 0; col < 3; ++col) {
+				mp_triele[e].RHSContri[row] += mp_triele[e].C[row][col] * mp_node[mp_triele[e].n[col]].At_old;
+			}
+			mp_triele[e].RHSContri[row] = mp_triele[e].RHSContri[row] / mp_triele[e].mut;
+		}
+	}
+}
+
+void FEM2DNDDRSolver::SumNodeRHSCalculate()
+{
+	for (int node = 0; node < m_num_nodes; ++node) {
+		int e;
+		mp_node[node].SumRHSContri = 0;
+		for (e = 0; e < mp_node[node].NumberofNeighbourElement; e++) {
+			mp_node[node].SumRHSContri += mp_triele[mp_node[node].NeighbourElementId[e]].RHSContri[mp_node[node].NeighbourElementNumber[e]];
+		}
+	}
+}
+
+void FEM2DNDDRSolver::UpdateSolutiontoA1()
+{
+#pragma omp parallel for num_threads(8)
+	for (int n = 0; n < m_num_nodes; ++n) {
+		double RHS, LHS, dF_dA, NRsolution, temp;
+		int i, j, NeiborID, e, LocalPos;
+		double ALocal[3], B2, B, Bt, V, dvdb, dvdbt, dbda, sigma = 0;
+		int NRct;
+
+
+		if (mp_node[n].bdr != 1) {
+			//-------------Get RHS
+			RHS = 0;
+
+			//边界上的全部节点的SumRHSContri之和
+			for (i = 0; i < mp_node[n].NumNeiborNodes; ++i) {
+				NeiborID = mp_node[n].NeiborNode[i];
+				if (mp_node[NeiborID].bdr != 1) {
+					RHS -= mp_node[NeiborID].SumRHSContri;
+				}
+			}
+
+			//子域内全部单元，为边界贡献的RHSContri之和
+			for (i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
+				e = mp_node[n].NeighbourElementId[i];
+				for (j = 0; j < 3; j++) {
+					if (n != mp_triele[e].n[j] && mp_node[mp_triele[e].n[j]].bdr != 1) {
+						RHS += mp_triele[e].RHSContri[j];
+					}
+				}
+			}
+
+			RHS = (RHS + mp_node[n].SumNeiborJsSum) / Gamma + mp_node[n].JsSum;
+			//---------------Get LHS and dF_dA
+			NRsolution = mp_node[n].At_old;
+			//---------------NRiteration
+			for (NRct = 0; NRct < 1; ++NRct) {
+				LHS = 0;
+				dF_dA = 0;
+				for (i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
+					e = mp_node[n].NeighbourElementId[i];
+					LocalPos = mp_node[n].NeighbourElementNumber[i];
+					ALocal[0] = mp_node[mp_triele[e].n[0]].At_old;
+					ALocal[1] = mp_node[mp_triele[e].n[1]].At_old;
+					ALocal[2] = mp_node[mp_triele[e].n[2]].At_old;
+					ALocal[LocalPos] = NRsolution;
+
+					//需要补充B的计算
+					//updateB(e);
+					//B = mp_triele[e].B;
+
+					//计算B
+					double bx = 0, by = 0;
+					for (int bi = 0; bi < 3; ++bi) {
+						int n = mp_triele[e].n[bi];
+						bx += mp_triele[e].R[bi] * ALocal[bi];
+						by += mp_triele[e].Q[bi] * ALocal[bi];
+					}
+					bx = bx / 2 / mp_triele[e].area / mp_triele[e].xdot;
+					mp_triele[e].Bx = bx;
+					by = -by / 2 / mp_triele[e].area / mp_triele[e].xdot;
+					mp_triele[e].By = by;
+					mp_triele[e].B = sqrt(bx * bx + by * by);
+					B = mp_triele[e].B;
+					Bt = B * mp_triele[e].xdot;
+					dvdb = mp_triele[e].material->getdvdB(mp_triele[e].B);
+					dvdbt = dvdb / mp_triele[e].xdot / mp_triele[e].xdot;
+					//cout << "n: " << n << ", i: " << i << ", Bt: " << Bt << ", dvdb: " << dvdb << ", dvdbt:" << dvdbt << endl;
+
+					for (int m = 0; m < 3; ++m) {
+						sigma += mp_triele[e].C[LocalPos][m] * ALocal[m];
+					}
+					if (Bt != 0) {
+						dbda = sigma / Bt / mp_triele[e].area;
+					}
+
+					temp = 0;
+					for (j = 0; j < 3; j++) {
+						dF_dA += dvdb * dbda * ALocal[j] * mp_triele[e].ElmRowSum[LocalPos][j];
+						temp += ALocal[j] * mp_triele[e].ElmRowSum[LocalPos][j];
+					}
+					dF_dA += mp_triele[e].ElmRowSum[LocalPos][LocalPos] / (mp_triele[e].material->getMu(mp_triele[e].B) * mp_triele[e].xdot);
+					LHS += temp / (mp_triele[e].material->getMu(mp_triele[e].B) * mp_triele[e].xdot);
+
+					////线性问题计算
+					//for (j = 0; j < 3; ++j) {
+					//	LHS += ALocal[j] * mp_triele[e].ElmRowSum[LocalPos][j] / (4 * PI * 1e-3);
+					//}
+					//dF_dA += mp_triele[e].ElmRowSum[LocalPos][LocalPos] / (4 * PI * 1e-3);
+				}
+
+				NRsolution += (RHS - LHS) / dF_dA;
+			}
+			mp_node[n].At = NRsolution;
+		}
+	}
+}
+
+void FEM2DNDDRSolver::CopyA1toA0()
+{
+	double a, b, error;
+	for (int i = 0; i < m_num_nodes; ++i) {
+		/*a += mp_node[i].delta_At * mp_node[i].delta_At;*/
+		a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
+		b += mp_node[i].At * mp_node[i].At;
+	}
+	error = sqrt(a) / sqrt(b);
+	cout << "Relative error: " << error << endl;
+
+	for (int i = 0; i < m_num_nodes; ++i) {
+
+		mp_node[i].At_old = mp_node[i].At;
+		//mp_node[i].A = mp_node[i].At / mp_node[i].x;
+	}
+}
+
+void FEM2DNDDRSolver::UpdateVe()
+{
+
 }

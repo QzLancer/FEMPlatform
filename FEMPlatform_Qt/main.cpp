@@ -13,11 +13,11 @@
 #include <direct.h>
 
 std::string analysistype = "static";
-std::string solvestrategy = "NDDRGPU";
+std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 100000;
-double maxerror = 1e-5;
+double maxerror = 1e-6;
 
 int main(int argc, char *argv[])
 {
@@ -27,6 +27,9 @@ int main(int argc, char *argv[])
     Model:
         FEMContactorLinearModel
         FEMContactorNonLinearModel
+        RelayModelwithoutBand
+        FEMRelay1250Model
+        RelayDynamicModel
         RelayModelwithoutBand
     */
 

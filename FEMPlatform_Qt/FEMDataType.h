@@ -17,6 +17,11 @@ struct CNode
     int NeighbourElementId[15];	//和节点相关的单元编号
     int NeighbourElementNumber[15];	//节点在对应单元中的编号
     double NodeForcex{ 0 }, NodeForcey{ 0 }, NodeForcez{ 0 }, NodeForce{ 0 };
+    double SumRHSContri{ 0 };
+    int NeiborNode[20];
+    int NumNeiborNodes{ 0 };
+    double JsSum{ 0 };
+    double SumNeiborJsSum{ 0 };
 };
 
 struct C2DNode:
@@ -57,6 +62,7 @@ struct CTriElement {
     double J{0};  //负载，暂时只考虑电流，直流，后续需要单独建一个类
     double Bx{ 0 }, By{ 0 }, Bz{ 0 }, B{ 0 };
     double ElementForcex{ 0 }, ElementForcey{ 0 }, ElementForcez{ 0 }, ElementForce{ 0 };
-    double RHSContri{ 0 };
+    double RHSContri[3]{ 0 };
     double mut, mu;
+    double ElmRowSum[3][3];
 };
