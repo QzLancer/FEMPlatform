@@ -37,6 +37,6 @@ private:
 	void CopyA1toA0();
 	void UpdateVe();
 
-	double Gamma = 100;
+	double Gamma = 5;
 };
 

@@ -38,7 +38,7 @@ void FEM2DNDDRSolver::solveStatic()
 		//solve2DAximOpt();	//第一次优化后的NDDR算法，这个算法存在的问题：Jacobi迭代取得的解并不精确，导致NR迭代的次数相比于直接法要多不少
 		//solve2DAximOpt1();	//第二次优化NDDR算法，将收敛性分析整合到子域中。
 		//solve2DAximPrecondition();	//预处理优化NDDR，依然无效，呕。
-		solve2DAximRobin();
+		solve2DAximRobin();	//师兄的算法实现
 	}
 	else if (dimension == FEMModel::DIMENSION::D2PLANE) {
 		//solve2DPlane();
@@ -1154,6 +1154,7 @@ void FEM2DNDDRSolver::solve2DAximRobin()
 	SumNeiborJsSumCalculate();
 
 	for (int iter = 0; iter < maxitersteps; ++iter) {
+		cout << "iteration step: " << iter;
 		ElmRHSContriCalculate();
 		SumNodeRHSCalculate();
 		UpdateSolutiontoA1();
@@ -1830,6 +1831,7 @@ void FEM2DNDDRSolver::DataPrepare()
 
 void FEM2DNDDRSolver::JsSumCalculate()
 {
+//#pragma omp parallel for num_threads(8)
 	for (int node = 0; node < m_num_nodes; ++node) {
 		mp_node[node].JsSum = 0;
 		for (int e = 0; e < mp_node[node].NumberofNeighbourElement; ++e) {
@@ -1840,6 +1842,7 @@ void FEM2DNDDRSolver::JsSumCalculate()
 
 void FEM2DNDDRSolver::SumNeiborJsSumCalculate()
 {
+//#pragma omp parallel for num_threads(8)
 	for (int node = 0; node < m_num_nodes; ++node) {
 		for (int n = 0; n < mp_node[node].NumNeiborNodes; ++n) {
 			mp_node[node].SumNeiborJsSum += mp_node[mp_node[node].NeiborNode[n]].JsSum;
@@ -1849,6 +1852,7 @@ void FEM2DNDDRSolver::SumNeiborJsSumCalculate()
 
 void FEM2DNDDRSolver::ElmRHSContriCalculate()
 {
+//#pragma omp parallel for num_threads(8)
 	for (int e = 0; e < m_num_triele; ++e) {
 		int row, col;
 		for (row = 0; row < 3; ++row) {
@@ -1865,6 +1869,7 @@ void FEM2DNDDRSolver::ElmRHSContriCalculate()
 
 void FEM2DNDDRSolver::SumNodeRHSCalculate()
 {
+#pragma omp parallel for num_threads(8)
 	for (int node = 0; node < m_num_nodes; ++node) {
 		int e;
 		mp_node[node].SumRHSContri = 0;
@@ -1880,9 +1885,8 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 	for (int n = 0; n < m_num_nodes; ++n) {
 		double RHS, LHS, dF_dA, NRsolution, temp;
 		int i, j, NeiborID, e, LocalPos;
-		double ALocal[3], B2, B, Bt, V, dvdb, dvdbt, dbda, sigma = 0;
+		double ALocal[3]{0, 0, 0}, B2 = 0, B, Bt, V, dvdb, dvdbt, dbda = 0, sigma = 0;
 		int NRct;
-
 
 		if (mp_node[n].bdr != 1) {
 			//-------------Get RHS
@@ -1896,7 +1900,7 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 				}
 			}
 
-			//子域内全部单元，为边界贡献的RHSContri之和
+			//子域内全部单元 ，为边界贡献的RHSContri之和
 			for (i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
 				e = mp_node[n].NeighbourElementId[i];
 				for (j = 0; j < 3; j++) {
@@ -1907,10 +1911,14 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 			}
 
 			RHS = (RHS + mp_node[n].SumNeiborJsSum) / Gamma + mp_node[n].JsSum;
+
+			//if (RHS != 0) {
+			//	cout << "n: " << n << ", RHS: " << RHS << endl;
+			//}
 			//---------------Get LHS and dF_dA
 			NRsolution = mp_node[n].At_old;
 			//---------------NRiteration
-			for (NRct = 0; NRct < 1; ++NRct) {
+			for (NRct = 0; NRct < 5; ++NRct) {
 				LHS = 0;
 				dF_dA = 0;
 				for (i = 0; i < mp_node[n].NumberofNeighbourElement; ++i) {
@@ -1921,10 +1929,7 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 					ALocal[2] = mp_node[mp_triele[e].n[2]].At_old;
 					ALocal[LocalPos] = NRsolution;
 
-					//需要补充B的计算
-					//updateB(e);
-					//B = mp_triele[e].B;
-
+					//非线性问题计算
 					//计算B
 					double bx = 0, by = 0;
 					for (int bi = 0; bi < 3; ++bi) {
@@ -1960,9 +1965,9 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 
 					////线性问题计算
 					//for (j = 0; j < 3; ++j) {
-					//	LHS += ALocal[j] * mp_triele[e].ElmRowSum[LocalPos][j] / (4 * PI * 1e-3);
+					//	LHS += ALocal[j] * mp_triele[e].ElmRowSum[LocalPos][j] / (4 * PI * 1e-3 * mp_triele[e].xdot);
 					//}
-					//dF_dA += mp_triele[e].ElmRowSum[LocalPos][LocalPos] / (4 * PI * 1e-3);
+					//dF_dA += mp_triele[e].ElmRowSum[LocalPos][LocalPos] / (4 * PI * 1e-3 * mp_triele[e].xdot);
 				}
 
 				NRsolution += (RHS - LHS) / dF_dA;
@@ -1974,23 +1979,29 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 
 void FEM2DNDDRSolver::CopyA1toA0()
 {
-	double a, b, error;
+	double a = 0, b = 0, error;
+//#pragma omp parallel for num_threads(8)
 	for (int i = 0; i < m_num_nodes; ++i) {
 		/*a += mp_node[i].delta_At * mp_node[i].delta_At;*/
 		a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
 		b += mp_node[i].At * mp_node[i].At;
 	}
 	error = sqrt(a) / sqrt(b);
-	cout << "Relative error: " << error << endl;
+	cout << ", Relative error: " << error << endl;
 
+#pragma omp parallel for num_threads(8)
 	for (int i = 0; i < m_num_nodes; ++i) {
-
 		mp_node[i].At_old = mp_node[i].At;
-		//mp_node[i].A = mp_node[i].At / mp_node[i].x;
+		if (mp_node[i].x != 0) {
+			mp_node[i].A = mp_node[i].At / mp_node[i].x;
+		}
+
 	}
 }
 
 void FEM2DNDDRSolver::UpdateVe()
 {
-
+	for (int e = 0; e < m_num_triele; ++e) {
+		mp_triele[e].mut = mp_triele[e].material->getMu(mp_triele[e].B) * mp_triele[e].xdot;
+	}
 }

@@ -16,7 +16,7 @@ std::string analysistype = "static";
 std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
-int maxitersteps = 100000;
+int maxitersteps = 10000;
 double maxerror = 1e-6;
 
 int main(int argc, char *argv[])
@@ -32,13 +32,14 @@ int main(int argc, char *argv[])
         RelayDynamicModel
         RelayModelwithoutBand
     */
+    // SoftIron1 对应的是师兄的BH曲线
 
     char* buffer = getcwd(NULL, 0);
     printf("%s\n", buffer);
     free(buffer);
 
     FEMCore core;
-    FEMModel* model = new FEMContactorNonLinearModel;
+    FEMModel* model = new FEMContactorLinearModel;
     model->init();
 
     core.setModel(model);
