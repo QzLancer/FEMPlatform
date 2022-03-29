@@ -80,7 +80,7 @@
   </ImportGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\SuperLU_MT\SRC;GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\SuperLU_MT\SRC;GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;metis-5.1.0\GKlib;metis-5.1.0\include;metis-5.1.0\programs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>debug\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -99,8 +99,8 @@
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;metis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\SuperLU_MT;$(SolutionDir)\metis-5.1.0\build\libmetis\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -121,7 +121,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\SuperLU_MT\SRC;GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\SuperLU_MT\SRC;GeneratedFiles\$(ConfigurationName);GeneratedFiles;.;gmsh\Geo;gmsh\Common;gmsh\contrib\Netgen;gmsh\contrib\Netgen\nglib;gmsh\contrib\Netgen\libsrc\general;gmsh\contrib\Netgen\libsrc\include;gmsh\contrib\Netgen\libsrc\linalg;gmsh\contrib\Netgen\libsrc\gprim;gmsh\contrib\Netgen\libsrc\meshing;gmsh\Mesh;gmsh\Numeric;gmsh\Parser;gmsh\Post;./GeneratedFiles/$(ConfigurationName);/include;metis-5.1.0\GKlib;metis-5.1.0\include;metis-5.1.0\programs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -Zc:referenceBinding -Zc:__cplusplus -w34189 -w44996 -w44456 -w44457 -w44458 %(AdditionalOptions)</AdditionalOptions>
       <AssemblerListingLocation>release\</AssemblerListingLocation>
       <BrowseInformation>false</BrowseInformation>
@@ -142,8 +142,8 @@
       <OpenMPSupport>true</OpenMPSupport>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\SuperLU_MT;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libopenblas.dll.a;SuperLU_MT_3.1.lib;metis.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\SuperLU_MT;$(SolutionDir)\metis-5.1.0\build\libmetis\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -460,6 +460,9 @@
     <ClCompile Include="MeshManager\FEMMeshManager.cpp" />
     <ClCompile Include="FEMModel\RelayDynamicModel.cpp" />
     <ClCompile Include="FEMModel\RelayModelwithoutBand.cpp" />
+    <ClCompile Include="metis-5.1.0\programs\cmdline_gpmetis.c" />
+    <ClCompile Include="metis-5.1.0\programs\io.c" />
+    <ClCompile Include="metis-5.1.0\programs\mpmetis.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FEMDataType\FEMElement.h" />
@@ -482,6 +485,7 @@
     <ClInclude Include="MeshManager\FEMMeshManager.h" />
     <ClInclude Include="FEMModel\RelayDynamicModel.h" />
     <ClInclude Include="FEMModel\RelayModelwithoutBand.h" />
+    <ClInclude Include="metis-5.1.0\programs\mpmetis.h" />
     <CudaCompile Include="FEMSolver\FEM2DNDDRCUDASolver.cuh" />
     <ClInclude Include="FEMBoundary.h" />
     <ClInclude Include="FEMCoil.h" />
