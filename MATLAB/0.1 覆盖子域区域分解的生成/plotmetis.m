@@ -3,7 +3,7 @@
 % metis分网提供两组信息：1、单元所在非重叠子域编号 2、节点所在子域
 % 1、保存每个节点周边的单元编号
 % 2、遍历节点所在的子域，将节点周围的单元都标记该节点所在子域编号，得到单元所在重叠子域编号
-% 3、遍历子域中的所有单元，如果单元的节点所在子域单元所在子域不一样，为边界节点
+% 3、遍历子域中的所有单元，如果单元的节点所在子域和单元所在子域不一样，为边界节点
 % 遍历全部节点，检索包含该节点的全部单元，即可得到重叠版本的区域分解
 % By QzLancer
 % 2022/3/28
@@ -11,10 +11,10 @@
 %---------------------------------读取文件
 close all;
 clear all;
-[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('mesh_source.mphtxt');
-[fileID] = fopen('mesh_source.mpmetis.epart.4');
+[Coor,VtxElement,VtxEntity,EdgElement,EdgEntity,TriElement,TriEntity] = readcomsol('model3656.mphtxt');
+[fileID] = fopen('ContactLinear_7172.metis.epart.4');
 eDomain = fscanf(fileID,'%d\n');
-[fileID] = fopen('mesh_source.mpmetis.npart.4');
+[fileID] = fopen('ContactLinear_7172.metis.npart.4');
 nDomain = fscanf(fileID,'%d\n');
 %--------------------------------提取节点周围的全部单元
 EleSizeinNode = zeros(length(Coor),1);
@@ -74,6 +74,41 @@ end
 DomainNode = cell(4,1); 
 for i = 1:4
    DomainNode{i} = find(boundaryTable(:,i)); 
+end
+plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
+plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
+plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
+plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
+%----------------------------------验证C++生成的eparttable和boundaryTable是否正确
+figure(2);
+ePartTable1 = csvread('../../matrix/eparttable.csv');
+ePartTable1 = ePartTable1(:,1:length(ePartTable))';
+boundaryTable1 = csvread('../../matrix/boundarytable.csv');
+boundaryTable1 = boundaryTable1(:,1:length(boundaryTable))';
+DomainElement = cell(4,1);
+Domainx = cell(4,1);
+Domainy = cell(4,1);
+for i = 1:4
+    DomainElement{i} = find(ePartTable1(:, i));
+    Domainx{i} = zeros(length(DomainElement{i}),3);
+    Domainy{i} = zeros(length(DomainElement{i}),3);
+    for j = 1:3
+        Domainx{i}(:,j) = Coor(TriElement(DomainElement{i},j),1);
+        Domainy{i}(:,j) = Coor(TriElement(DomainElement{i},j),2);
+    end
+end
+patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+hold on;
+patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+hold on;
+patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+hold on;
+patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+hold on;
+axis equal;
+DomainNode = cell(4,1); 
+for i = 1:4
+   DomainNode{i} = find(boundaryTable1(:,i)); 
 end
 plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
 plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');

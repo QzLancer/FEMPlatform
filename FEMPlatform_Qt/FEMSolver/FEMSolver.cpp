@@ -61,9 +61,14 @@ void FEMSolver::setMatrixSolver(MatrixSolver* const _matsolver)
     matsolver = _matsolver;
 }
 
+void FEMSolver::setModelName(const std::string _modelname)
+{
+	modelname = _modelname;
+}
+
 void FEMSolver::setNodes(const int _numofnodes, CNode* const _nodes)
 {
-	cout << "FEMSolver::setNodes\n";
+	cout << "FEMSolver::setNodes\n"; 
     m_num_nodes = _numofnodes;
     mp_node = _nodes;
 }

@@ -73,6 +73,10 @@ void FEMCore::setFEMSolveStrategy(string solvestrategy)
 		solver = new FEM2DNDDRCUDASolver;
 		solver->dimension = model->getDimension();
 	}
+	else if (solvestrategy == "DD"){
+		solver = new FEM2DSchwarzSolver(4);
+		solver->dimension = model->getDimension();
+	}
 	else {
 		cout << "Error: invalid solve strategy!\n";
 		exit(0);
@@ -93,6 +97,7 @@ void FEMCore::setMatrixSolver(string matrixsolver)
 void FEMCore::solve(string analysistype)
 {
 	if (analysistype == "static") {
+		solver->setModelName(model->getModelName());
 		solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
 		solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
 		solver->setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
@@ -105,6 +110,7 @@ void FEMCore::solve(string analysistype)
 		solver->solveStatic();
 	}
 	else if (analysistype == "dynamic") {
+		solver->setModelName(model->getModelName());
 		solver->setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
 		solver->setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
 		solver->setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());

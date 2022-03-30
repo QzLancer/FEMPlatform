@@ -89,7 +89,7 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <ObjectFileName>debug\</ObjectFileName>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CONSOLE;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;_CONSOLE;_UNICODE;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DEPRECATED_WARNINGS;_USE_MATH_DEFINES;NOMINMAX;WIN32;_CRT_SECURE_NO_WARNINGS;_AFXDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CONSOLE;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_DEPRECATED_WARNINGS;_USE_MATH_DEFINES;NOMINMAX;_CRT_SECURE_NO_WARNINGS;_AFXDLL;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -165,6 +165,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FEMSolver\FEM2DSchwarzSolver.cpp" />
     <ClCompile Include="FEMBoundary.cpp" />
     <ClCompile Include="FEMCoil.cpp" />
     <ClCompile Include="FEMCore.cpp" />
@@ -453,6 +454,7 @@
     <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\triarls.cpp" />
     <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\validate.cpp" />
     <ClCompile Include="gmsh\contrib\Netgen\libsrc\meshing\zrefine.cpp" />
+    <ClCompile Include="MatrixOutput.cpp" />
     <ClCompile Include="MatrixSolver\MatrixSolver.cpp" />
     <ClCompile Include="MatrixSolver\SluMTMatrixSolver.cpp" />
     <ClCompile Include="MeshManager\FEM2DMeshManager.cpp" />
@@ -465,6 +467,7 @@
     <ClCompile Include="metis-5.1.0\programs\mpmetis.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FEMSolver\FEM2DSchwarzSolver.h" />
     <ClInclude Include="FEMDataType\FEMElement.h" />
     <ClInclude Include="FEMDataType\FEMNode.h" />
     <ClInclude Include="FEMModel\FEMContactorLinearModel.h" />
@@ -478,6 +481,7 @@
     <ClInclude Include="FEMSolver\FEM2DSolver.h" />
     <ClInclude Include="FEMSolver\FEMSolver.h" />
     <ClInclude Include="FEMSolver\FEMSolveStrategy.h" />
+    <ClInclude Include="MatrixOutput.h" />
     <ClInclude Include="MatrixSolver\MatrixSolver.h" />
     <ClInclude Include="MatrixSolver\SluMTMatrixSolver.h" />
     <ClInclude Include="MeshManager\FEM2DMeshManager.h" />

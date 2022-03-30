@@ -13,7 +13,7 @@
 #include <direct.h>
 
 std::string analysistype = "static";
-std::string solvestrategy = "NDDR";
+std::string solvestrategy = "DD";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 10000;

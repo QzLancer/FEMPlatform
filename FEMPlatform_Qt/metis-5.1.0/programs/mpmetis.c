@@ -19,7 +19,7 @@
 /*************************************************************************/
 /*! Let the game begin! */
 /*************************************************************************/
-int mpmeits(int argc, char *argv[])
+int mpmetis(int argc, char *argv[])
 {
   idx_t options[METIS_NOPTIONS];
   mesh_t *mesh;

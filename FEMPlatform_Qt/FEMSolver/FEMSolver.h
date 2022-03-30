@@ -34,6 +34,7 @@ public:
 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
 	void setMatrixSolver(MatrixSolver* const _matsolver);
+	void setModelName(const std::string _modelname);
 	virtual void setNodes(const int _numofnodes, CNode* const _nodes);
 	virtual void setVtxElements(const int _numofvtx, CVtxElement* const _vtxele);
 	virtual void setEdgElements(const int _numofedg, CEdgElement* const _edgele);
@@ -68,6 +69,7 @@ protected:
 	int m_num_edgele;
 	int m_num_triele;
 
+	std::string modelname;
 	CNode* mp_node;
 	CVtxElement* mp_vtxele;
 	CEdgElement* mp_edgele;

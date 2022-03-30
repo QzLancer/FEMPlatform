@@ -8,6 +8,7 @@
 #include "FEMSolver/FEM2DNRSolver.h"
 #include "FEMSolver/FEM2DNDDRSolver.h"
 #include "FEMSolver/FEM2DNDDRCUDASolver.cuh"
+#include "FEMSolver/FEM2DSchwarzSolver.h"
 
 #include "MatrixSolver/SluMTMatrixSolver.h"
 
