@@ -278,14 +278,14 @@ void FEM2DSchwarzSolver::solve2DAxim()
 {
 	//每个子域进行分析
 //#pragma omp parallel for num_threads(numofdomain)
-	for (int outeriter = 0; outeriter < 200; ++outeriter) {
+	for (int outeriter = 0; outeriter < 400; ++outeriter) {
 		int count = 0;
 		vector<vector<double>> res(numofdomain);
-		//输出F
-		double** F_out = new double* [numofdomain];
-		for (int domain = 0; domain < numofdomain; ++domain) {
-			F_out[domain] = new double [d_dof[domain]];
-		}
+		////输出F
+		//double** F_out = new double* [numofdomain];
+		//for (int domain = 0; domain < numofdomain; ++domain) {
+		//	F_out[domain] = new double [d_dof[domain]];
+		//}
 
 		for (int domain = 0; domain < numofdomain; ++domain) {
 			int elesize = d_elesize[domain];
@@ -391,18 +391,18 @@ void FEM2DSchwarzSolver::solve2DAxim()
 			//	delete[] S[i];
 			//}
 			//delete[] S;
-			//输出F
-			memcpy(F_out[domain], &F[0], F.size() * sizeof(double));
+			////输出F
+			//memcpy(F_out[domain], &F[0], F.size() * sizeof(double));
 			
 		}
-		//输出F
-		char str[128];
-		for (int domain = 0; domain < numofdomain; ++domain) {
-			sprintf(str, "F_iter[%d]_domain[%d].csv", outeriter, domain);
-			printdoubleVector(str, d_dof[domain], F_out[domain]);
-			delete[] F_out[domain];
-		}
-		delete[] F_out;
+		////输出F
+		//char str[128];
+		//for (int domain = 0; domain < numofdomain; ++domain) {
+		//	sprintf(str, "F_iter[%d]_domain[%d].csv", outeriter, domain);
+		//	printdoubleVector(str, d_dof[domain], F_out[domain]);
+		//	delete[] F_out[domain];
+		//}
+		//delete[] F_out;
 
 		//整合求解结果
 		for (int domain = 0; domain < numofdomain; ++domain) {
@@ -433,7 +433,7 @@ void FEM2DSchwarzSolver::solve2DAxim()
 		printf("**************************************************\n");
 		printf("Outer Iteration step: %d, error = %f\n", outeriter, error);
 		printf("**************************************************\n");
-		//char str[128];
+		char str[128];
 		sprintf(str, "At_step%d.csv", outeriter);
 		double* At = new double[m_num_nodes];
 		for (int n = 0; n < m_num_nodes; ++n) {
