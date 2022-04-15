@@ -31,6 +31,13 @@ void FEMContactorLinearModel::createElement2Material()
     materialmap[3] = materiallist[1];
     materialmap[4] = materiallist[1];
     materialmap[5] = materiallist[0];
+
+    ////针对当前模型设置材料，和上面的添加材料功能应该分离到两个不同的类
+    //materialmap[1] = materiallist[0];
+    //materialmap[2] = materiallist[0];
+    //materialmap[3] = materiallist[0];
+    //materialmap[4] = materiallist[0];
+    //materialmap[5] = materiallist[0];
 }
 
 void FEMContactorLinearModel::bulidGeometry2Load()
@@ -43,7 +50,7 @@ void FEMContactorLinearModel::buildGeometry2Constrain()
     boundarymap[1] = new FEMAxialSymmetry;
     boundarymap[3] = new FEMAxialSymmetry;
     boundarymap[5] = new FEMAxialSymmetry;
-    std::vector<int> id = { 2, 31, 32, 37, 38, 48, 49, 52, 53, 59, 60, 61, 62, 63, 64 };   //怎么验证边界是正确的？
+    std::vector<int> id = { 2, 7, 31, 32, 37, 38, 48, 49, 52, 53, 59, 60, 61, 62, 63, 64 };   //怎么验证边界是正确的？
     for (auto a : id) {
         boundarymap[a] = new FEMMagneticInsulation;
     }

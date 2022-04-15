@@ -2,7 +2,7 @@
 
 
 SluMTMatrixSolver::SluMTMatrixSolver() :
-    nprocs(std::thread::hardware_concurrency())
+    nprocs(/*std::thread::hardware_concurrency()*/1)
 {
 }
 
@@ -74,7 +74,7 @@ vector<double> SluMTMatrixSolver::solveMatrix(vector<vector<int>> locs, vector<d
 
     dCreate_CompCol_Matrix(&A, n, n, nnz, a, asub, xa, SLU_NC, SLU_D, SLU_GE);
     
-    printf("A.nrow: %d, A.ncol: %d\n", A.nrow, A.ncol);
+    //printf("A.nrow: %d, A.ncol: %d\n", A.nrow, A.ncol);
 
     int nrhs = 1;
     if (!(rhs = doubleMalloc(m * nrhs))) printf("Malloc fails for rhs[].\n");

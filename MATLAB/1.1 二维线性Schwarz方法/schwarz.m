@@ -67,21 +67,25 @@ end
 %--------------------------------读取nPartTable
 nPartTable =  csvread('../../matrix/nparttable.csv');
 nPartTable = nPartTable(:,1:length(Coor))';
-%--------------------------------读取d_node_pos
+%--------------------------------读取d_node_pos和d_node_reorder
 d_dof = csvread('../../matrix/d_dof.csv');
 d_node_pos = cell(4,1);
 d_freenodesx = cell(4,1);
 d_freenodesy = cell(4,1);
 d_nodeid = cell(4,1);
+d_node_reorder = cell(4,1);
 
 for d = 1:4
     d_freenodesx{d} = zeros(d_dof(d),1);
     d_freenodesy{d} = zeros(d_dof(d),1);
     d_nodeid{d} = zeros(d_dof(d),1);
+    d_node_reorder{d} = zeros(d_dof(d),1);
     str = sprintf('../../matrix/d_node_pos[%d].csv', d-1);
     d_node_pos{d} =  csvread(str) + 1;
     str = sprintf('../../matrix/d_nodeid[%d].csv', d-1);
     d_nodeid{d} =  csvread(str) + 1;
+    str = sprintf('../../matrix/d_node_reorder[%d].csv', d-1);
+    d_node_reorder{d} =  csvread(str) + 1;
     for n = 1:length(d_node_pos{d})
         if(d_node_pos{d}(n) <= d_dof(d))
             globalid = d_nodeid{d}(n);
@@ -89,16 +93,58 @@ for d = 1:4
         end
     end
 end
-%------------------------------------绘制真解
+% %------------------------------------读取C++求解得到的S
+% CS = cell(4,1);
+% for i = 1:4
+%     str = sprintf('../../matrix/S_domain[%d].csv',i-1);
+%     CS{i} = csvread(str);
+%     CS{i} = CS{i}(1:size(CS{i},1),1:size(CS{i},1));
+% end
+%------------------------------------绘制最终结果
 At_real = csvread('../../matrix/At_real.csv');
-figure(5);
+figure(1);
 plot(At_real,'ob','MarkerSize',3);
 hold on;
 %------------------------------------求解过程
+deltaS = cell(4,1);
+deltaF = cell(4,1);
 res = cell(4,1);
+errorSid = cell(4,1);
+errorSreorder = cell(4,1);
+errorFid = cell(4,1);
+errorFreorder = cell(4,1);
 At = zeros(length(Coor), 1);
 At_old = zeros(length(Coor),1);
-for iter = 1:300
+% %----------------------------------读取单元分区并绘制
+% figure;
+% DomainElement1 = cell(4,1);
+% Domainx = cell(4,1);
+% Domainy = cell(4,1);
+% for i = 1:4
+%     DomainElement1{i} = find(ePartTable(:, i));
+%     Domainx{i} = zeros(length(DomainElement1{i}),3);
+%     Domainy{i} = zeros(length(DomainElement1{i}),3);
+%     for j = 1:3
+%         Domainx{i}(:,j) = Coor(TriElement(DomainElement1{i},j),1);
+%         Domainy{i}(:,j) = Coor(TriElement(DomainElement1{i},j),2);
+%     end
+% end
+% patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+% hold on;
+% axis equal;
+for iter = 1:200
+    %------------------------------------读取C++求解得到的F
+    CF = cell(4,1);
+    for i = 1:4
+        str = sprintf('../../matrix/F_iter[%d]_domain[%d].csv',iter-1,i-1);
+        CF{i} = csvread(str);
+    end
     %--------------------------------求解各个子域
     for d = 1:4
         res{d} = zeros(d_dof(d),1);
@@ -115,6 +161,9 @@ for iter = 1:300
                         n2 = TriElement(eleID, col);
                         d_n2 = nPartTable(n2,d) + 1;
                         CE(row,col) = (R(eleID,row)*R(eleID,col)+Q(eleID,row)*Q(eleID,col))/4/AREA(eleID)/mu(eleID)/ydot(eleID);
+%                         if(d_n1 == 808 && d_n2 == 808)
+%                             fprintf("d_n1: 808, globalnode: %d, x: %f, y: %f, eleid: %d, mu: %.12f, r: %.12f, Ce: %.12f, Se: %f\n", n1, Coor(n1,1), Coor(n1,2), eleID,mu(eleID),ydot(eleID),(R(eleID,row)*R(eleID,col)+Q(eleID,row)*Q(eleID,col))/4/AREA(eleID),CE(row,col));
+%                         end
                         if d_node_pos{d}(d_n2) <= d_dof(d)
                             S(d_node_pos{d}(d_n1), d_node_pos{d}(d_n2)) = S(d_node_pos{d}(d_n1), d_node_pos{d}(d_n2)) + CE(row, col);
                         else
@@ -126,6 +175,18 @@ for iter = 1:300
             end
         end
         res{d} = S\F;
+%         %--------------------------------------对比C++计算的S和MATLAB计算的S，对比错误的节点位置
+%         deltaS{d} = S-CS{d};
+%         deltaS{d}(deltaS{d} < 1e-5) = 0;
+%         [errorSid{d}, errorSreorder{d}] = find(deltaS{d} ~= 0);
+%         errorSid{d} = d_node_reorder{d}(errorSid{d});
+% %         plot(Coor(d_nodeid{d}(errorrow{d}),1), Coor(d_nodeid{d}(errorrow{d}),2), '.r');
+% %         hold on;
+        %--------------------------------------对比C++计算的S和MATLAB计算的F，对比错误的节点位置
+        deltaF{d} = F-CF{d};
+        deltaF{d}(deltaF{d} < 1e-5) = 0;
+        errorFreorder{d} = find(deltaF{d} ~= 0);
+        errorFid{d} = d_node_reorder{d}(errorFid{d});
     end
     %--------------------------------子域结果整合到全局
     for d = 1:4
@@ -140,11 +201,17 @@ for iter = 1:300
             end
         end
     end
+    %---------------------------------对比求解结果
     str = sprintf('step: %d', iter);
     title(str);
-    h = plot(At,'.r');
-    pause(0.5);
-    delete(h);
+    h1 = plot(At,'.r');
+    str = sprintf('../../matrix/At_step%d.csv', iter-1);
+    At_step = csvread(str);
+    h2 = plot(At_step, 'og','MarkerSize',4);
+     pause(0.5);
+    delete(h1);
+    delete(h2);
+    %---------------------------------误差分析
     error = norm(At-At_old)/norm(At);
     fprintf('step: %d, error: %d\n', iter, error);
     if(error < 1e-5)
@@ -153,4 +220,3 @@ for iter = 1:300
         At_old = At;
     end
 end
-h = plot(At,'.r');

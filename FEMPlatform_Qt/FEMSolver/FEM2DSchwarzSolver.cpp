@@ -1,6 +1,7 @@
 #include "FEM2DSchwarzSolver.h"
 #include "MatrixOutput.h"
 
+#include <iostream>
 FEM2DSchwarzSolver::FEM2DSchwarzSolver(int _numofdomain):
 	d_node_pos(NULL),
 	d_node_reorder(NULL),
@@ -130,9 +131,14 @@ void FEM2DSchwarzSolver::processBoundaryCondition()
 			}
 		}
 		printf("domain:%d, nodesize:%d, dof:%d\n", domain, d_nodesize[domain], d_dof[domain]);
+		char str[128];
+		sprintf(str, "d_node_pos[%d].csv", domain);
+		printintVector(str, d_nodesize[domain], d_node_pos[domain]);
+		sprintf(str, "d_node_reorder[%d].csv", domain);
+		printintVector(str, d_nodesize[domain], d_node_reorder[domain]);
 	}
 	printf("***********************************************************\n");
-
+	printintVector("d_dof.csv", numofdomain, d_dof);
 }
 
 void FEM2DSchwarzSolver::generateMetisMesh()
@@ -260,8 +266,11 @@ void FEM2DSchwarzSolver::generateMetisMesh()
 				pos++;
 			}
 		}
+		char str[128];
+		sprintf(str, "d_nodeid[%d].csv", domain);
+		printintVector(str, d_nodesize[domain], d_nodeid[domain]);
 	}
-	//printintMatrix("nparttable.csv", numofdomain, m_num_nodes, nparttable);
+	printintMatrix("nparttable.csv", numofdomain, m_num_nodes, nparttable);
 	delete[] ndomain;
 }
 
@@ -269,17 +278,27 @@ void FEM2DSchwarzSolver::solve2DAxim()
 {
 	//每个子域进行分析
 //#pragma omp parallel for num_threads(numofdomain)
-	for (int outeriter = 0; outeriter < 100; ++outeriter) {
+	for (int outeriter = 0; outeriter < 200; ++outeriter) {
+		int count = 0;
 		vector<vector<double>> res(numofdomain);
+		//输出F
+		double** F_out = new double* [numofdomain];
+		for (int domain = 0; domain < numofdomain; ++domain) {
+			F_out[domain] = new double [d_dof[domain]];
+		}
+
 		for (int domain = 0; domain < numofdomain; ++domain) {
 			int elesize = d_elesize[domain];
-			//提取当前子域边界点的值
 
 			//考虑第一类边界条件的装配
 			std::vector<std::vector<int>> locs(2, std::vector<int>(9 * (size_t)(elesize)));
 			std::vector<double> vals(9 * (size_t)elesize);
 			std::vector<double> F(d_dof[domain]);
-			std::vector<double> F_bdr(d_dof[domain]);	//子域交界处作为第一类边界条件，处理后得到的右侧列向量
+			////输出S
+			//double** S = new double*[d_dof[domain]];
+			//for (int i = 0; i < d_dof[domain]; ++i) {
+			//	S[i] = new double[d_dof[domain]]();
+			//}
 			int pos = 0;
 			int linearelesize = 0, nonlinearsize = 0;
 
@@ -293,52 +312,111 @@ void FEM2DSchwarzSolver::solve2DAxim()
 				for (int i = 0; i < 3; ++i) {
 					int n1 = triele.n[i];	//全局n1编号
 					int d_n1 = nparttable[domain][n1];	//局部未排序编号
-					double F_bdr = 0;
-					for (int j = 0; j < 3; ++j) {
-						int n2 = triele.n[j];	//全局n2编号
-						int d_n2 = nparttable[domain][n2];	//局部未排序编号
-						//线性装配
-						if (triele.material->getLinearFlag() == true) {
-							if (crossbdrtable[domain][n1] != 1 && mp_node[n1].bdr != 1) {
-								double mu = triele.material->getMu();
-								double mut = mu * triele.xdot;
-								double Se = triele.C[i][j] / mut;
-								if (crossbdrtable[domain][n2] != 1 && mp_node[n2].bdr != 1) {
-									locs[0][pos] = d_node_pos[domain][d_n1];	//转换到局部已排序编号
-									locs[1][pos] = d_node_pos[domain][d_n2];
-									vals[pos] = Se;
-									++pos;
-								}
-								else {
-									//处理第一类边界条件
-									F_bdr += Se * mp_node[n2].At_old;
-								}
+					//double F_bdr = 0;
+					//for (int j = 0; j < 3; ++j) {
+					//	int n2 = triele.n[j];	//全局n2编号
+					//	int d_n2 = nparttable[domain][n2];	//局部未排序编号
+					//	//线性装配
+					//	if (triele.material->getLinearFlag() == true) {
+					//		if (d_node_pos[domain][d_n1] < d_dof[domain]) {
+					//			double mu = triele.material->getMu();
+					//			double mut = mu * triele.xdot;
+					//			double Se = triele.C[i][j] / mut;
+					//			if (d_node_pos[domain][d_n2] < d_dof[domain]) {
+					//				locs[0][pos] = d_node_pos[domain][d_n1];	//转换到局部已排序编号
+					//				locs[1][pos] = d_node_pos[domain][d_n2];
+					//				vals[pos] = Se;
+					//				++pos;
+					//			}
+					//			else {
+					//				//处理第一类边界条件
+					//				//F_bdr += Se * mp_node[n2].At_old;
+					//				F[d_node_pos[domain][d_n1]] -= Se * mp_node[n2].At;
+					//				//if(mp_node[n2].bdr != 1)
+					//				//	printf("domain: %d, d_n1: %d, d_n2: %d, Se: %.8f, At_old: %.12f, F_bdr: %.12f\n", domain, d_n1, d_n2, Se, mp_node[n2].At_old, F_bdr);
+					//			}
 
+					//		}
+					//	}
+					//}
+					//if (d_node_pos[domain][d_n1] < d_dof[domain]) {
+					//	double Fe = triele.J * triele.area / 3;
+					//	if (Fe != 0 || F_bdr != 0)
+					//		//printf("domain: %d, d_n1: %d, F_bdr: %.12f, Fe: %.12f\n", domain, d_n1, F_bdr, Fe);
+					//		F[d_node_pos[domain][d_n1]] += Fe;
+					//	F[d_node_pos[domain][d_n1]] -= F_bdr;
+					//}
+					if (d_node_pos[domain][d_n1] < d_dof[domain]) {
+						for (int j = 0; j < 3; ++j) {
+							int n2 = triele.n[j];	//全局n2编号
+							int d_n2 = nparttable[domain][n2];	//局部未排序编号
+							double mu = triele.material->getMu();
+							double mut = mu * triele.xdot;
+							double Se = triele.C[i][j] / mu / triele.xdot;
+							//if (d_n1 == 807 && d_n2 == 807) {
+							//	printf("d_n1: 807, globalnode: %d, x: %f, y: %f, eleid: %d, mu: %.12f, r: %.12f, Ce: %.12f, Se: %f\n",n1, mp_node[n1].x, mp_node[n1].y, globaleleid, mu, triele.xdot, triele.C[i][j], Se);
+							//	count++;
+							//}
+							if (d_node_pos[domain][d_n2] < d_dof[domain]) {
+								locs[0][pos] = d_node_pos[domain][d_n1];	//转换到局部已排序编号
+								locs[1][pos] = d_node_pos[domain][d_n2];
+								vals[pos] = Se;
+								////输出S
+								//S[d_node_pos[domain][d_n1]][d_node_pos[domain][d_n2]] += Se;
+								++pos;
+							}
+							else {
+								F[d_node_pos[domain][d_n1]] -= Se * mp_node[n2].At;
 							}
 						}
-					}
-					if (crossbdrtable[domain][n1] != 1 && mp_node[n1].bdr != 1) {
 						double Fe = triele.J * triele.area / 3;
 						F[d_node_pos[domain][d_n1]] += Fe;
-						F[d_node_pos[domain][d_n1]] -= F_bdr;
 					}
 
 				}
 			}
 
+			cout << "count: " << count << endl;
 			//求解
 			locs[0].resize(pos);
 			locs[1].resize(pos);
+			//
 			res[domain] = matsolver->solveMatrix(locs, vals, F, pos, d_dof[domain]);
+
+			////输出S
+			//char str[128];
+			//sprintf(str, "S_domain[%d].csv", domain);
+			//printdoubleMatrix(str, d_dof[domain], d_dof[domain], S);
+			//for (int i = 0; i < d_dof[domain]; ++i) {
+			//	delete[] S[i];
+			//}
+			//delete[] S;
+			//输出F
+			memcpy(F_out[domain], &F[0], F.size() * sizeof(double));
+			
 		}
+		//输出F
+		char str[128];
+		for (int domain = 0; domain < numofdomain; ++domain) {
+			sprintf(str, "F_iter[%d]_domain[%d].csv", outeriter, domain);
+			printdoubleVector(str, d_dof[domain], F_out[domain]);
+			delete[] F_out[domain];
+		}
+		delete[] F_out;
 
 		//整合求解结果
 		for (int domain = 0; domain < numofdomain; ++domain) {
-			for (int n = 0; n < d_nodesize[domain]; ++n) {	//n是局部未排序编号
-				int g_nodeid = d_nodeid[domain][n];	//全局节点编号
-				if (crossbdrtable[domain][g_nodeid] != 1 && mp_node[g_nodeid].bdr != 1) {
-					mp_node[g_nodeid].At = res[domain][d_node_pos[domain][n]];
-				}
+			//for (int n = 0; n < d_nodesize[domain]; ++n) {	//n是局部未排序编号
+			//	int g_nodeid = d_nodeid[domain][n];	//全局节点编号
+			//	if (d_node_pos[domain][n] < d_dof[domain]) {
+			//		mp_node[g_nodeid].At = res[domain][d_node_pos[domain][n]];
+			//	}
+			//}
+
+			for (int n = 0; n < d_dof[domain]; ++n) {
+				int nodeid = d_node_reorder[domain][n];
+				int g_nodeid = d_nodeid[domain][nodeid];
+				mp_node[g_nodeid].At = res[domain][n];
 			}
 		}
 
@@ -352,16 +430,28 @@ void FEM2DSchwarzSolver::solve2DAxim()
 			b += mp_node[i].At * mp_node[i].At;
 		}
 		error = sqrt(a) / sqrt(b);
+		printf("**************************************************\n");
 		printf("Outer Iteration step: %d, error = %f\n", outeriter, error);
-		if (error > maxerror) {
-			for (int i = 0; i < m_num_nodes; ++i) {
-				mp_node[i].At_old = mp_node[i].At;
+		printf("**************************************************\n");
+		//char str[128];
+		sprintf(str, "At_step%d.csv", outeriter);
+		double* At = new double[m_num_nodes];
+		for (int n = 0; n < m_num_nodes; ++n) {
+			At[n] = mp_node[n].At;
+		}
+		printdoubleVector(str, m_num_nodes, At);
+		delete[] At;
+ 		if (error > maxerror) {
+			for (int n = 0; n < m_num_nodes; ++n) {
+				mp_node[n].At_old = mp_node[n].At;
+				if (mp_node[n].x != 0) {
+					mp_node[n].A = mp_node[n].At / mp_node[n].x;
+				}
 			}
 		}
 		else {
 			printf("Outer Iteration finish!\n");
+			break;
 		}
 	}
-
-
 }

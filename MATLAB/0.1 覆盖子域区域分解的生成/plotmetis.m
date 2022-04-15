@@ -80,7 +80,6 @@ plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
 plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
 plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
 %----------------------------------验证C++生成的eparttable和boundaryTable是否正确
-figure(2);
 ePartTable1 = csvread('../../matrix/eparttable.csv');
 ePartTable1 = ePartTable1(:,1:length(ePartTable))';
 boundaryTable1 = csvread('../../matrix/boundarytable.csv');
@@ -89,7 +88,7 @@ DomainElement = cell(4,1);
 Domainx = cell(4,1);
 Domainy = cell(4,1);
 for i = 1:4
-    DomainElement{i} = find(ePartTable1(:, i));
+    DomainElement{i} = find(ePartTable1(:, i) ~= -1);
     Domainx{i} = zeros(length(DomainElement{i}),3);
     Domainy{i} = zeros(length(DomainElement{i}),3);
     for j = 1:3
@@ -97,6 +96,7 @@ for i = 1:4
         Domainy{i}(:,j) = Coor(TriElement(DomainElement{i},j),2);
     end
 end
+figure(2);
 patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
 hold on;
 patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
@@ -114,100 +114,104 @@ plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
 plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
 plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
 plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
-% %--------------------------------读取单元分区并绘制
-% Domain0Element = TriElement(eDomain==0,:);
-% Domain1Element = TriElement(eDomain==1,:);
-% Domain2Element = TriElement(eDomain==2,:);
-% Domain3Element = TriElement(eDomain==3,:);
-% Domain0x(:,1) = Coor(Domain0Element(:,1),1);
-% Domain0x(:,2) = Coor(Domain0Element(:,2),1);
-% Domain0x(:,3) = Coor(Domain0Element(:,3),1);
-% Domain0y(:,1) = Coor(Domain0Element(:,1),2);
-% Domain0y(:,2) = Coor(Domain0Element(:,2),2);
-% Domain0y(:,3) = Coor(Domain0Element(:,3),2);
-% patch(Domain0x',Domain0y','red','FaceAlpha',.3);
+%--------------------------------验证C++生成的npartTable是否正确
+nPartTable =  csvread('../../matrix/nparttable.csv');
+nPartTable = nPartTable(:,1:length(Coor))';
+DomainNode = cell(4,1);
+Domainx = cell(4,1);
+Domainy = cell(4,1);
+for i = 1:4
+    DomainElement{i} = find(ePartTable1(:, i) ~= -1);
+    Domainx{i} = zeros(length(DomainElement{i}),3);
+    Domainy{i} = zeros(length(DomainElement{i}),3);
+    for j = 1:3
+        Domainx{i}(:,j) = Coor(TriElement(DomainElement{i},j),1);
+        Domainy{i}(:,j) = Coor(TriElement(DomainElement{i},j),2);
+    end
+end
+figure(3);
+patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+hold on;
+patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+hold on;
+patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+hold on;
+patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+hold on;
+axis equal;
+for i = 1:4
+    DomainNode{i} = find(nPartTable(:, i) ~= -1);
+end
+plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
+hold on;
+% plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
 % hold on;
-% Domain1x(:,1) = Coor(Domain1Element(:,1),1);
-% Domain1x(:,2) = Coor(Domain1Element(:,2),1);
-% Domain1x(:,3) = Coor(Domain1Element(:,3),1);
-% Domain1y(:,1) = Coor(Domain1Element(:,1),2);
-% Domain1y(:,2) = Coor(Domain1Element(:,2),2);
-% Domain1y(:,3) = Coor(Domain1Element(:,3),2);
-% patch(Domain1x',Domain1y','blue','FaceAlpha',.3);
+% plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
 % hold on;
-% Domain2x(:,1) = Coor(Domain2Element(:,1),1);
-% Domain2x(:,2) = Coor(Domain2Element(:,2),1);
-% Domain2x(:,3) = Coor(Domain2Element(:,3),1);
-% Domain2y(:,1) = Coor(Domain2Element(:,1),2);
-% Domain2y(:,2) = Coor(Domain2Element(:,2),2);
-% Domain2y(:,3) = Coor(Domain2Element(:,3),2);
-% patch(Domain2x',Domain2y','yellow','FaceAlpha',.3);
+% plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
 % hold on;
-% Domain3x(:,1) = Coor(Domain3Element(:,1),1);
-% Domain3x(:,2) = Coor(Domain3Element(:,2),1);
-% Domain3x(:,3) = Coor(Domain3Element(:,3),1);
-% Domain3y(:,1) = Coor(Domain3Element(:,1),2);
-% Domain3y(:,2) = Coor(Domain3Element(:,2),2);
-% Domain3y(:,3) = Coor(Domain3Element(:,3),2);
-% patch(Domain3x',Domain3y','green','FaceAlpha',.3);
+axis equal;
+%--------------------------------验证C++生成的d_node_pos是否正确
+d_dof = csvread('../../matrix/d_dof.csv');
+d_node_pos = cell(4,1);
+d_freenodesx = cell(4,1);
+d_freenodesy = cell(4,1);
+d_nodeid = cell(4,1);
+figure(4);
+patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+hold on;
+patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+hold on;
+patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+hold on;
+patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+hold on;
+axis equal;
+for i = 1:4
+    d_freenodesx{i} = zeros(d_dof(i),1);
+    d_freenodesy{i} = zeros(d_dof(i),1);
+    d_nodeid{i} = zeros(d_dof(i),1);
+    str = sprintf('../../matrix/d_node_pos[%d].csv', i-1);
+    d_node_pos{i} =  csvread(str) + 1;
+    str = sprintf('../../matrix/d_nodeid[%d].csv', i-1);
+    d_nodeid{i} =  csvread(str) + 1;
+    for n = 1:length(d_node_pos{i})
+        if(d_node_pos{i}(n) <= d_dof(i))
+            globalid = d_nodeid{i}(n);
+            reorderid = d_node_pos{i}(n);
+            d_freenodesx{i}(reorderid) = Coor(globalid,1);
+            d_freenodesy{i}(reorderid) = Coor(globalid,2);
+        end
+    end
+end
+plot(d_freenodesx{1}, d_freenodesy{1}, '.r');
+hold on;
+plot(d_freenodesx{2}, d_freenodesy{2}, '.g');
+hold on;
+plot(d_freenodesx{3}, d_freenodesy{3}, '.b');
+hold on;
+plot(d_freenodesx{4}, d_freenodesy{4}, '.r');
+hold on;
+%--------------------------------求解结果收敛性分析
+At_real = csvread('../../matrix/At_real.csv');
+figure(5);
+plot(At_real,'ob');
+hold on;
+for i = 1:300
+    str = sprintf('../../matrix/At_step%d.csv', i-1);
+    At_step = csvread(str);
+    str = sprintf('Step: %d', i);
+    title(str);
+    h = plot(At_step, '.r');
+    pause(0.5);
+    delete(h);
+end
+% % ------------------------------分析0值所在的位置
+% At_real = csvread('../../matrix/At_real.csv');
+% At_step = csvread('../../matrix/At_step99.csv');
+% Atreal_zeronode = find(At_real==0);
+% Atstep_zeronode = find(At_step==0);
+% figure(5);
+% plot(Coor(Atreal_zeronode,1), Coor(Atreal_zeronode,2), '.b');
 % hold on;
-% %---------------------------------读取节点分区并绘制
-% nDomain0Coor = Coor(nDomain==0,:);
-% nDomain1Coor = Coor(nDomain==1,:);
-% plot(nDomain0Coor(:,1),nDomain0Coor(:,2),'.b');
-% hold on;
-% axis equal;
-% plot(nDomain1Coor(:,1),nDomain1Coor(:,2),'.r');
-% hold on;
-% %---------------------------------找出包含边界点的单元
-% %遍历所有单元，找出那些单元包含了不止一个域的节点
-% eleDomainNode = nDomain(TriElement);
-% j = 1;
-% k = 1
-% for i = 1:length(TriElement)
-%     if length(unique(eleDomainNode(i,:))) ~= 1
-%         if eDomain(i) == 0
-%             Bound0Element(j,1) = i;
-%             j = j+1;
-%         else
-%             Bound1Element(k,1) = i;
-%             k = k+1;
-%         end
-%     end
-% end
-% %提取并绘制出这些单元
-% DomainB0Node = TriElement(Bound0Element,:);
-% eDomainB0x(:,1) = Coor(DomainB0Node(:,1),1);
-% eDomainB0x(:,2) = Coor(DomainB0Node(:,2),1);
-% eDomainB0x(:,3) = Coor(DomainB0Node(:,3),1);
-% eDomainB0y(:,1) = Coor(DomainB0Node(:,1),2);
-% eDomainB0y(:,2) = Coor(DomainB0Node(:,2),2);
-% eDomainB0y(:,3) = Coor(DomainB0Node(:,3),2);
-% patch(eDomainB0x',eDomainB0y','blue','FaceAlpha',.3);
-% hold on;
-% DomainB1Node = TriElement(Bound1Element,:);
-% eDomainB1x(:,1) = Coor(DomainB1Node(:,1),1);
-% eDomainB1x(:,2) = Coor(DomainB1Node(:,2),1);
-% eDomainB1x(:,3) = Coor(DomainB1Node(:,3),1);
-% eDomainB1y(:,1) = Coor(DomainB1Node(:,1),2);
-% eDomainB1y(:,2) = Coor(DomainB1Node(:,2),2);
-% eDomainB1y(:,3) = Coor(DomainB1Node(:,3),2);
-% patch(eDomainB1x',eDomainB1y','red','FaceAlpha',.3);
-% hold on;
-%找出被重复遍历的节点
-% Domain0BoundNode = TriElement(Bound0Element,:);
-% Domain1BoundNode = TriElement(Bound1Element,:);
-% intersect(Domain0BoundNode,Domain1BoundNode);
-%-----------------------------------找出边界节点
-% %遍历全部单元的全部节点，如果出现节点所在域与单元所在域不一致，标记为交界处节点
-% eleDomainNode = nDomain(TriElement);
-% k = 1; 
-% for i = 1:length(eDomain)
-%     for j = 1:3
-%         if eleDomainNode(i,j) ~= eDomain(i)
-%             DomainBNode(k,1) = TriElement(i,j);
-%             k = k+1;
-%         end
-%     end
-% end
-% plot(Coor(DomainBNode,1),Coor(DomainBNode,2),'.g');
+% plot(Coor(Atstep_zeronode,1), Coor(Atstep_zeronode,2), '.r');

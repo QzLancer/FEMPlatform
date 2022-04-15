@@ -1,4 +1,5 @@
 #include "FEM2DNRSolver.h"
+#include "MatrixOutput.h"
 
 #include <fstream>
 #include <iostream>
@@ -481,12 +482,23 @@ void FEM2DNRSolver::solve2DAxim()
 		cout << "pos: " << pos << endl;
 		vector<double> res1 = matsolver->solveMatrix(locs, vals, F, pos, num_freenodes);
 		for (int i = 0; i < num_freenodes; ++i) {
+			//printf("i: %d, res1: %.12f\n", i, res1[i]);
 			int index = node_reorder[i];
 			mp_node[index].At = res1[i];
 			if (mp_node[index].x != 0) {
 				mp_node[index].A = mp_node[index].At / mp_node[index].x;
 			}
 		}
+
+		//输出求解结果
+		double* At = new double[m_num_nodes]();
+		for (int n = 0; n < m_num_nodes; ++n) {
+			At[n] = mp_node[n].At;
+			//printf("mp_node[%d].At: %.12f, At[%d]: %.12f\n", n, mp_node[n].At, n, At[n]);
+		}
+		printdoubleVector("At_real.csv", m_num_nodes, At);
+ 		delete[] At;
+
 		//更新磁场结果
 		updateB();
 
