@@ -50,7 +50,8 @@ void FEM2DSchwarzSolver::solveStatic()
 	processMaterial();
 	processLoad();
 	if (dimension == FEMModel::DIMENSION::D2AXISM) {
-		solve2DAxim();
+		//solve2DAximLinear();
+		solve2DAximNonlinear();
 	}
 	else {
 		cout << "Error: can't solve this dimension" << endl;
@@ -274,7 +275,7 @@ void FEM2DSchwarzSolver::generateMetisMesh()
 	delete[] ndomain;
 }
 
-void FEM2DSchwarzSolver::solve2DAxim()
+void FEM2DSchwarzSolver::solve2DAximLinear()
 {
 	//每个子域进行分析
 //#pragma omp parallel for num_threads(numofdomain)
@@ -312,40 +313,6 @@ void FEM2DSchwarzSolver::solve2DAxim()
 				for (int i = 0; i < 3; ++i) {
 					int n1 = triele.n[i];	//全局n1编号
 					int d_n1 = nparttable[domain][n1];	//局部未排序编号
-					//double F_bdr = 0;
-					//for (int j = 0; j < 3; ++j) {
-					//	int n2 = triele.n[j];	//全局n2编号
-					//	int d_n2 = nparttable[domain][n2];	//局部未排序编号
-					//	//线性装配
-					//	if (triele.material->getLinearFlag() == true) {
-					//		if (d_node_pos[domain][d_n1] < d_dof[domain]) {
-					//			double mu = triele.material->getMu();
-					//			double mut = mu * triele.xdot;
-					//			double Se = triele.C[i][j] / mut;
-					//			if (d_node_pos[domain][d_n2] < d_dof[domain]) {
-					//				locs[0][pos] = d_node_pos[domain][d_n1];	//转换到局部已排序编号
-					//				locs[1][pos] = d_node_pos[domain][d_n2];
-					//				vals[pos] = Se;
-					//				++pos;
-					//			}
-					//			else {
-					//				//处理第一类边界条件
-					//				//F_bdr += Se * mp_node[n2].At_old;
-					//				F[d_node_pos[domain][d_n1]] -= Se * mp_node[n2].At;
-					//				//if(mp_node[n2].bdr != 1)
-					//				//	printf("domain: %d, d_n1: %d, d_n2: %d, Se: %.8f, At_old: %.12f, F_bdr: %.12f\n", domain, d_n1, d_n2, Se, mp_node[n2].At_old, F_bdr);
-					//			}
-
-					//		}
-					//	}
-					//}
-					//if (d_node_pos[domain][d_n1] < d_dof[domain]) {
-					//	double Fe = triele.J * triele.area / 3;
-					//	if (Fe != 0 || F_bdr != 0)
-					//		//printf("domain: %d, d_n1: %d, F_bdr: %.12f, Fe: %.12f\n", domain, d_n1, F_bdr, Fe);
-					//		F[d_node_pos[domain][d_n1]] += Fe;
-					//	F[d_node_pos[domain][d_n1]] -= F_bdr;
-					//}
 					if (d_node_pos[domain][d_n1] < d_dof[domain]) {
 						for (int j = 0; j < 3; ++j) {
 							int n2 = triele.n[j];	//全局n2编号
@@ -353,10 +320,6 @@ void FEM2DSchwarzSolver::solve2DAxim()
 							double mu = triele.material->getMu();
 							double mut = mu * triele.xdot;
 							double Se = triele.C[i][j] / mu / triele.xdot;
-							//if (d_n1 == 807 && d_n2 == 807) {
-							//	printf("d_n1: 807, globalnode: %d, x: %f, y: %f, eleid: %d, mu: %.12f, r: %.12f, Ce: %.12f, Se: %f\n",n1, mp_node[n1].x, mp_node[n1].y, globaleleid, mu, triele.xdot, triele.C[i][j], Se);
-							//	count++;
-							//}
 							if (d_node_pos[domain][d_n2] < d_dof[domain]) {
 								locs[0][pos] = d_node_pos[domain][d_n1];	//转换到局部已排序编号
 								locs[1][pos] = d_node_pos[domain][d_n2];
@@ -406,13 +369,209 @@ void FEM2DSchwarzSolver::solve2DAxim()
 
 		//整合求解结果
 		for (int domain = 0; domain < numofdomain; ++domain) {
-			//for (int n = 0; n < d_nodesize[domain]; ++n) {	//n是局部未排序编号
-			//	int g_nodeid = d_nodeid[domain][n];	//全局节点编号
-			//	if (d_node_pos[domain][n] < d_dof[domain]) {
-			//		mp_node[g_nodeid].At = res[domain][d_node_pos[domain][n]];
-			//	}
-			//}
+			for (int n = 0; n < d_dof[domain]; ++n) {
+				int nodeid = d_node_reorder[domain][n];
+				int g_nodeid = d_nodeid[domain][nodeid];
+				mp_node[g_nodeid].At = res[domain][n];
+			}
+		}
 
+		//更新磁场结果
+		updateB();
+
+		//判断误差
+		double error = 0, a = 0, b = 0;
+		for (int i = 0; i < m_num_nodes; ++i) {
+			a += (mp_node[i].At - mp_node[i].At_old) * (mp_node[i].At - mp_node[i].At_old);
+			b += mp_node[i].At * mp_node[i].At;
+		}
+		error = sqrt(a) / sqrt(b);
+		printf("**************************************************\n");
+		printf("Outer Iteration step: %d, error = %f\n", outeriter, error);
+		printf("**************************************************\n");
+		char str[128];
+		sprintf(str, "At_step%d.csv", outeriter);
+		double* At = new double[m_num_nodes];
+		for (int n = 0; n < m_num_nodes; ++n) {
+			At[n] = mp_node[n].At;
+		}
+		printdoubleVector(str, m_num_nodes, At);
+		delete[] At;
+ 		if (error > maxerror) {
+			for (int n = 0; n < m_num_nodes; ++n) {
+				mp_node[n].At_old = mp_node[n].At;
+				if (mp_node[n].x != 0) {
+					mp_node[n].A = mp_node[n].At / mp_node[n].x;
+				}
+			}
+		}
+		else {
+			printf("Outer Iteration finish!\n");
+			break;
+		}
+	}
+}
+
+void FEM2DSchwarzSolver::solve2DAximNonlinear()
+{
+		//每个子域进行分析
+//#pragma omp parallel for num_threads(numofdomain)
+	for (int outeriter = 0; outeriter < 1000; ++outeriter) {
+		int count = 0;
+		vector<vector<double>> res(numofdomain);
+		////输出F
+		//double** F_out = new double* [numofdomain];
+		//for (int domain = 0; domain < numofdomain; ++domain) {
+		//	F_out[domain] = new double [d_dof[domain]];
+		//}
+
+		for (int domain = 0; domain < numofdomain; ++domain) {
+			int elesize = d_elesize[domain];
+
+			//考虑第一类边界条件的线性单元装配
+			std::vector<std::vector<int>> locs(2, std::vector<int>(9 * (size_t)(elesize)));
+			std::vector<double> vals(9 * (size_t)elesize);
+			std::vector<double> F(d_dof[domain]);
+			////输出S
+			//double** S = new double*[d_dof[domain]];
+			//for (int i = 0; i < d_dof[domain]; ++i) {
+			//	S[i] = new double[d_dof[domain]]();
+			//}
+			int pos = 0;
+			int linearelesize = 0, nonlinearsize = 0;
+
+			for (int i_tri = 0; i_tri < elesize; ++i_tri) {
+				int globaleleid = d_eleid[domain][i_tri];
+				CTriElement triele = mp_triele[globaleleid];
+				if (triele.material->getLinearFlag() == true)
+					linearelesize++;
+				else
+					nonlinearsize++;
+				for (int i = 0; i < 3; ++i) {
+					int n1 = triele.n[i];	//全局n1编号
+					int d_n1 = nparttable[domain][n1];	//局部未排序编号
+					if (d_node_pos[domain][d_n1] < d_dof[domain]) {
+						if (triele.material->getLinearFlag() == true) {
+							for (int j = 0; j < 3; ++j) {
+								int n2 = triele.n[j];	//全局n2编号
+								int d_n2 = nparttable[domain][n2];	//局部未排序编号
+								double mu = triele.material->getMu();
+								double mut = mu * triele.xdot;
+								double Se = triele.C[i][j] / mu / triele.xdot;
+								if (d_node_pos[domain][d_n2] < d_dof[domain]) {
+									locs[0][pos] = d_node_pos[domain][d_n1];	//转换到局部已排序编号
+									locs[1][pos] = d_node_pos[domain][d_n2];
+									vals[pos] = Se;
+									////输出S
+									//S[d_node_pos[domain][d_n1]][d_node_pos[domain][d_n2]] += Se;
+									++pos;
+								}
+								else {
+									F[d_node_pos[domain][d_n1]] -= Se * mp_node[n2].At_old;
+								}
+							}
+						}
+						double Fe = triele.J * triele.area / 3;
+						F[d_node_pos[domain][d_n1]] += Fe;
+					}
+
+				}
+			}
+
+			//非线性迭代过程
+			int pos1 = pos;
+			std::vector<double> F1 = F;
+			for (int NRstep = 0; NRstep < 1; ++NRstep) {
+				pos = pos1;
+				F = F1;
+				for (int i_tri = 0; i_tri < elesize; ++i_tri) {
+					int globaleleid = d_eleid[domain][i_tri];
+					CTriElement triele = mp_triele[globaleleid];
+					if (triele.material->getLinearFlag() == false) {
+						//计算单元Jacobi矩阵
+						vector<vector<double>> J(3, vector<double>(3, 0));	//单元Jacobi矩阵
+						vector<double> Fj(3, 0);	//新增的右侧项
+						double mu, mut, dvdb, dvdbt, Bt, sigma[3]{ 0, 0, 0 };
+						mu = triele.material->getMu(triele.B);
+						mut = mu * triele.xdot;
+						dvdb = triele.material->getdvdB(triele.B);
+						dvdbt = dvdb / triele.xdot / triele.xdot;
+						Bt = triele.B * triele.xdot;
+						vector<int> n(3);
+						n[0] = triele.n[0], n[1] = triele.n[1], n[2] = triele.n[2];
+						for (int i = 0; i < 3; ++i) {
+							for (int j = 0; j < 3; ++j) {
+								sigma[i] += triele.C[i][j] * mp_node[n[j]].At;
+							}
+						}
+						for (int i = 0; i < 3; ++i) {
+							for (int j = 0; j < 3; ++j) {
+								if (Bt != 0) {
+									J[i][j] = triele.C[i][j] / mut + dvdbt * sigma[i] * sigma[j] / Bt / triele.area;
+								}
+								else {
+									J[i][j] = triele.C[i][j] / mut;
+								}
+								Fj[i] += (J[i][j] - triele.C[i][j] / mut) * mp_node[n[j]].At;
+							}
+						}
+						//装配
+						for (int i = 0; i < 3; ++i) {
+							int n1 = triele.n[i];
+							int d_n1 = nparttable[domain][n1];	//局部未排序编号
+							if (d_node_pos[domain][d_n1] < d_dof[domain]) {
+								for (int j = 0; j < 3; ++j) {
+									int n2 = triele.n[j];
+									int d_n2 = nparttable[domain][n2];
+									if (d_node_pos[domain][d_n2] < d_dof[domain]) {
+										locs[0][pos] = d_node_pos[domain][d_n1];
+										locs[1][pos] = d_node_pos[domain][d_n2];
+										vals[pos] = J[i][j];
+										++pos;
+									}
+									else {
+										F[d_node_pos[domain][d_n1]] -= J[i][j] * mp_node[n2].At_old;
+									}
+								}
+								F[d_node_pos[domain][d_n1]] += Fj[i];
+							}
+						}
+					}
+				}
+
+				//求解
+				locs[0].resize(pos);
+				locs[1].resize(pos);
+				//输出pos
+				printf("domain: %d, pos: %d\n", domain, pos);
+				res[domain] = matsolver->solveMatrix(locs, vals, F, pos, d_dof[domain]);
+
+			}
+
+
+			////输出S
+			//char str[128];
+			//sprintf(str, "S_domain[%d].csv", domain);
+			//printdoubleMatrix(str, d_dof[domain], d_dof[domain], S);
+			//for (int i = 0; i < d_dof[domain]; ++i) {
+			//	delete[] S[i];
+			//}
+			//delete[] S;
+			////输出F
+			//memcpy(F_out[domain], &F[0], F.size() * sizeof(double));
+			
+		}
+		////输出F
+		//char str[128];
+		//for (int domain = 0; domain < numofdomain; ++domain) {
+		//	sprintf(str, "F_iter[%d]_domain[%d].csv", outeriter, domain);
+		//	printdoubleVector(str, d_dof[domain], F_out[domain]);
+		//	delete[] F_out[domain];
+		//}
+		//delete[] F_out;
+
+		//整合求解结果
+		for (int domain = 0; domain < numofdomain; ++domain) {
 			for (int n = 0; n < d_dof[domain]; ++n) {
 				int nodeid = d_node_reorder[domain][n];
 				int g_nodeid = d_nodeid[domain][nodeid];

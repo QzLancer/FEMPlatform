@@ -12,8 +12,8 @@
 #include <time.h>
 #include <direct.h>
 
-std::string analysistype = "static";
-std::string solvestrategy = "DD";
+std::string analysistype = "dynamic";
+std::string solvestrategy = "NR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 1000;
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     free(buffer);
 
     FEMCore core;
-    FEMModel* model = new FEMContactorLinearModel;
+    FEMModel* model = new RelayDynamicModel;
     model->init();
 
     core.setModel(model);

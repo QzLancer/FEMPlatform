@@ -19,7 +19,8 @@ protected:
 
 private:
     void generateMetisMesh();
-    void solve2DAxim();
+    void solve2DAximLinear();
+    void solve2DAximNonlinear();
 
     char metisfile[256];
     int numofdomain;    //×ÓÓòÊıÁ¿

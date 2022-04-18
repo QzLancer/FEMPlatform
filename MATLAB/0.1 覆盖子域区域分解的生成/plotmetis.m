@@ -48,15 +48,15 @@ for i = 1:4
         Domainy{i}(:,j) = Coor(TriElement(DomainElement{i},j),2);
     end
 end
-patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
-hold on;
-patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
-hold on;
-patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
-hold on;
-patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
-hold on;
-axis equal;
+% patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+% hold on;
+% axis equal;
 %----------------------------------检索每个单元的边界节点，保存在boundaryTable中
 boundaryTable = zeros(length(Coor), 4);
 for i = 1:4
@@ -75,10 +75,10 @@ DomainNode = cell(4,1);
 for i = 1:4
    DomainNode{i} = find(boundaryTable(:,i)); 
 end
-plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
-plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
-plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
-plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
+% plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
+% plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
+% plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
+% plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
 %----------------------------------验证C++生成的eparttable和boundaryTable是否正确
 ePartTable1 = csvread('../../matrix/eparttable.csv');
 ePartTable1 = ePartTable1(:,1:length(ePartTable))';
@@ -96,16 +96,16 @@ for i = 1:4
         Domainy{i}(:,j) = Coor(TriElement(DomainElement{i},j),2);
     end
 end
-figure(2);
-patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
-hold on;
-patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
-hold on;
-patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
-hold on;
-patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
-hold on;
-axis equal;
+% figure(2);
+% patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+% hold on;
+% axis equal;
 DomainNode = cell(4,1); 
 for i = 1:4
    DomainNode{i} = find(boundaryTable1(:,i)); 
@@ -129,44 +129,44 @@ for i = 1:4
         Domainy{i}(:,j) = Coor(TriElement(DomainElement{i},j),2);
     end
 end
-figure(3);
-patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
-hold on;
-patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
-hold on;
-patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
-hold on;
-patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
-hold on;
-axis equal;
+% figure(3);
+% patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+% hold on;
+% axis equal;
 for i = 1:4
     DomainNode{i} = find(nPartTable(:, i) ~= -1);
 end
-plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
-hold on;
+% plot(Coor(DomainNode{1},1), Coor(DomainNode{1},2), '.r');
+% hold on;
 % plot(Coor(DomainNode{2},1), Coor(DomainNode{2},2), '.g');
 % hold on;
 % plot(Coor(DomainNode{3},1), Coor(DomainNode{3},2), '.b');
 % hold on;
 % plot(Coor(DomainNode{4},1), Coor(DomainNode{4},2), '.y');
 % hold on;
-axis equal;
+% axis equal;
 %--------------------------------验证C++生成的d_node_pos是否正确
 d_dof = csvread('../../matrix/d_dof.csv');
 d_node_pos = cell(4,1);
 d_freenodesx = cell(4,1);
 d_freenodesy = cell(4,1);
 d_nodeid = cell(4,1);
-figure(4);
-patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
-hold on;
-patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
-hold on;
-patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
-hold on;
-patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
-hold on;
-axis equal;
+% figure(4);
+% patch(Domainx{1}',Domainy{1}','red','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{2}',Domainy{2}','green','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{3}',Domainy{3}','blue','FaceAlpha',.3);
+% hold on;
+% patch(Domainx{4}',Domainy{4}','yellow','FaceAlpha',.3);
+% hold on;
+% axis equal;
 for i = 1:4
     d_freenodesx{i} = zeros(d_dof(i),1);
     d_freenodesy{i} = zeros(d_dof(i),1);
@@ -184,26 +184,26 @@ for i = 1:4
         end
     end
 end
-plot(d_freenodesx{1}, d_freenodesy{1}, '.r');
-hold on;
-plot(d_freenodesx{2}, d_freenodesy{2}, '.g');
-hold on;
-plot(d_freenodesx{3}, d_freenodesy{3}, '.b');
-hold on;
-plot(d_freenodesx{4}, d_freenodesy{4}, '.r');
-hold on;
+% plot(d_freenodesx{1}, d_freenodesy{1}, '.r');
+% hold on;
+% plot(d_freenodesx{2}, d_freenodesy{2}, '.g');
+% hold on;
+% plot(d_freenodesx{3}, d_freenodesy{3}, '.b');
+% hold on;
+% plot(d_freenodesx{4}, d_freenodesy{4}, '.r');
+% hold on;
 %--------------------------------求解结果收敛性分析
 At_real = csvread('../../matrix/At_real.csv');
 figure(5);
 plot(At_real,'ob');
 hold on;
-for i = 1:300
+for i = 1:540
     str = sprintf('../../matrix/At_step%d.csv', i-1);
     At_step = csvread(str);
     str = sprintf('Step: %d', i);
     title(str);
     h = plot(At_step, '.r');
-    pause(0.5);
+    pause(0.2);
     delete(h);
 end
 % % ------------------------------分析0值所在的位置

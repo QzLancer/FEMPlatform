@@ -28,186 +28,7 @@ void FEM2DNRSolver::solveStatic()
 
 void FEM2DNRSolver::solveDynamic()
 {
-	////电磁吸力、加速度、速度、位移测试
-	//string name = "RelayDynamic";
-
-	//const int n = 101;
-	//current = new double[n];
-	//dis = new double[n];
-	//velocity = new double[n];
-	//acc = new double[n];
-	//magneticforce = new double[n];
-	//springforce = new double[n];
-	//flux = new double[n];
-	//mass = 0.024;
-	//h = 5e-4;
-	//U = 24;
-	//R = 40;
-
-	//dis[0] = 0;
-	//velocity[0] = 0;
-	//acc[0] = 0;
-	//springforce[0] = solveSpringForce(1, 0);
-	//magneticforce[0] = 0;
-	//current[0] = 0;
-	//flux[0] = 0;
-
-	//bool stopflag = false;
-	//for (int i = 1; i < n; ++i) {
-	//	cout << "solve step " << i << "...\n";
-
-	//	acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
-	//	if (acc[i] < 0) acc[i] = 0;
-	//	velocity[i] = velocity[i - 1] + h * acc[i - 1];
-	//	dis[i] = dis[i - 1] + h * velocity[i - 1];
-
-	//	if (dis[i] >= 0.0024) {
-	//		dis[i] = 0.0024;
-	//		if (stopflag == false) {
-	//			stopflag = true;
-	//		}
-	//		else {
-	//			velocity[i] = 0;
-	//			acc[i] = 0;
-	//		}
-	//	}
-
-
-
-	//	//梯形法计算
-	//	//springforce[i] = solveSpringForce(1, dis[i]);
-	//	//acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
-	//	//if (acc[i] < 0) acc[i] = 0;
-	//	//velocity[i] = velocity[i - 1] + 0.5 * h * (acc[i] + acc[i - 1]);
-	//	//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
-
-	//	//后向欧拉法计算
-	//	springforce[i] = solveSpringForce(1, dis[i]);
-	//	acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
-	//	if (acc[i] < 0) acc[i] = 0;
-	//	velocity[i] = velocity[i - 1] + h * acc[i];
-	//	dis[i] = dis[i - 1] + h * velocity[i];
-
-	//	if (dis[i] >= 0.0024) {
-	//		dis[i] = 0.0024;
-	//		if (stopflag == false) {
-	//			stopflag = true;
-	//		}
-	//		else {
-	//			velocity[i] = 0;
-	//			acc[i] = 0;
-	//		}
-	//	}
-
-	//	//当前位置时的磁场-电路耦合
-	//	meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
-	//	//meshmanager->readMeshFile();
-	//	setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-	//	setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-	//	setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-	//	setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-	//	//updateLoadmap(3, current[i]);
-	//	//solveStatic();
-	//	solveWeakCouple(i);
-	//	solveMagneticForce();
-	//	magneticforce[i] = Fy;
-	//	springforce[i] = solveSpringForce(1, dis[i]);
-
-	//	printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
-	//}
-
-	//for (int i = 0; i < n; ++i) {
-	//	printf("time: %f, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f, current: %f, flux: %f\n", i * h, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i], current[i], flux[i]);
-	//}
-
-	////写入结果文件
-	//char fn[256];
-	//sprintf(fn, "%s.m", "RelayDynamic");
-	//FILE* fp;
-	//fp = fopen(fn, "w");
-	//fprintf(fp, "%%output by FEEM\n");
-	//fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
-
-	//fprintf(fp, "results = [\n");
-	//for (int i = 0; i < n; ++i) {
-	//	fprintf(fp, "%10.8e,", i * h);
-	//	fprintf(fp, "%10.8e,", dis[i]);
-	//	fprintf(fp, "%10.8e,", velocity[i]);
-	//	fprintf(fp, "%10.8e,", acc[i]);
-	//	fprintf(fp, "%10.8e,", magneticforce[i]);
-	//	fprintf(fp, "%10.8e,", current[i]);
-	//	fprintf(fp, "%10.8e,", flux[i]);
-	//	fprintf(fp, "; \n");
-	//}
-	//fprintf(fp, "];\n");
-
-	//fprintf(fp, "subplot(2,3,1);hold on;\n");
-	//fprintf(fp, "plot(results(:,1),results(:,2),'*-');\n");
-	////fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
-	//fprintf(fp, "title(\"%s\");\n\n", "displacement");
-
-	//fprintf(fp, "subplot(2,3,2);hold on;\n");
-	//fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
-	//fprintf(fp, "title(\"%s\");\n\n", "velocities");
-
-	//fprintf(fp, "subplot(2,3,3);hold on;\n");
-	//fprintf(fp, "plot(results(:,1),results(:,4),'*-');\n");
-	//fprintf(fp, "title(\"%s\");\n\n", "accelerations");
-
-	//fprintf(fp, "subplot(2,3,4);hold on;\n");
-	//fprintf(fp, "plot(results(:,1),results(:,5),'*-');\n");
-	//fprintf(fp, "title(\"%s\");\n\n", "magforces");
-
-	//fprintf(fp, "subplot(2,3,5);hold on;\n");
-	//fprintf(fp, "plot(results(:,1),results(:,6),'*-');\n");
-	////fprintf(fp, "plot(results(:,1),results(:,9),'*-');\n");
-	//fprintf(fp, "title(\"%s\");\n\n", "ICoil");
-
-	//fprintf(fp, "subplot(2,3,6);hold on;\n");
-	//fprintf(fp, "plot(results(:,1),results(:,7),'*-');\n");
-	//fprintf(fp, "title(\"%s\");\n", "PhiCoil");
-
-	//fclose(fp);
-
-	//delete[] flux;
-	//delete[] springforce;
-	//delete[] magneticforce;
-	//delete[] acc;
-	//delete[] velocity;
-	//delete[] dis;
-	//delete[] current;
-
-	//string name = "RelayDynamic";
-	//cout << "void FEM2DNRSolver::solveDynamic()" << endl;
-	//const int n = 11;
-	//double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015 };
-	//double force[n + 1];
-	//vector<int> air_domain{ 4, 5, 6, 7 };
-	//for (int i = 0; i < n; ++i) {
-	//	cout << "solve step " << i + 1 << "...\n";
-	//	//meshmanager->remesh(name, i, 0, dis[i]);
-	//	string meshfilename = "D:/femplatform/model/geo/modelcomsol_static/modelwithband_";
-	//	meshfilename += to_string(i) + ".mphtxt";
-	//	cout << "meshfilename: " << meshfilename << endl;
-	//	meshmanager->readMeshFile(meshfilename);
-	//	setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-	//	setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-	//	setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-	//	setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-	//	solveStatic();
-	//	solveMagneticForce();
-	//	//solveMagneticForce1();
-	//	force[i] = Fy;
-	//	writeVtkFile(name + "_" + to_string(i));
-	//	writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
-	//	cout << "step " << i + 1 << " solve finish.\n\n";
-	//}
-
-	//for (int i = 0; i < n; ++i) {
-	//	cout << "i: " << i << ", Fy: " << force[i] << endl;
-	//}
-
-	//COMSOL动态特性
+	//电磁吸力、加速度、速度、位移测试
 	string name = "RelayDynamic";
 
 	const int n = 101;
@@ -222,25 +43,17 @@ void FEM2DNRSolver::solveDynamic()
 	h = 5e-4;
 	U = 24;
 	R = 40;
-	int dynamicstepsarray[n];
-	double time[n];
 
 	dis[0] = 0;
 	velocity[0] = 0;
 	acc[0] = 0;
-	springforce[0] = solveSpringForce(4, 0);
+	springforce[0] = solveSpringForce(1, 0);
 	magneticforce[0] = 0;
 	current[0] = 0;
 	flux[0] = 0;
-	dynamicstepsarray[0] = 0;
-	time[0] = 0;
 
 	bool stopflag = false;
-	vector<int> air_domain{ 1, 2, 3, 6 };
 	for (int i = 1; i < n; ++i) {
-		dynamicsteps = 0;
-		clock_t start, end;
-		start = clock();
 		cout << "solve step " << i << "...\n";
 
 		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
@@ -269,7 +82,7 @@ void FEM2DNRSolver::solveDynamic()
 		//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
 
 		//后向欧拉法计算
-		springforce[i] = solveSpringForce(4, dis[i]);
+		springforce[i] = solveSpringForce(1, dis[i]);
 		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
 		if (acc[i] < 0) acc[i] = 0;
 		velocity[i] = velocity[i - 1] + h * acc[i];
@@ -287,29 +100,19 @@ void FEM2DNRSolver::solveDynamic()
 		}
 
 		//当前位置时的磁场-电路耦合
-		//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
-		if (dis[i] - dis[i - 1] != 0) {
-			string meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NR/modelwithband_";
-			meshfile += to_string(i) + ".mphtxt";
-			meshmanager->readMeshFile(meshfile);
-			setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-			setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-			setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-			setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-		}
+		meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
+		//meshmanager->readMeshFile();
+		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
 		//updateLoadmap(3, current[i]);
 		//solveStatic();
 		solveWeakCouple(i);
 		solveMagneticForce();
 		magneticforce[i] = Fy;
-		springforce[i] = solveSpringForce(4, dis[i]);
-		writeVtkFile(name + "_" + to_string(i));
-		writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
+		springforce[i] = solveSpringForce(1, dis[i]);
 
-		dynamicstepsarray[i] = dynamicsteps;
-		end = clock();
-		time[i] = double(end - start) / CLOCKS_PER_SEC;
-		printf("dynamicsteps: %d, time: %f\n", dynamicstepsarray[i], time[i]);
 		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
 	}
 
@@ -323,7 +126,7 @@ void FEM2DNRSolver::solveDynamic()
 	FILE* fp;
 	fp = fopen(fn, "w");
 	fprintf(fp, "%%output by FEEM\n");
-	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux, steps, time\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
 
 	fprintf(fp, "results = [\n");
 	for (int i = 0; i < n; ++i) {
@@ -334,8 +137,6 @@ void FEM2DNRSolver::solveDynamic()
 		fprintf(fp, "%10.8e,", magneticforce[i]);
 		fprintf(fp, "%10.8e,", current[i]);
 		fprintf(fp, "%10.8e,", flux[i]);
-		fprintf(fp, "%d,", dynamicstepsarray[i]);
-		fprintf(fp, "%10.8e,", time[i]);
 		fprintf(fp, "; \n");
 	}
 	fprintf(fp, "];\n");
@@ -375,6 +176,205 @@ void FEM2DNRSolver::solveDynamic()
 	delete[] velocity;
 	delete[] dis;
 	delete[] current;
+
+	//string name = "RelayDynamic";
+	//cout << "void FEM2DNRSolver::solveDynamic()" << endl;
+	//const int n = 11;
+	//double dis[n] = { 0, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00025, 0.00015 };
+	//double force[n + 1];
+	//vector<int> air_domain{ 4, 5, 6, 7 };
+	//for (int i = 0; i < n; ++i) {
+	//	cout << "solve step " << i + 1 << "...\n";
+	//	//meshmanager->remesh(name, i, 0, dis[i]);
+	//	string meshfilename = "D:/femplatform/model/geo/modelcomsol_static/modelwithband_";
+	//	meshfilename += to_string(i) + ".mphtxt";
+	//	cout << "meshfilename: " << meshfilename << endl;
+	//	meshmanager->readMeshFile(meshfilename);
+	//	setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+	//	setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+	//	setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+	//	setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+	//	solveStatic();
+	//	solveMagneticForce();
+	//	//solveMagneticForce1();
+	//	force[i] = Fy;
+	//	writeVtkFile(name + "_" + to_string(i));
+	//	writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
+	//	cout << "step " << i + 1 << " solve finish.\n\n";
+	//}
+
+	//for (int i = 0; i < n; ++i) {
+	//	cout << "i: " << i << ", Fy: " << force[i] << endl;
+	//}
+
+	////COMSOL动态特性
+	//string name = "RelayDynamic";
+
+	//const int n = 101;
+	//current = new double[n];
+	//dis = new double[n];
+	//velocity = new double[n];
+	//acc = new double[n];
+	//magneticforce = new double[n];
+	//springforce = new double[n];
+	//flux = new double[n];
+	//mass = 0.024;
+	//h = 5e-4;
+	//U = 24;
+	//R = 40;
+	//int dynamicstepsarray[n];
+	//double time[n];
+
+	//dis[0] = 0;
+	//velocity[0] = 0;
+	//acc[0] = 0;
+	//springforce[0] = solveSpringForce(4, 0);
+	//magneticforce[0] = 0;
+	//current[0] = 0;
+	//flux[0] = 0;
+	//dynamicstepsarray[0] = 0;
+	//time[0] = 0;
+
+	//bool stopflag = false;
+	//vector<int> air_domain{ 1, 2, 3, 6 };
+	//for (int i = 1; i < n; ++i) {
+	//	dynamicsteps = 0;
+	//	clock_t start, end;
+	//	start = clock();
+	//	cout << "solve step " << i << "...\n";
+
+	//	acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+	//	if (acc[i] < 0) acc[i] = 0;
+	//	velocity[i] = velocity[i - 1] + h * acc[i - 1];
+	//	dis[i] = dis[i - 1] + h * velocity[i - 1];
+
+	//	if (dis[i] >= 0.0024) {
+	//		dis[i] = 0.0024;
+	//		if (stopflag == false) {
+	//			stopflag = true;
+	//		}
+	//		else {
+	//			velocity[i] = 0;
+	//			acc[i] = 0;
+	//		}
+	//	}
+
+
+
+	//	//梯形法计算
+	//	//springforce[i] = solveSpringForce(1, dis[i]);
+	//	//acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+	//	//if (acc[i] < 0) acc[i] = 0;
+	//	//velocity[i] = velocity[i - 1] + 0.5 * h * (acc[i] + acc[i - 1]);
+	//	//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
+
+	//	//后向欧拉法计算
+	//	springforce[i] = solveSpringForce(4, dis[i]);
+	//	acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+	//	if (acc[i] < 0) acc[i] = 0;
+	//	velocity[i] = velocity[i - 1] + h * acc[i];
+	//	dis[i] = dis[i - 1] + h * velocity[i];
+
+	//	if (dis[i] >= 0.0024) {
+	//		dis[i] = 0.0024;
+	//		if (stopflag == false) {
+	//			stopflag = true;
+	//		}
+	//		else {
+	//			velocity[i] = 0;
+	//			acc[i] = 0;
+	//		}
+	//	}
+
+	//	//当前位置时的磁场-电路耦合
+	//	//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
+	//	if (dis[i] - dis[i - 1] != 0) {
+	//		string meshfile = "../model/geo/modelcomsol_dynamic_NR/modelwithband_";
+	//		meshfile += to_string(i) + ".mphtxt";
+	//		meshmanager->readMeshFile(meshfile);
+	//		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+	//		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+	//		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+	//		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+	//	}
+	//	//updateLoadmap(3, current[i]);
+	//	//solveStatic();
+	//	solveWeakCouple(i);
+	//	solveMagneticForce();
+	//	magneticforce[i] = Fy;
+	//	springforce[i] = solveSpringForce(4, dis[i]);
+	//	writeVtkFile(name + "_" + to_string(i));
+	//	writeVtkFileNoAir(name + "_" + to_string(i), air_domain);
+
+	//	dynamicstepsarray[i] = dynamicsteps;
+	//	end = clock();
+	//	time[i] = double(end - start) / CLOCKS_PER_SEC;
+	//	printf("dynamicsteps: %d, time: %f\n", dynamicstepsarray[i], time[i]);
+	//	printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
+	//}
+
+	//for (int i = 0; i < n; ++i) {
+	//	printf("time: %f, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f, current: %f, flux: %f\n", i * h, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i], current[i], flux[i]);
+	//}
+
+	////写入结果文件
+	//char fn[256];
+	//sprintf(fn, "%s.m", "RelayDynamic");
+	//FILE* fp;
+	//fp = fopen(fn, "w");
+	//fprintf(fp, "%%output by FEEM\n");
+	//fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux, steps, time\n");
+
+	//fprintf(fp, "results = [\n");
+	//for (int i = 0; i < n; ++i) {
+	//	fprintf(fp, "%10.8e,", i * h);
+	//	fprintf(fp, "%10.8e,", dis[i]);
+	//	fprintf(fp, "%10.8e,", velocity[i]);
+	//	fprintf(fp, "%10.8e,", acc[i]);
+	//	fprintf(fp, "%10.8e,", magneticforce[i]);
+	//	fprintf(fp, "%10.8e,", current[i]);
+	//	fprintf(fp, "%10.8e,", flux[i]);
+	//	fprintf(fp, "%d,", dynamicstepsarray[i]);
+	//	fprintf(fp, "%10.8e,", time[i]);
+	//	fprintf(fp, "; \n");
+	//}
+	//fprintf(fp, "];\n");
+
+	//fprintf(fp, "subplot(2,3,1);hold on;\n");
+	//fprintf(fp, "plot(results(:,1),results(:,2),'*-');\n");
+	////fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	//fprintf(fp, "title(\"%s\");\n\n", "displacement");
+
+	//fprintf(fp, "subplot(2,3,2);hold on;\n");
+	//fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	//fprintf(fp, "title(\"%s\");\n\n", "velocities");
+
+	//fprintf(fp, "subplot(2,3,3);hold on;\n");
+	//fprintf(fp, "plot(results(:,1),results(:,4),'*-');\n");
+	//fprintf(fp, "title(\"%s\");\n\n", "accelerations");
+
+	//fprintf(fp, "subplot(2,3,4);hold on;\n");
+	//fprintf(fp, "plot(results(:,1),results(:,5),'*-');\n");
+	//fprintf(fp, "title(\"%s\");\n\n", "magforces");
+
+	//fprintf(fp, "subplot(2,3,5);hold on;\n");
+	//fprintf(fp, "plot(results(:,1),results(:,6),'*-');\n");
+	////fprintf(fp, "plot(results(:,1),results(:,9),'*-');\n");
+	//fprintf(fp, "title(\"%s\");\n\n", "ICoil");
+
+	//fprintf(fp, "subplot(2,3,6);hold on;\n");
+	//fprintf(fp, "plot(results(:,1),results(:,7),'*-');\n");
+	//fprintf(fp, "title(\"%s\");\n", "PhiCoil");
+
+	//fclose(fp);
+
+	//delete[] flux;
+	//delete[] springforce;
+	//delete[] magneticforce;
+	//delete[] acc;
+	//delete[] velocity;
+	//delete[] dis;
+	//delete[] current;
 }
 
 void FEM2DNRSolver::solve2DAxim()

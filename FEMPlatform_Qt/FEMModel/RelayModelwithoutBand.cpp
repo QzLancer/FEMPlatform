@@ -13,7 +13,7 @@ void RelayModelwithoutBand::setDimension()
 void RelayModelwithoutBand::setFile()
 {
 	//geofile = "D:/femplatform/model/qzlancer_model2.geo";
-	meshfile = "D:/femplatform/model/geo/modelcomsol_dynamic_NR/modelwithband_0.mphtxt";
+	meshfile = "../model/modelwithband_0.mphtxt";
 }
 
 void RelayModelwithoutBand::createElement2Material()

@@ -12,7 +12,7 @@ void RelayDynamicModel::setDimension()
 
 void RelayDynamicModel::setFile()
 {
-	geofile = "D:/femplatform/model/modelwithband.geo";
+	geofile = "../model/modelwithband.geo";
 }
 
 void RelayDynamicModel::createElement2Material()

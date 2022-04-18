@@ -74,7 +74,7 @@ void FEMMeshManager::meshUnitConvert(double unitratio)
 
 void FEMMeshManager::remesh(string filename, int current_step, double dx, double dy)
 {
-	meshfile = "D:/femplatform/model/" + filename + "_" + to_string(current_step) + ".msh";
+	meshfile = "../model/" + filename + "_" + to_string(current_step) + ".msh";
 	/** 未发生位移就不要分了 **/
 	if (fabs(dx) < 1e-10 && fabs(dy) < 1e-10) {
 		printf("Skipping remeshing.\n");
