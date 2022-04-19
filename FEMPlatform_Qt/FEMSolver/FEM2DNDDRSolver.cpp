@@ -1892,6 +1892,7 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 			//-------------Get RHS
 			RHS = 0;
 
+			//-----------------------------------这一部分存在的意义是什么？得到的结果全是0
 			//边界上的全部节点的SumRHSContri之和
 			for (i = 0; i < mp_node[n].NumNeiborNodes; ++i) {
 				NeiborID = mp_node[n].NeiborNode[i];
@@ -1909,6 +1910,8 @@ void FEM2DNDDRSolver::UpdateSolutiontoA1()
 					}
 				}
 			}
+			//-----------------------------------------------------------------------
+			//cout << "n: " << n << ", RHS: " << RHS << endl;
 
 			RHS = (RHS + mp_node[n].SumNeiborJsSum) / Gamma + mp_node[n].JsSum;
 
