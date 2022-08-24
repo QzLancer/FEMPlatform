@@ -47,7 +47,7 @@ void FEM2DNRSolver::solveDynamic()
 	dis[0] = 0;
 	velocity[0] = 0;
 	acc[0] = 0;
-	springforce[0] = solveSpringForce(1, 0);
+	springforce[0] = solveSpringForce(/*1*/4, 0);
 	magneticforce[0] = 0;
 	current[0] = 0;
 	flux[0] = 0;
@@ -82,7 +82,7 @@ void FEM2DNRSolver::solveDynamic()
 		//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
 
 		//后向欧拉法计算
-		springforce[i] = solveSpringForce(1, dis[i]);
+		springforce[i] = solveSpringForce(/*1*/4, dis[i]);
 		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
 		if (acc[i] < 0) acc[i] = 0;
 		velocity[i] = velocity[i - 1] + h * acc[i];
@@ -99,19 +99,29 @@ void FEM2DNRSolver::solveDynamic()
 			}
 		}
 
-		//当前位置时的磁场-电路耦合
-		meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
-		//meshmanager->readMeshFile();
-		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		////Gmsh重分网
+		//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
+		////meshmanager->readMeshFile();
+		//setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		//setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		//setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		//setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		//读取COMSOL分网
+		if (dis[i] - dis[i - 1] != 0) {
+			string meshfile = "../model/geo/modelcomsol_dynamic_NR/modelwithband_";
+			meshfile += to_string(i) + ".mphtxt";
+			meshmanager->readMeshFile(meshfile);
+			setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+			setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+			setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+			setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		}
 		//updateLoadmap(3, current[i]);
 		//solveStatic();
 		solveWeakCouple(i);
 		solveMagneticForce();
 		magneticforce[i] = Fy;
-		springforce[i] = solveSpringForce(1, dis[i]);
+		springforce[i] = solveSpringForce(/*1*/4, dis[i]);
 
 		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
 	}
@@ -288,15 +298,15 @@ void FEM2DNRSolver::solveDynamic()
 
 	//	//当前位置时的磁场-电路耦合
 	//	//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
-	//	if (dis[i] - dis[i - 1] != 0) {
-	//		string meshfile = "../model/geo/modelcomsol_dynamic_NR/modelwithband_";
-	//		meshfile += to_string(i) + ".mphtxt";
-	//		meshmanager->readMeshFile(meshfile);
-	//		setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
-	//		setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
-	//		setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
-	//		setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
-	//	}
+		//if (dis[i] - dis[i - 1] != 0) {
+		//	string meshfile = "../model/geo/modelcomsol_dynamic_NR/modelwithband_";
+		//	meshfile += to_string(i) + ".mphtxt";
+		//	meshmanager->readMeshFile(meshfile);
+		//	setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		//	setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		//	setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		//	setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		//}
 	//	//updateLoadmap(3, current[i]);
 	//	//solveStatic();
 	//	solveWeakCouple(i);

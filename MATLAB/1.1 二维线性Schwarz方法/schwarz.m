@@ -182,11 +182,11 @@ for iter = 1:200
 %         errorSid{d} = d_node_reorder{d}(errorSid{d});
 % %         plot(Coor(d_nodeid{d}(errorrow{d}),1), Coor(d_nodeid{d}(errorrow{d}),2), '.r');
 % %         hold on;
-        %--------------------------------------对比C++计算的S和MATLAB计算的F，对比错误的节点位置
-        deltaF{d} = F-CF{d};
-        deltaF{d}(deltaF{d} < 1e-5) = 0;
-        errorFreorder{d} = find(deltaF{d} ~= 0);
-        errorFid{d} = d_node_reorder{d}(errorFid{d});
+%         %--------------------------------------对比C++计算的S和MATLAB计算的F，对比错误的节点位置
+%         deltaF{d} = F-CF{d};
+%         deltaF{d}(deltaF{d} < 1e-5) = 0;
+%         errorFreorder{d} = find(deltaF{d} ~= 0);
+%         errorFid{d} = d_node_reorder{d}(errorFid{d});
     end
     %--------------------------------子域结果整合到全局
     for d = 1:4

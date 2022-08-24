@@ -60,7 +60,163 @@ void FEM2DSchwarzSolver::solveStatic()
 
 void FEM2DSchwarzSolver::solveDynamic()
 {
-	generateMetisMesh();
+	//电磁吸力、加速度、速度、位移测试
+	string name = "RelayDynamic";
+
+	const int n = 101;
+	current = new double[n];
+	dis = new double[n];
+	velocity = new double[n];
+	acc = new double[n];
+	magneticforce = new double[n];
+	springforce = new double[n];
+	flux = new double[n];
+	mass = 0.024;
+	h = 5e-4;
+	U = 24;
+	R = 40;
+
+	dis[0] = 0;
+	velocity[0] = 0;
+	acc[0] = 0;
+	springforce[0] = solveSpringForce(1, 0);
+	magneticforce[0] = 0;
+	current[0] = 0;
+	flux[0] = 0;
+
+	bool stopflag = false;
+	for (int i = 1; i < n; ++i) {
+		cout << "solve step " << i << "...\n";
+
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i - 1];
+		dis[i] = dis[i - 1] + h * velocity[i - 1];
+
+		if (dis[i] >= 0.0024) {
+			dis[i] = 0.0024;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+
+
+		//梯形法计算
+		//springforce[i] = solveSpringForce(1, dis[i]);
+		//acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		//if (acc[i] < 0) acc[i] = 0;
+		//velocity[i] = velocity[i - 1] + 0.5 * h * (acc[i] + acc[i - 1]);
+		//dis[i] = dis[i - 1] + 0.5 * h * (velocity[i] + velocity[i - 1]);
+
+		//后向欧拉法计算
+		springforce[i] = solveSpringForce(1, dis[i]);
+		acc[i] = (magneticforce[i - 1] + springforce[i - 1]) / mass;
+		if (acc[i] < 0) acc[i] = 0;
+		velocity[i] = velocity[i - 1] + h * acc[i];
+		dis[i] = dis[i - 1] + h * velocity[i];
+
+		if (dis[i] >= 0.0024) {
+			dis[i] = 0.0024;
+			if (stopflag == false) {
+				stopflag = true;
+			}
+			else {
+				velocity[i] = 0;
+				acc[i] = 0;
+			}
+		}
+
+		////Gmsh重分网
+		//meshmanager->remesh(name, i, 0, dis[i] - dis[i - 1]);
+		//setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+		//setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+		//setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+		//setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		//读取COMSOL分网
+		if (dis[i] - dis[i - 1] != 0) {
+			string meshfile = "../model/geo/modelcomsol_dynamic_NR/modelwithband_";
+			meshfile += to_string(i) + ".mphtxt";
+			meshmanager->readMeshFile(meshfile);
+			setNodes(meshmanager->getNumofNodes(), meshmanager->getNodes());
+			setVtxElements(meshmanager->getNumofVtxEle(), meshmanager->getVtxElements());
+			setEdgElements(meshmanager->getNumofEdgEle(), meshmanager->getEdgElements());
+			setTriElements(meshmanager->getNumofTriEle(), meshmanager->getTriElements());
+		}
+		//updateLoadmap(3, current[i]);
+		//solveStatic();
+		solveWeakCouple(i);
+		solveMagneticForce();
+		magneticforce[i] = Fy;
+		springforce[i] = solveSpringForce(1, dis[i]);
+
+		printf("step: %d, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f\n\n", i, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i]);
+	}
+
+	for (int i = 0; i < n; ++i) {
+		printf("time: %f, dis: %f, velocity: %f, acc: %f, springforce: %f, magneticforce: %f, current: %f, flux: %f\n", i * h, dis[i], velocity[i], acc[i], springforce[i], magneticforce[i], current[i], flux[i]);
+	}
+
+	//写入结果文件
+	char fn[256];
+	sprintf(fn, "%s.m", "RelayDynamic");
+	FILE* fp;
+	fp = fopen(fn, "w");
+	fprintf(fp, "%%output by FEEM\n");
+	fprintf(fp, "%%timesteps, displacements, velocities, accelerations, magneticforce, current, flux\n");
+
+	fprintf(fp, "results = [\n");
+	for (int i = 0; i < n; ++i) {
+		fprintf(fp, "%10.8e,", i * h);
+		fprintf(fp, "%10.8e,", dis[i]);
+		fprintf(fp, "%10.8e,", velocity[i]);
+		fprintf(fp, "%10.8e,", acc[i]);
+		fprintf(fp, "%10.8e,", magneticforce[i]);
+		fprintf(fp, "%10.8e,", current[i]);
+		fprintf(fp, "%10.8e,", flux[i]);
+		fprintf(fp, "; \n");
+	}
+	fprintf(fp, "];\n");
+
+	fprintf(fp, "subplot(2,3,1);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,2),'*-');\n");
+	//fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "displacement");
+
+	fprintf(fp, "subplot(2,3,2);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,3),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "velocities");
+
+	fprintf(fp, "subplot(2,3,3);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,4),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "accelerations");
+
+	fprintf(fp, "subplot(2,3,4);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,5),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "magforces");
+
+	fprintf(fp, "subplot(2,3,5);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,6),'*-');\n");
+	//fprintf(fp, "plot(results(:,1),results(:,9),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n\n", "ICoil");
+
+	fprintf(fp, "subplot(2,3,6);hold on;\n");
+	fprintf(fp, "plot(results(:,1),results(:,7),'*-');\n");
+	fprintf(fp, "title(\"%s\");\n", "PhiCoil");
+
+	fclose(fp);
+
+	delete[] flux;
+	delete[] springforce;
+	delete[] magneticforce;
+	delete[] acc;
+	delete[] velocity;
+	delete[] dis;
+	delete[] current;
 }
 
 void FEM2DSchwarzSolver::processBoundaryCondition()
@@ -416,6 +572,8 @@ void FEM2DSchwarzSolver::solve2DAximNonlinear()
 {
 		//每个子域进行分析
 //#pragma omp parallel for num_threads(numofdomain)
+	FILE* fp;
+	fp = fopen("../matrix/SchwartzConvergence.csv", "w+");
 	for (int outeriter = 0; outeriter < 1000; ++outeriter) {
 		int count = 0;
 		vector<vector<double>> res(numofdomain);
@@ -590,6 +748,7 @@ void FEM2DSchwarzSolver::solve2DAximNonlinear()
 		}
 		error = sqrt(a) / sqrt(b);
 		printf("**************************************************\n");
+		fprintf(fp, "%f\n", error);
 		printf("Outer Iteration step: %d, error = %f\n", outeriter, error);
 		printf("**************************************************\n");
 		char str[128];
@@ -613,4 +772,5 @@ void FEM2DSchwarzSolver::solve2DAximNonlinear()
 			break;
 		}
 	}
+	fclose(fp);
 }

@@ -2,6 +2,7 @@
 
 #include <string>
 
+/// @brief 边界条件类，目前只支持轴对称边界和自由边界条件（有限元分析中采用将节点自由度直接赋值为0的计算方法）
 class FEMBoundary
 {
 public:

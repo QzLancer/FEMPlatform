@@ -13,7 +13,7 @@ void RelayModelwithoutBand::setDimension()
 void RelayModelwithoutBand::setFile()
 {
 	//geofile = "D:/femplatform/model/qzlancer_model2.geo";
-	meshfile = "../model/modelwithband_0.mphtxt";
+	meshfile = "../model/geo/modelcomsol_dynamic_NR/modelwithband_0.mphtxt";
 }
 
 void RelayModelwithoutBand::createElement2Material()
@@ -22,7 +22,7 @@ void RelayModelwithoutBand::createElement2Material()
 	addLinearMaterial("Iron", 300 * 4 * PI * 1e-7);
 	double* bdata = new double[] { 0, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4};
 	double* hdata = new double[] { 0, 663.146, 1067.5, 1705.23, 2463.11, 3841.67, 5425.74, 7957.75, 12298.3, 20462.8, 32169.6, 61213.4, 111408, 175070, 261469, 318310 };
-	addNonlinearMaterial("Soft Iron1", 16, bdata, hdata);
+	addNonlinearMaterial("Soft Iron", 16, bdata, hdata);
 
 	FEMCoil coil;
 	coil.xyz = 1;

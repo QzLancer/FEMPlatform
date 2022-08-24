@@ -27,13 +27,25 @@ class FEMSolver
 public:
 	FEMSolver();
 	virtual ~FEMSolver();
+
+	/// @brief 静态特性计算
 	virtual void solveStatic() = 0;
+
+	/// @brief 动态特性计算
 	virtual void solveDynamic() = 0;
+
+	/// @brief 计算电磁力
 	virtual void solveMagneticForce() = 0;
 	virtual void solveMagneticForce1() = 0;
 
+	/// @brief 设置求解策略，目前没用上
+	/// @param _strategy 
 	void setSolveStrategy(FEMSolveStrategy* _strategy);
+
+	/// @brief 设置矩阵求解器
+	/// @param _matsolver 
 	void setMatrixSolver(MatrixSolver* const _matsolver);
+
 	void setModelName(const std::string _modelname);
 	virtual void setNodes(const int _numofnodes, CNode* const _nodes);
 	virtual void setVtxElements(const int _numofvtx, CVtxElement* const _vtxele);
@@ -44,13 +56,36 @@ public:
 	void setBoundary(const std::map<int, FEMBoundary*> _boundarymap);
 	void setMaxIterSteps(const int _maxitersteps);
 	void setMaxError(const double _error);
+
+	/// @brief 求解结果写入vtk文件
+	/// @param _name 文件名称
 	void writeVtkFile(std::string _name);
+
+	/// @brief 求解结果写入txt文件
+	/// @param _name 文件名称
 	void writeTxtFile(std::string _name);
+
+	/// @brief 除空气域之外的求解结果写入vtk文件
+	/// @param _name 文件名称
+	/// @param air_domain 空气域
 	void writeVtkFileNoAir(std::string _name, vector<int> air_domain);
+
+	/// @brief 将几何写入vtk文件，实际上写入的是线单元
+	/// @param _name 文件名称
 	void writeGeometryVtkFile(std::string _name);
+
+	/// @brief 设置重分网区域
+	/// @param _deformedlist 重分网区域列表
 	virtual void setDeformedDomain(const std::vector<int> _deformedlist);
+
+	/// @brief 设置运动区域
+	/// @param _movingmap 运动区域到运动属性的映射关系
 	virtual void setMovingPart(const std::map<int, FEMMovingPart*> _movingmap);
 	void setMeshManager(FEMMeshManager* _meshmanager);
+
+	/// @brief 更新电流（动态特性计算用到）
+	/// @param domain 几何区域
+	/// @param current 电流大小
 	void updateLoadmap(int domain, double current);
 
 	//std::vector<double> getA() const;

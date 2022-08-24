@@ -459,7 +459,7 @@ __global__ void nodeAnalysisAxism(int d_m_num_nodes, CNode* d_mp_node, CTriEleme
 	if (d_mp_node[n].bdr == 1)
 		return;
 	//节点内部迭代过程
-	int maxNRitersteps = 100;
+	int maxNRitersteps = 1;
 	double Ati = 0;
 	for (int NRiter = 0; NRiter < maxNRitersteps; ++NRiter) {
 		double S = 0, F = 0;

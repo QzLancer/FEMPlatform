@@ -329,10 +329,10 @@ void FEM2DSolver::solveWeakCouple(int step)
 	int maxstep = 20;
 
 	for (int i = 0; i < maxstep; ++i) {
-		updateLoadmap(3/*7*/, i_tmp);	//这里应该给压缩空气所在域的编号
+		updateLoadmap(/*3*/7, i_tmp);
 		solveStatic();
 		dynamicsteps += staticsteps;
-		flux_tmp = solveFlux(3/*7*/);
+		flux_tmp = solveFlux(/*3*/7);
 		L_tmp = flux_tmp / i_tmp;
 		dfluxdt = (flux_tmp - flux[step - 1]) / h;
 		f = i_tmp * R + dfluxdt - U;

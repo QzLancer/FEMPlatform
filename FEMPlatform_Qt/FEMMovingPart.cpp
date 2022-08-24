@@ -41,6 +41,7 @@ void FEMMovingPart::setSpringForce(int _nodesize, double* _pos, double* _force)
 
 double FEMMovingPart::getSpringForce(const double _pos) const
 {
+	//分段线性插值
 	if (_pos > position[forcenodesize - 1]) {
 		int  i = forcenodesize - 1;
 		double k = (force[i] - force[i - 1]) / (position[i] - position[i - 1]);

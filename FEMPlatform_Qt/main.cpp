@@ -12,8 +12,8 @@
 #include <time.h>
 #include <direct.h>
 
-std::string analysistype = "dynamic";
-std::string solvestrategy = "NR";
+std::string analysistype = "static";
+std::string solvestrategy = "NDDR";
 std::string matrixsolver = "SuperLU_MT";
 
 int maxitersteps = 1000;
@@ -21,25 +21,13 @@ double maxerror = 1e-5;
 
 int main(int argc, char *argv[])
 {
-    //QCoreApplication a(argc, argv);
-
-    /*
-    Model:
-        FEMContactorLinearModel
-        FEMContactorNonLinearModel
-        RelayModelwithoutBand
-        FEMRelay1250Model
-        RelayDynamicModel
-        RelayModelwithoutBand
-    */
-    // SoftIron1 对应的是师兄的BH曲线
 
     char* buffer = getcwd(NULL, 0);
     printf("%s\n", buffer);
     free(buffer);
 
-    FEMCore core;
-    FEMModel* model = new RelayDynamicModel;
+    FEMCore core;      
+    FEMModel* model = new RelayModelwithoutBand;
     model->init();
 
     core.setModel(model);
