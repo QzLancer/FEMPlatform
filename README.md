@@ -97,7 +97,7 @@ Qt安装时选择MSVC2019 64bit编译器
 ![](README_md_files/1daae700-23ac-11ed-8593-e54b1b5abc89.jpeg?v=1&type=image)
 
 ### 核心算法（NR、NDDR，静态特性及瞬态特性计算）
-参考硕士毕业论文：https://kns.cnki.net/kcms/detail/detail.aspx?dbcode=CJFD&dbname=CJFDLAST2022&filename=DYDQ202203005&uniplatform=NZKPT&v=Zn7YNEG8Ysb-w0uVsrl_sG-hRe24Nt72oCDJymOWh5fr1ip9osy3ev0g2andBLfw
+参考硕士毕业论文：https://kns.cnki.net/kcms2/article/abstract?v=3uoqIhG8C475KOm_zrgu4lQARvep2SAkueNJRSNVX-zc5TVHKmDNkn_cgVevTER5o8K00EeWCJqvqWb7Qp25O6Dvqiy495u9&uniplatform=NZKPT
 
 ### 基于.vtk的后处理
 
